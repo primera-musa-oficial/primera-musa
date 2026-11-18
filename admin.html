@@ -699,5 +699,35 @@ setInterval(() => {
   } catch (e) {}
 }, 1000);
 </script>
+<script id="syncBotDefinitivo">
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button");
+  if (!btn || !btn.innerText.includes("Asignar Bot")) return;
+  const card = btn.closest(".turno-card");
+  const sel = card ? card.querySelector("select") : null;
+  const elegido = sel ? sel.value.trim().toUpperCase() : "";
+  if (!elegido) return;
+
+  const txtCard = card.innerText || "";
+  const arr = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const it = arr.find(x => x.usuario && txtCard.includes(x.usuario));
+  if (!it) return;
+
+  it.bot_asignado = elegido;
+  it.activo = true;
+  it.proximo_bump_ms = Date.now() + 3000;
+  const base = String(it.ultimo_anuncio || "").replace(/\|?PAGINA:[^|]*/g, "");
+  it.ultimo_anuncio = base + "|PAGINA:" + elegido + "|PASO:4";
+  localStorage.setItem("cola_turnos_local", JSON.stringify(arr));
+
+  const urlSb = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado?on_conflict=clave";
+  const keySb = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  await fetch(urlSb, {
+    method: "POST",
+    headers: { "apikey": keySb, "Authorization": "Bearer " + keySb, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+    body: JSON.stringify([{ clave: "cola_turnos_local", datos: arr, actualizado_en: new Date().toISOString() }])
+  });
+});
+</script>
 </body>
 </html>
