@@ -131,6 +131,44 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
+<script id="ocultarBienvenidaRepetida">
+(function() {
+  if (localStorage.getItem("musa_bienvenida_navidad_vista") === "1") {
+    const st = document.createElement("style");
+    st.innerHTML = "#modalNavidad, #modalBienvenida, #modalIndicaciones, .modal-navidad, .modal-bienvenida { display: none !important; }";
+    document.head.appendChild(st);
+  }
+
+  function revisarModalesIniciales() {
+    const modales = Array.from(document.querySelectorAll("div[id*='modal' i], div[class*='modal' i], div[style*='position: fixed'], div[style*='position:fixed']"))
+      .filter(el => el.id !== "modalStoryMusaVip" && el.offsetParent !== null);
+
+    modales.forEach(m => {
+      const txt = (m.innerText || "").toLowerCase();
+      const esBienvenidaONavidad = txt.includes("navidad") || txt.includes("indicaciones") || txt.includes("bienvenid") || txt.includes("cómo funciona") || txt.includes("como funciona");
+      if (!esBienvenidaONavidad) return;
+
+      if (localStorage.getItem("musa_bienvenida_navidad_vista") === "1") {
+        m.style.display = "none";
+        return;
+      }
+
+      m.querySelectorAll("button").forEach(btn => {
+        if (!btn.dataset.hookPrimeraVez) {
+          btn.dataset.hookPrimeraVez = "1";
+          btn.addEventListener("click", () => {
+            localStorage.setItem("musa_bienvenida_navidad_vista", "1");
+          });
+        }
+      });
+    });
+  }
+
+  setInterval(revisarModalesIniciales, 300);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", revisarModalesIniciales);
+  else revisarModalesIniciales();
+})();
+</script>
 </head>
 <body>
 <div class="garland"><div class="bulb r"></div><div class="bulb g"></div><div class="bulb v"></div><div class="bulb r"></div><div class="bulb g"></div><div class="bulb v"></div><div class="bulb r"></div><div class="bulb g"></div></div>
