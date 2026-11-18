@@ -131,42 +131,38 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
+
 <script id="ocultarBienvenidaRepetida">
 (function() {
-  if (localStorage.getItem("musa_bienvenida_navidad_vista") === "1") {
-    const st = document.createElement("style");
-    st.innerHTML = "#modalNavidad, #modalBienvenida, #modalIndicaciones, .modal-navidad, .modal-bienvenida { display: none !important; }";
-    document.head.appendChild(st);
-  }
-
-  function revisarModalesIniciales() {
-    const modales = Array.from(document.querySelectorAll("div[id*='modal' i], div[class*='modal' i], div[style*='position: fixed'], div[style*='position:fixed']"))
-      .filter(el => el.id !== "modalStoryMusaVip" && el.offsetParent !== null);
-
-    modales.forEach(m => {
-      const txt = (m.innerText || "").toLowerCase();
-      const esBienvenidaONavidad = txt.includes("navidad") || txt.includes("indicaciones") || txt.includes("bienvenid") || txt.includes("cómo funciona") || txt.includes("como funciona");
-      if (!esBienvenidaONavidad) return;
-
-      if (localStorage.getItem("musa_bienvenida_navidad_vista") === "1") {
-        m.style.display = "none";
-        return;
-      }
-
-      m.querySelectorAll("button").forEach(btn => {
-        if (!btn.dataset.hookPrimeraVez) {
-          btn.dataset.hookPrimeraVez = "1";
-          btn.addEventListener("click", () => {
-            localStorage.setItem("musa_bienvenida_navidad_vista", "1");
-          });
+  const CLAVE = "musa_bienvenida_navidad_vista_v2";
+  function ocultarTodoAvisoInicial() {
+    document.querySelectorAll("div, section, aside").forEach(el => {
+      if (el.id === "modalStoryMusaVip" || el.closest("#modalStoryMusaVip")) return;
+      const st = window.getComputedStyle(el);
+      if (st.position === "fixed" && st.display !== "none") {
+        const t = (el.innerText || "").toLowerCase();
+        if (t.includes("navidad") || t.includes("indicaciones") || t.includes("bienvenid") || t.includes("okey") || t.includes("sistema")) {
+          el.style.setProperty("display", "none", "important");
         }
-      });
+      }
     });
   }
 
-  setInterval(revisarModalesIniciales, 300);
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", revisarModalesIniciales);
-  else revisarModalesIniciales();
+  if (localStorage.getItem(CLAVE) === "1") {
+    setInterval(ocultarTodoAvisoInicial, 150);
+    window.addEventListener("DOMContentLoaded", ocultarTodoAvisoInicial);
+  }
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn || btn.closest("#modalStoryMusaVip")) return;
+    const modalPadre = btn.closest("div[style*='fixed'], div[class*='modal' i], div[id*='modal' i]");
+    if (modalPadre) {
+      localStorage.setItem(CLAVE, "1");
+      modalPadre.style.setProperty("display", "none", "important");
+      setInterval(ocultarTodoAvisoInicial, 150);
+    }
+  }, true);
 })();
 </script>
 </head>
