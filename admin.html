@@ -547,7 +547,7 @@ async function refrescarBotsFijos() {
       box.innerHTML = '<span style="color:#94a3b8;">🚨 Ningún perfil de MegaPersonals activo (si cerraste la pestaña o sesión, ábrela).</span>';
       return;
     }
-    box.innerHTML = activos.sort().map(([cod, info]) => info && info.alerta ? `<span style="background:#991b1b;color:#fef08a;border:2px solid #f87171;padding:6px 14px;border-radius:20px;font-weight:900;">🚨 ${cod} • ${info.alerta}</span>` : `<span style="background:#065f46;color:#6ee7b7;border:1.5px solid #34d399;padding:6px 14px;border-radius:20px;font-weight:900;">🟢 ${cod} ONLINE</span>`).join("");
+    box.innerHTML = activos.sort().map(([cod, info]) => { const caido = !info || info.alerta || (Date.now() - Number(info.ts || 0)) > 45000; const msgR = (info && info.alerta) ? info.alerta : "Sin señal / Pestaña o proxy caído"; return caido ? `<span style="background:#991b1b;color:#fef08a;border:2px solid #f87171;padding:6px 14px;border-radius:20px;font-weight:900;">🚨 ${cod} • ${msgR}</span>` : `<span style="background:#065f46;color:#6ee7b7;border:1.5px solid #34d399;padding:6px 14px;border-radius:20px;font-weight:900;">🟢 ${cod} ONLINE</span>`; }).join("");
   } catch (e) {}
 }
 refrescarBotsFijos().then(() => { if (typeof cargarColaTurnos === "function") cargarColaTurnos(); });
@@ -809,7 +809,7 @@ setInterval(() => {
       const mm = String(Math.floor(segs / 60)).padStart(2, "0");
       const ss = String(segs % 60).padStart(2, "0");
       const sufijo = badge.innerText.includes("•") ? " •" + badge.innerText.split("•").slice(1).join("•") : "";
-      badge.innerText = `🚀 Bump: ${mm}:${ss}${sufijo}`;
+      const codB2 = String(c.bot_asignado || "").toUpperCase(); const infoB2 = window._mapaBotsLiveAdmin?.[codB2]; const caido2 = codB2 && (!infoB2 || (Date.now() - Number(infoB2.ts || 0)) > 45000 || infoB2.alerta); if (!caido2 && !c.error_publicacion) badge.innerText = `🚀 Bump: ${mm}:${ss}${sufijo}`;
     });
   } catch (e) {}
 }, 1000);
@@ -857,8 +857,19 @@ setInterval(() => {
     const infoB = window._mapaBotsLiveAdmin[codB];
     const caido = codB && (!infoB || (Date.now() - Number(infoB.ts || 0)) > 35000 || infoB.alerta);
     const badge = Array.from(card.querySelectorAll("span, div")).find(el => el.children.length === 0 && el.innerText.includes("Bump:"));
-    if (badge && (caido || c.error_publicacion)) {
-      badge.innerText = `🚨 Bump: 00:00 (${infoB?.alerta || "Pestaña/Sesión cerrada en " + codB})`;
+        if (badge && (caido || c.error_publicacion)) {
+      badge.innerText = `🚨 Bump: 00:00 (${infoB?.alerta || c.error_publicacion || "Sin señal en " + codB})`;
+      badge.style.background = "#991b1b";
+      badge.style.color = "#fef08a";
+      badge.style.borderColor = "#f87171";
+      card.style.borderColor = "#ef4444";
+      card.style.background = "rgba(127, 29, 29, 0.22)";
+    } else if (badge) {
+      badge.style.background = "";
+      badge.style.color = "";
+      card.style.borderColor = "";
+      card.style.background = "";
+    })`;
     }
   });
 }, 1000);
