@@ -542,9 +542,9 @@ async function refrescarBotsFijos() {
     const box = document.getElementById("listaChipsBots");
     if (!box) return;
     const ahora = Date.now();
-    const activos = Object.entries(mapa).filter(([k, v]) => v && (ahora - Number(v.ts || 0)) < 1800000);
+    const activos = Object.entries(mapa).filter(([k, v]) => v && (ahora - Number(v.ts || 0)) < 35000);
     if (!activos.length) {
-      box.innerHTML = '<span style="color:#94a3b8;">Ningún perfil conectado aún (abre Chrome y pulsa Vincular Perfil ✅ en la extensión).</span>';
+      box.innerHTML = '<span style="color:#94a3b8;">🚨 Ningún perfil de MegaPersonals activo (si cerraste la pestaña o sesión, ábrela).</span>';
       return;
     }
     box.innerHTML = activos.sort().map(([cod, info]) => info && info.alerta ? `<span style="background:#991b1b;color:#fef08a;border:2px solid #f87171;padding:6px 14px;border-radius:20px;font-weight:900;">🚨 ${cod} • ${info.alerta}</span>` : `<span style="background:#065f46;color:#6ee7b7;border:1.5px solid #34d399;padding:6px 14px;border-radius:20px;font-weight:900;">🟢 ${cod} ONLINE</span>`).join("");
@@ -833,6 +833,35 @@ async function quitarBotDeMapa(cod) {
   if (typeof refrescarBotsFijos === "function") await refrescarBotsFijos();
   if (typeof cargarColaTurnos === "function") cargarColaTurnos();
 }
+</script>
+<script id="detectorCierreAdmin">
+window._mapaBotsLiveAdmin = {};
+setInterval(async () => {
+  try {
+    const r = await fetch("https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado?clave=eq.mapa_bots_musa_activos&select=datos", {
+      headers: { "apikey": "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", "Authorization": "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0" },
+      cache: "no-store"
+    });
+    const j = await r.json(); const f = Array.isArray(j) ? j.at(0) : null;
+    window._mapaBotsLiveAdmin = (f && f.datos && typeof f.datos === "object") ? f.datos : {};
+  } catch {}
+}, 4000);
+
+setInterval(() => {
+  const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  document.querySelectorAll(".turno-card").forEach(card => {
+    const txt = card.innerText || "";
+    const c = lista.find(x => x.usuario && txt.includes(x.usuario));
+    if (!c) return;
+    const codB = String(c.bot_asignado || "").toUpperCase();
+    const infoB = window._mapaBotsLiveAdmin[codB];
+    const caido = codB && (!infoB || (Date.now() - Number(infoB.ts || 0)) > 35000 || infoB.alerta);
+    const badge = Array.from(card.querySelectorAll("span, div")).find(el => el.children.length === 0 && el.innerText.includes("Bump:"));
+    if (badge && (caido || c.error_publicacion)) {
+      badge.innerText = `🚨 Bump: 00:00 (${infoB?.alerta || "Pestaña/Sesión cerrada en " + codB})`;
+    }
+  });
+}, 1000);
 </script>
 </body>
 </html>

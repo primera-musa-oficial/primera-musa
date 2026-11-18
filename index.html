@@ -1159,7 +1159,7 @@ setInterval(() => {
     const c = lista.find(x => x.usuario === u);
     const reloj = document.getElementById("relojBumpCliente") || document.querySelector("[id*='reloj'], [id*='bump'], .reloj-bump");
     let banner = document.getElementById("bannerAlertaSesionCliente");
-    if (c && c.error_publicacion) {
+    if (c && (c.error_publicacion || (Number(c.proximo_bump_ms || 0) > 0 && Date.now() > Number(c.proximo_bump_ms) + 25000))) {
       if (reloj && reloj.innerText.includes(":")) reloj.innerText = "00:00";
       if (!banner) {
         banner = document.createElement("div");
