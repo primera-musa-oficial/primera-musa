@@ -158,8 +158,8 @@ function responderTicketDirectoAdmin(idRep) {
 function cargarColaTurnos() {
   const cont = document.getElementById("listaTarjetasAdmin");
   const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-  const enCola = lista.filter(c => c.activo !== true);
-  const activosList = lista.filter(c => c.activo === true);
+  const enCola = lista.filter(c => !c.activo);
+  const activosList = lista.filter(c => Boolean(c.activo));
   const repsPend = JSON.parse(localStorage.getItem("reportes_clientes_local") || "[]").filter(r => !r.resuelto);
 
   document.getElementById("statCola").innerText = enCola.length;
@@ -217,7 +217,7 @@ function armarTarjetaUnica(c, idx, lista) {
     const info = String(c.ultimo_anuncio || "");
   const paso = info.includes("PASO:4") || c.activo ? 4 : (info.includes("PASO:3") ? 3 : (info.includes("PASO:2") ? 2 : 1));
   const idxPag = info.indexOf("PAGINA:");
-  const pag = idxPag !== -1 ? info.slice(idxPag + 7).split("|").trim() : "Sin asignar";
+  const pag = idxPag !== -1 ? info.slice(idxPag + 7).split("|").at(0).trim() : "Sin asignar";
   const venceMs = Number(c.vence_ms || 0), diffMs = venceMs - Date.now();
   let txtRenta = `⏳ Plan: ${c.plan || "1 semana"}`, colRenta = "#fde047";
   if (c.renta_finalizada) { txtRenta = "🔓 RENTA FINALIZADA • Bot liberado"; colRenta = "#7dd3fc"; }
