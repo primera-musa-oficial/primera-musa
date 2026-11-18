@@ -1243,5 +1243,80 @@ document.addEventListener("click", async (e) => {
   }
 }, true);
 </script>
+<script id="escudoNumerosUsadosMusa">
+const URL_SB_NUM = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
+const KEY_SB_NUM = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+
+function normalizar10Digitos(txt) {
+  const d = String(txt || "").replace(/\D/g, "");
+  return d.length === 11 && d.startsWith("1") ? d.slice(1) : d;
+}
+
+async function leerNumerosUsadosGlobal() {
+  const usados = new Set();
+  try {
+    const r = await fetch(URL_SB_NUM + "?clave=in.(cola_turnos_local,numeros_usados_musa)&select=clave,datos", {
+      headers: { "apikey": KEY_SB_NUM, "Authorization": "Bearer " + KEY_SB_NUM },
+      cache: "no-store"
+    });
+    const filas = await r.json();
+    if (Array.isArray(filas)) {
+      filas.forEach(f => {
+        const d = typeof f.datos === "string" ? JSON.parse(f.datos) : f.datos;
+        if (f.clave === "cola_turnos_local" && Array.isArray(d)) {
+          d.forEach(c => {
+            const n = normalizar10Digitos(c.telefono || c.phone || c.nuevo_telefono);
+            if (n.length >= 10) usados.add(n);
+          });
+        } else if (f.clave === "numeros_usados_musa" && Array.isArray(d)) {
+          d.forEach(n => { const clean = normalizar10Digitos(n); if (clean.length >= 10) usados.add(clean); });
+        }
+      });
+    }
+  } catch {}
+  return usados;
+}
+
+async function registrarNumeroUsadoGlobal(num10) {
+  if (num10.length < 10) return;
+  try {
+    const actuales = Array.from(await leerNumerosUsadosGlobal());
+    if (!actuales.includes(num10)) actuales.push(num10);
+    await fetch(URL_SB_NUM + "?on_conflict=clave", {
+      method: "POST",
+      headers: { "apikey": KEY_SB_NUM, "Authorization": "Bearer " + KEY_SB_NUM, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+      body: JSON.stringify([{ clave: "numeros_usados_musa", datos: actuales, actualizado_en: new Date().toISOString() }])
+    });
+  } catch {}
+}
+
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button");
+  if (!btn || btn.dataset.validadoNumOk === "1") return;
+  const txt = (btn.innerText || "").toLowerCase();
+  if (!txt.includes("continuar") && !txt.includes("siguiente") && !txt.includes("registrar") && !txt.includes("enviar") && !txt.includes("guardar")) return;
+
+  const inputsTel = Array.from(document.querySelectorAll("input[type='tel'], input[placeholder*='tel' i], input[placeholder*='num' i], input[id*='tel' i], input[id*='phone' i]"))
+    .filter(el => el.offsetParent !== null && normalizar10Digitos(el.value).length >= 10);
+
+  if (!inputsTel.length) return;
+  const numIngresado = normalizar10Digitos(inputsTel.at(0).value);
+
+  e.preventDefault();
+  e.stopImmediatePropagation();
+
+  const usados = await leerNumerosUsadosGlobal();
+  if (usados.has(numIngresado)) {
+    alert("🚫 NÚMERO USADO DETECTADO:\n\nEl número +1 " + numIngresado + " ya fue utilizado anteriormente en el sistema.\n\nPor seguridad anti-bloqueos, debes ingresar un número nuevo que no haya sido usado.");
+    inputsTel.at(0).focus();
+    return;
+  }
+
+  await registrarNumeroUsadoGlobal(numIngresado);
+  btn.dataset.validadoNumOk = "1";
+  btn.click();
+  setTimeout(() => { delete btn.dataset.validadoNumOk; }, 1200);
+}, true);
+</script>
 </body>
 </html>
