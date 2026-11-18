@@ -580,5 +580,20 @@ setInterval(() => {
   });
 }, 1500);
 </script>
+<script>
+setInterval(() => {
+  try {
+    const cont = document.getElementById("listaTarjetasAdmin");
+    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const v = String(window.vistaAdminActual || "cola").toLowerCase();
+    if (cont && cont.innerText.includes("No hay registros") && lista.length > 0 && (v.includes("activ") || v.includes("toda"))) {
+      const filtrados = v.includes("activ") ? lista.filter(x => Boolean(x.activo)) : lista;
+      if (filtrados.length > 0 && typeof armarTarjetaUnica === "function") {
+        cont.innerHTML = filtrados.map((c, i) => armarTarjetaUnica(c, i, lista)).join("");
+      }
+    }
+  } catch (e) { console.error("Error renderizando tarjeta:", e); }
+}, 1200);
+</script>
 </body>
 </html>
