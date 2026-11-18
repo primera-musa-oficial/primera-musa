@@ -631,5 +631,73 @@ setInterval(() => {
   });
 }, 1200);
 </script>
+<script id="motorSelectorBotsFijo">
+setInterval(() => {
+  try {
+    const chips = Array.from(document.querySelectorAll("#listaChipsBots span")).map(s => s.innerText.trim());
+    const onlineSet = new Set();
+    chips.forEach(t => { const m = t.match(/MUSA-\d+/i); if (m) onlineSet.add(m[0].toUpperCase()); });
+    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+
+    document.querySelectorAll(".turno-card").forEach(card => {
+      const sel = card.querySelector("select");
+      if (!sel || document.activeElement === sel) return;
+
+      const txtCard = card.innerText || "";
+      const clienta = lista.find(c => c.usuario && txtCard.includes(c.usuario));
+      let botGuardado = "";
+      if (clienta) {
+        botGuardado = String(clienta.bot_asignado || "").toUpperCase();
+        const uAn = String(clienta.ultimo_anuncio || "");
+        if (!botGuardado && uAn.includes("PAGINA:")) {
+          botGuardado = uAn.split("PAGINA:")[1].split("|")[0].trim().toUpperCase();
+        }
+      }
+
+      const valActual = sel.value || botGuardado;
+      let html = '<option value="">— Selecciona Bot (Sin asignar) —</option>';
+      const ordenados = [];
+      for (let n = 1; n <= 100; n++) {
+        const cod = "MUSA-" + String(n).padStart(2, "0");
+        ordenados.push({ cod, online: onlineSet.has(cod) });
+      }
+      ordenados.sort((a, b) => (b.online - a.online) || a.cod.localeCompare(b.cod));
+      ordenados.forEach(({ cod, online }) => {
+        const selAttr = (cod === valActual) ? " selected" : "";
+        const etiqueta = (cod === valActual)
+          ? `⭐ ${cod} — ASIGNADO Y TRABAJANDO`
+          : (online ? `🟢 ${cod} — CONECTADO EN CHROME (ONLINE)` : `⚪ ${cod} — Disponible`);
+        html += `<option value="${cod}"${selAttr}>${etiqueta}</option>`;
+      });
+
+      if (sel.dataset.lastHash !== html) {
+        sel.dataset.lastHash = html;
+        sel.innerHTML = html;
+        if (valActual) sel.value = valActual;
+      }
+
+      const btnAsig = Array.from(card.querySelectorAll("button")).find(b => b.innerText.includes("Asignar Bot"));
+      if (btnAsig && !btnAsig.dataset.hookFijo) {
+        btnAsig.dataset.hookFijo = "1";
+        btnAsig.addEventListener("click", () => {
+          const elegido = sel.value;
+          if (!elegido || !clienta) return;
+          const arr = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+          const it = arr.find(x => x.usuario === clienta.usuario);
+          if (it) {
+            it.bot_asignado = elegido;
+            it.activo = true;
+            it.proximo_bump_ms = Date.now() + 5000;
+            const base = String(it.ultimo_anuncio || "").replace(/\|?PAGINA:[^|]*/g, "");
+            it.ultimo_anuncio = base + "|PAGINA:" + elegido + "|PASO:4";
+            localStorage.setItem("cola_turnos_local", JSON.stringify(arr));
+            if (typeof subirClaveNube === "function") subirClaveNube("cola_turnos_local", JSON.stringify(arr));
+          }
+        });
+      }
+    });
+  } catch (e) {}
+}, 1000);
+</script>
 </body>
 </html>
