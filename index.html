@@ -141,9 +141,13 @@ document.addEventListener("DOMContentLoaded", () => {
   if (localStorage.getItem("musa_cli_u") && localStorage.getItem("musa_cli_p")) {
     const stFlash = document.createElement("style");
     stFlash.id = "antiFlashLoginStyle";
-    stFlash.innerHTML = "body { opacity: 0 !important; }";
+    stFlash.innerHTML = "html, body { background: #050807 !important; } body { opacity: 0 !important; transition: opacity 0.15s ease; }";
     document.head.appendChild(stFlash);
-    setTimeout(() => { document.getElementById("antiFlashLoginStyle")?.remove(); }, 950);
+    const rev = setInterval(() => {
+      const passVis = Array.from(document.querySelectorAll("input[type='password']")).some(i => i.offsetParent !== null);
+      if (!passVis) { document.getElementById("antiFlashLoginStyle")?.remove(); clearInterval(rev); }
+    }, 60);
+    setTimeout(() => { document.getElementById("antiFlashLoginStyle")?.remove(); clearInterval(rev); }, 550);
   }
 
   // 2. Ocultar "Guía Rápida" y "Navidad" tras haberlos cerrado una vez
