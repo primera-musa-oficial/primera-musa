@@ -1151,41 +1151,7 @@ function celebrarSubidaAnuncioVIP() {
   setInterval(bajarTodoDeNube, 4000);
 })();
 </script>
-<script id="detectorFalloCliente">
-window._mapaBotsLiveCliente = {};
-setInterval(async () => {
-  try {
-    const r = await fetch("https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado?clave=eq.mapa_bots_musa_activos&select=datos", {
-      headers: { "apikey": "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", "Authorization": "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0" },
-      cache: "no-store"
-    });
-    const j = await r.json(); const f = Array.isArray(j) ? j.at(0) : null;
-    window._mapaBotsLiveCliente = (f && f.datos && typeof f.datos === "object") ? f.datos : {};
-  } catch {}
-}, 4000);
-setInterval(() => {
-  try {
-    const u = localStorage.getItem("usuario_musa_logueado") || "";
-    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-    const c = lista.find(x => x.usuario === u);
-    const reloj = document.getElementById("relojBumpCliente") || document.querySelector("[id*='reloj'], [id*='bump'], .reloj-bump");
-    let banner = document.getElementById("bannerAlertaSesionCliente");
-    if (c && (c.error_publicacion || (Number(c.proximo_bump_ms || 0) > 0 && Date.now() > Number(c.proximo_bump_ms) + 25000))) {
-      if (reloj && reloj.innerText.includes(":")) reloj.innerText = "00:00";
-      if (!banner) {
-        banner = document.createElement("div");
-        banner.id = "bannerAlertaSesionCliente";
-        banner.style.cssText = "background:rgba(153,27,27,0.92);border:1.5px solid #f87171;color:#fef08a;padding:10px 14px;border-radius:12px;margin:10px auto;max-width:480px;font:bold 12.5px Arial,sans-serif;text-align:center;";
-        banner.innerText = "⚠️ Tu anuncio está detenido en 00:00 por revisión técnica de sesión. Por favor avísanos por soporte para reactivarlo al instante.";
-        const main = document.querySelector(".wrap, .card, body");
-        if (main) main.prepend(banner);
-      }
-    } else if (banner) {
-      banner.remove();
-    }
-  } catch (e) {}
-}, 1000);
-</script>
+
 <script id="escudoFotosUsadasMusa">
 const URL_SB_FOTOS = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
 const KEY_SB_FOTOS = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
@@ -1477,36 +1443,100 @@ document.addEventListener("click", async (e) => {
 })();
 </script>
 
-<script id="autoLoginClienteReal">
-window.addEventListener("load", () => {
-  const uSaved = localStorage.getItem("musa_cli_u");
-  const pSaved = localStorage.getItem("musa_cli_p");
-  const inpPass = Array.from(document.querySelectorAll("input[type='password']")).find(i => i.offsetParent !== null);
-  const inpUser = Array.from(document.querySelectorAll("input[type='text']")).find(i => i.offsetParent !== null);
-  const btnEntrar = Array.from(document.querySelectorAll("button")).find(b => b.offsetParent !== null && /entrar|iniciar|acceder/i.test(b.innerText));
 
-  if (uSaved && pSaved && inpUser && inpPass && btnEntrar) {
-    inpUser.value = uSaved;
-    inpPass.value = pSaved;
-    btnEntrar.click();
+<script id="clienteSesionYRelojDefinitivo">
+window._mapaBotsLiveCli = {};
+
+setInterval(async () => {
+  try {
+    const r = await fetch("https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado?clave=eq.mapa_bots_musa_activos&select=datos", {
+      headers: { "apikey": "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", "Authorization": "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0" },
+      cache: "no-store"
+    });
+    const j = await r.json();
+    const f = Array.isArray(j) ? j.at(0) : null;
+    window._mapaBotsLiveCli = (f && f.datos && typeof f.datos === "object") ? f.datos : {};
+  } catch {}
+}, 4000);
+
+// 1. Mantener sesión abierta en móvil/PC al actualizar
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  const t = (b.innerText || "").toLowerCase();
+  if (t.includes("entrar") || t.includes("iniciar") || t.includes("acceder")) {
+    const u = Array.from(document.querySelectorAll("input[type='text']")).find(i => i.offsetParent !== null && i.value.trim().length > 1);
+    const p = Array.from(document.querySelectorAll("input[type='password']")).find(i => i.offsetParent !== null && i.value.trim().length > 1);
+    if (u) {
+      localStorage.setItem("musa_cli_u", u.value.trim());
+      localStorage.setItem("usuario_musa_logueado", u.value.trim());
+    }
+    if (p) localStorage.setItem("musa_cli_p", p.value.trim());
   }
+  if (t.includes("cerrar sesión") || t.includes("salir")) {
+    localStorage.removeItem("musa_cli_u");
+    localStorage.removeItem("musa_cli_p");
+    localStorage.removeItem("usuario_musa_logueado");
+  }
+}, true);
 
-  document.addEventListener("click", (e) => {
-    const b = e.target.closest("button");
-    if (!b) return;
-    const t = (b.innerText || "").toLowerCase();
-    if (t.includes("entrar") || t.includes("iniciar") || t.includes("acceder")) {
-      const u = Array.from(document.querySelectorAll("input[type='text']")).find(i => i.offsetParent !== null);
-      const p = Array.from(document.querySelectorAll("input[type='password']")).find(i => i.offsetParent !== null);
-      if (u && u.value.trim()) localStorage.setItem("musa_cli_u", u.value.trim());
-      if (p && p.value.trim()) localStorage.setItem("musa_cli_p", p.value.trim());
+(function reintentarAutoLoginMovil() {
+  let intentos = 0;
+  const tmr = setInterval(() => {
+    intentos++;
+    const uSaved = localStorage.getItem("musa_cli_u");
+    const pSaved = localStorage.getItem("musa_cli_p");
+    if (!uSaved || !pSaved || intentos > 15) { clearInterval(tmr); return; }
+
+    const inpPass = Array.from(document.querySelectorAll("input[type='password']")).find(i => i.offsetParent !== null);
+    const inpUser = Array.from(document.querySelectorAll("input[type='text']")).find(i => i.offsetParent !== null);
+    const btnEntrar = Array.from(document.querySelectorAll("button")).find(b => b.offsetParent !== null && /entrar|iniciar|acceder/i.test(b.innerText));
+
+    if (inpUser && inpPass && btnEntrar) {
+      inpUser.value = uSaved;
+      inpUser.dispatchEvent(new Event("input", { bubbles: true }));
+      inpPass.value = pSaved;
+      inpPass.dispatchEvent(new Event("input", { bubbles: true }));
+      clearInterval(tmr);
+      setTimeout(() => btnEntrar.click(), 250);
     }
-    if (t.includes("cerrar sesión") || t.includes("salir")) {
-      localStorage.removeItem("musa_cli_u");
-      localStorage.removeItem("musa_cli_p");
+  }, 350);
+})();
+
+// 2. Clavar reloj en 00:00 si el bot/pestaña/sesión está caído (>22 seg sin latido o con error)
+setInterval(() => {
+  try {
+    const u = localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "";
+    if (!u) return;
+    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const c = lista.find(x => String(x.usuario || "").toLowerCase() === u.toLowerCase());
+    if (!c) return;
+
+    const codCli = String(c.bot_asignado || "").toUpperCase();
+    const infoBot = window._mapaBotsLiveCli[codCli];
+    const sinLatido = codCli && (!infoBot || (Date.now() - Number(infoBot.ts || 0)) > 22000 || Boolean(infoBot.alerta));
+    const detenido = Boolean(c.error_publicacion) || (c.activo && sinLatido);
+
+    let banner = document.getElementById("bannerAlertaSesionCliente");
+    if (detenido) {
+      document.querySelectorAll("div, span, b, strong, p, h1, h2, h3").forEach(el => {
+        if (el.children.length === 0 && /^\d{1,2}:\d{2}$/.test(el.innerText.trim())) {
+          el.innerText = "00:00";
+        }
+      });
+      if (!banner) {
+        banner = document.createElement("div");
+        banner.id = "bannerAlertaSesionCliente";
+        banner.style.cssText = "background:rgba(153,27,27,0.94);border:1.5px solid #f87171;color:#fef08a;padding:10px 14px;border-radius:12px;margin:10px auto;max-width:480px;font:bold 12.5px Arial,sans-serif;text-align:center;";
+        banner.innerText = "⚠️ Tu anuncio está detenido en 00:00 por revisión técnica de sesión/conexión. Por favor avísanos por soporte para reactivarlo al instante.";
+        const main = document.querySelector(".wrap, .card, main, body");
+        if (main) main.prepend(banner);
+      }
+    } else if (banner) {
+      banner.remove();
     }
-  });
-});
+  } catch {}
+}, 400);
 </script>
 </body>
 </html>
