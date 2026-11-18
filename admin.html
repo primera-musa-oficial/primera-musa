@@ -470,5 +470,35 @@ async function refrescarBotsFijos() {
 refrescarBotsFijos();
 setInterval(refrescarBotsFijos, 4000);
 </script>
+<script>
+window._mapaBotsOnlineCache = {};
+setInterval(() => {
+  const chips = Array.from(document.querySelectorAll("#listaChipsBots span")).map(s => s.innerText.trim());
+  const onlineSet = new Set();
+  chips.forEach(t => { const m = t.match(/MUSA-\d+/i); if (m) onlineSet.add(m[0].toUpperCase()); });
+
+  document.querySelectorAll("select").forEach(sel => {
+    if (!sel.innerHTML.includes("Selecciona Bot")) return;
+    if (document.activeElement === sel) return;
+    const valActual = sel.value;
+    let html = '<option value="">— Selecciona Bot (Sin asignar) —</option>';
+    const ordenados = [];
+    for (let i = 1; i <= 100; i++) {
+      const cod = "MUSA-" + String(i).padStart(2, "0");
+      ordenados.push({ cod, online: onlineSet.has(cod) });
+    }
+    ordenados.sort((a, b) => (b.online - a.online) || a.cod.localeCompare(b.cod));
+    ordenados.forEach(({ cod, online }) => {
+      const etiqueta = online ? `🟢 ${cod} — CONECTADO EN CHROME (ONLINE)` : `⚪ ${cod} — Disponible`;
+      html += `<option value="${cod}">${etiqueta}</option>`;
+    });
+    if (sel.dataset.lastHash !== html) {
+      sel.dataset.lastHash = html;
+      sel.innerHTML = html;
+      if (valActual) sel.value = valActual;
+    }
+  });
+}, 1500);
+</script>
 </body>
 </html>
