@@ -443,22 +443,7 @@ setInterval(() => {
   <div style="font-weight:900;font-size:13px;margin-bottom:6px;">🤖 PERFILES DE CHROME CONECTADOS EN VIVO (EXTENSIÓN):</div>
   <div id="listaChipsBots" style="display:flex;flex-wrap:wrap;gap:8px;font-size:12px;">⏳ Buscando perfiles conectados...</div>
 </div>
-<script>
-setInterval(() => {
-  try {
-    const mapa = JSON.parse(localStorage.getItem("mapa_bots_musa_activos") || "{}");
-    const box = document.getElementById("listaChipsBots");
-    if (!box) return;
-    const ahora = Date.now();
-    const activos = Object.entries(mapa).filter(([k, v]) => v && (ahora - Number(v.ts || 0)) < 360000);
-    if (!activos.length) {
-      box.innerHTML = '<span style="color:#94a3b8;">Ningún perfil conectado aún (abre Chrome y pulsa Vincular Perfil ✅ en la extensión).</span>';
-      return;
-    }
-    box.innerHTML = activos.sort().map(([cod]) => `<span style="background:#065f46;color:#6ee7b7;border:1px solid #34d399;padding:4px 10px;border-radius:20px;font-weight:bold;">🟢 ${cod} ONLINE</span>`).join("");
-  } catch {}
-}, 2500);
-</script>
+
 <script>
 async function actualizarMonitorBotsDirecto() {
   try {
