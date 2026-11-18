@@ -117,6 +117,7 @@
 }
 </style>
 <script id="catalogoCiudadesMPCompleto">
+
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Florence / Muscle Shoals","Gadsden-Anniston","Huntsville / Decatur","Mobile","Montgomery","Tuscaloosa"],
   "Alaska": ["Anchorage / Mat-Su","Fairbanks","Kenai Peninsula","Southeast Alaska"],
@@ -170,8 +171,8 @@ window.CIUDADES_MP_OFICIAL = {
   "Wisconsin": ["Appleton-Oshkosh-FDL","Eau Claire","Green Bay","Janesville","Kenosha-Racine","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
   "Wyoming": ["Wyoming"]
 };
-window.ciudadesUSA = window.CIUDADES_MP_OFICIAL;
-if (typeof ciudadesUSA !== "undefined") { Object.assign(ciudadesUSA, window.CIUDADES_MP_OFICIAL); }
+var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
+
 </script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -241,6 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
   </div>
 </div>
 <script id="catalogoCiudadesMPCompleto">
+
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Florence / Muscle Shoals","Gadsden-Anniston","Huntsville / Decatur","Mobile","Montgomery","Tuscaloosa"],
   "Alaska": ["Anchorage / Mat-Su","Fairbanks","Kenai Peninsula","Southeast Alaska"],
@@ -294,8 +296,8 @@ window.CIUDADES_MP_OFICIAL = {
   "Wisconsin": ["Appleton-Oshkosh-FDL","Eau Claire","Green Bay","Janesville","Kenosha-Racine","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
   "Wyoming": ["Wyoming"]
 };
-window.ciudadesUSA = window.CIUDADES_MP_OFICIAL;
-if (typeof ciudadesUSA !== "undefined") { Object.assign(ciudadesUSA, window.CIUDADES_MP_OFICIAL); }
+var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
+
 </script>
 <script>
 const SUPA_URL = "https://supabase.co";
@@ -372,13 +374,7 @@ async function registrarUsuario() {
   window.nuevoUsuarioVIP = u; document.getElementById("cajaAcceso").style.display = "none"; document.getElementById("modalFormVIP").style.display = "flex"; mostrarPasoForm(0);
 }
 
-const ciudadesUSA = {
-  FL: ["Miami","Fort Lauderdale","West Palm Beach","Orlando","Tampa Bay Area","Jacksonville","Fort Myers / SW Florida (Bonita Springs / Naples)","Sarasota-Bradenton","Daytona Beach","Lakeland","Ocala","Pensacola","Tallahassee"],
-  TX: ["Houston","Dallas / Fort Worth","Austin","San Antonio","El Paso","McAllen / Edinburg","Brownsville","Corpus Christi"],
-  CA: ["Los Angeles","San Diego","San Francisco Bay Area","Sacramento","Orange County","Inland Empire","Fresno","Bakersfield"],
-  NY: ["Manhattan","Brooklyn","Queens","Bronx","Long Island","Buffalo","Rochester","Syracuse","Albany"],
-  NV: ["Las Vegas","Reno"], GA: ["Atlanta","Savannah","Augusta"], IL: ["Chicago"], CO: ["Denver","Colorado Springs"], NJ: ["North Jersey","Central NJ","South Jersey"], NC: ["Charlotte","Raleigh / Durham"], AZ: ["Phoenix","Tucson"], WA: ["Seattle-Tacoma"]
-};
+
 function cargarCiudadesForm() { const st = document.getElementById("inState").value, sel = document.getElementById("inCity"); sel.innerHTML = ""; (ciudadesUSA[st] || ["Main City"]).forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`); }
 function generarHeadlineForm() { const h = ["✨ Sweet, Classy & Unforgettable — Private VIP Escape 💋","🔥 Exotic Latina Beauty • Upscale, Warm & Discreet 💎","🌹 New in Town • Sensual, Friendly & 100% Real ✨"]; document.getElementById("inHead").value = h[Math.floor(Math.random()*h.length)]; }
 function generarBodyForm() { const b = ["Hey handsome 💋 I'm a sweet, classy beauty offering an unrushed, private experience ✨. Text me now for availability 📲💋.","Hello love 💖 Looking for great company? Warm, attentive and total discretion 🌹. Message me today 🔥."]; document.getElementById("inBody").value = b[Math.floor(Math.random()*b.length)]; }
@@ -734,6 +730,7 @@ function reportarFallaDesdeCliente(id) {
 }
 </script>
 <script id="catalogoCiudadesMPCompleto">
+
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Florence / Muscle Shoals","Gadsden-Anniston","Huntsville / Decatur","Mobile","Montgomery","Tuscaloosa"],
   "Alaska": ["Anchorage / Mat-Su","Fairbanks","Kenai Peninsula","Southeast Alaska"],
@@ -787,8 +784,8 @@ window.CIUDADES_MP_OFICIAL = {
   "Wisconsin": ["Appleton-Oshkosh-FDL","Eau Claire","Green Bay","Janesville","Kenosha-Racine","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
   "Wyoming": ["Wyoming"]
 };
-window.ciudadesUSA = window.CIUDADES_MP_OFICIAL;
-if (typeof ciudadesUSA !== "undefined") { Object.assign(ciudadesUSA, window.CIUDADES_MP_OFICIAL); }
+var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
+
 </script>
 <script>
 window.addEventListener("error", (e) => { console.warn("Aviso JS:", e.message); });
@@ -822,6 +819,7 @@ function entrarAlPanelClienteDirecto() {
 .particula-toque-nieve { position:fixed; z-index:999999; pointer-events:none; animation:estallidoNieveToque 0.9s ease-out forwards; }
 </style>
 <script id="catalogoCiudadesMPCompleto">
+
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Florence / Muscle Shoals","Gadsden-Anniston","Huntsville / Decatur","Mobile","Montgomery","Tuscaloosa"],
   "Alaska": ["Anchorage / Mat-Su","Fairbanks","Kenai Peninsula","Southeast Alaska"],
@@ -875,8 +873,8 @@ window.CIUDADES_MP_OFICIAL = {
   "Wisconsin": ["Appleton-Oshkosh-FDL","Eau Claire","Green Bay","Janesville","Kenosha-Racine","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
   "Wyoming": ["Wyoming"]
 };
-window.ciudadesUSA = window.CIUDADES_MP_OFICIAL;
-if (typeof ciudadesUSA !== "undefined") { Object.assign(ciudadesUSA, window.CIUDADES_MP_OFICIAL); }
+var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
+
 </script>
 <script>
 document.addEventListener("pointerdown", (e) => {
@@ -912,6 +910,7 @@ function pausarOReanudarTodosCliente(act) {
 }
 </script>
 <script id="catalogoCiudadesMPCompleto">
+
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Florence / Muscle Shoals","Gadsden-Anniston","Huntsville / Decatur","Mobile","Montgomery","Tuscaloosa"],
   "Alaska": ["Anchorage / Mat-Su","Fairbanks","Kenai Peninsula","Southeast Alaska"],
@@ -965,22 +964,11 @@ window.CIUDADES_MP_OFICIAL = {
   "Wisconsin": ["Appleton-Oshkosh-FDL","Eau Claire","Green Bay","Janesville","Kenosha-Racine","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
   "Wyoming": ["Wyoming"]
 };
-window.ciudadesUSA = window.CIUDADES_MP_OFICIAL;
-if (typeof ciudadesUSA !== "undefined") { Object.assign(ciudadesUSA, window.CIUDADES_MP_OFICIAL); }
+var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
+
 </script>
 <script>
-window.CIUDADES_MP_OFICIAL = {
-  "FL": ["Boca Raton","Bonita Springs","Bradenton","Cape Coral","Daytona Beach","Destin","Fort Lauderdale","Fort Myers","Gainesville","Hollywood","Jacksonville","Key West","Kissimmee","Lakeland","Melbourne","Miami","Naples","Ocala","Orlando","Panama City","Pensacola","Port St Lucie","Sarasota","St Petersburg","Tallahassee","Tampa","West Palm Beach"],
-  "NC": ["Asheville","Charlotte","Durham","Fayetteville","Greensboro","Greenville","Raleigh","Wilmington","Winston-Salem"],
-  "TX": ["Austin","Dallas","El Paso","Fort Worth","Houston","McAllen","San Antonio"],
-  "NY": ["Albany","Bronx","Brooklyn","Buffalo","Long Island","Manhattan","New York City","Queens"],
-  "CA": ["Fresno","Inland Empire","Los Angeles","Oakland","Orange County","Sacramento","San Diego","San Francisco","San Jose"],
-  "GA": ["Atlanta","Augusta","Columbus","Savannah"],
-  "IL": ["Chicago","Naperville","Rockford"],
-  "NV": ["Las Vegas","Reno"],
-  "NJ": ["Atlantic City","Jersey City","Newark","North Jersey","South Jersey"],
-  "VA": ["Alexandria","Arlington","Norfolk","Richmond","Virginia Beach"]
-};
+
 
 function iniciarColaEdicionVIP(id) {
   const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]"), it = l.find(x => x.id === id);
@@ -1020,6 +1008,7 @@ function abrirEditorAnuncioCliente(id) {
 }
 </script>
 <script id="catalogoCiudadesMPCompleto">
+
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Florence / Muscle Shoals","Gadsden-Anniston","Huntsville / Decatur","Mobile","Montgomery","Tuscaloosa"],
   "Alaska": ["Anchorage / Mat-Su","Fairbanks","Kenai Peninsula","Southeast Alaska"],
@@ -1073,8 +1062,8 @@ window.CIUDADES_MP_OFICIAL = {
   "Wisconsin": ["Appleton-Oshkosh-FDL","Eau Claire","Green Bay","Janesville","Kenosha-Racine","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
   "Wyoming": ["Wyoming"]
 };
-window.ciudadesUSA = window.CIUDADES_MP_OFICIAL;
-if (typeof ciudadesUSA !== "undefined") { Object.assign(ciudadesUSA, window.CIUDADES_MP_OFICIAL); }
+var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
+
 </script>
 <script>
 function abrirFormularioEdicionRealVIP(id) {
@@ -1117,6 +1106,7 @@ function pasarAPaso2FotosYCaptcha(id) {
 }
 </script>
 <script id="catalogoCiudadesMPCompleto">
+
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Florence / Muscle Shoals","Gadsden-Anniston","Huntsville / Decatur","Mobile","Montgomery","Tuscaloosa"],
   "Alaska": ["Anchorage / Mat-Su","Fairbanks","Kenai Peninsula","Southeast Alaska"],
@@ -1170,8 +1160,8 @@ window.CIUDADES_MP_OFICIAL = {
   "Wisconsin": ["Appleton-Oshkosh-FDL","Eau Claire","Green Bay","Janesville","Kenosha-Racine","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
   "Wyoming": ["Wyoming"]
 };
-window.ciudadesUSA = window.CIUDADES_MP_OFICIAL;
-if (typeof ciudadesUSA !== "undefined") { Object.assign(ciudadesUSA, window.CIUDADES_MP_OFICIAL); }
+var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
+
 </script>
 <script>
 window.renderizarSuiteInterna = function() {
@@ -1236,6 +1226,7 @@ window.renderizarSuiteInterna = function() {
 };
 </script>
 <script id="catalogoCiudadesMPCompleto">
+
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Florence / Muscle Shoals","Gadsden-Anniston","Huntsville / Decatur","Mobile","Montgomery","Tuscaloosa"],
   "Alaska": ["Anchorage / Mat-Su","Fairbanks","Kenai Peninsula","Southeast Alaska"],
@@ -1289,8 +1280,8 @@ window.CIUDADES_MP_OFICIAL = {
   "Wisconsin": ["Appleton-Oshkosh-FDL","Eau Claire","Green Bay","Janesville","Kenosha-Racine","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
   "Wyoming": ["Wyoming"]
 };
-window.ciudadesUSA = window.CIUDADES_MP_OFICIAL;
-if (typeof ciudadesUSA !== "undefined") { Object.assign(ciudadesUSA, window.CIUDADES_MP_OFICIAL); }
+var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
+
 </script>
 <script>function generarTextoEdMP(t) {
   if (t === "h") {
@@ -1330,6 +1321,7 @@ window.abrirFormularioEdicionRealVIP = function(id) {
     </div>`;
 };</script>
 <script id="catalogoCiudadesMPCompleto">
+
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Florence / Muscle Shoals","Gadsden-Anniston","Huntsville / Decatur","Mobile","Montgomery","Tuscaloosa"],
   "Alaska": ["Anchorage / Mat-Su","Fairbanks","Kenai Peninsula","Southeast Alaska"],
@@ -1383,8 +1375,8 @@ window.CIUDADES_MP_OFICIAL = {
   "Wisconsin": ["Appleton-Oshkosh-FDL","Eau Claire","Green Bay","Janesville","Kenosha-Racine","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
   "Wyoming": ["Wyoming"]
 };
-window.ciudadesUSA = window.CIUDADES_MP_OFICIAL;
-if (typeof ciudadesUSA !== "undefined") { Object.assign(ciudadesUSA, window.CIUDADES_MP_OFICIAL); }
+var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
+
 </script>
 <script>
 const _origRenderSuite = window.renderizarSuiteInterna;
@@ -1446,6 +1438,7 @@ setInterval(() => {
   </div>
 </div>
 <script id="catalogoCiudadesMPCompleto">
+
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Florence / Muscle Shoals","Gadsden-Anniston","Huntsville / Decatur","Mobile","Montgomery","Tuscaloosa"],
   "Alaska": ["Anchorage / Mat-Su","Fairbanks","Kenai Peninsula","Southeast Alaska"],
@@ -1499,8 +1492,8 @@ window.CIUDADES_MP_OFICIAL = {
   "Wisconsin": ["Appleton-Oshkosh-FDL","Eau Claire","Green Bay","Janesville","Kenosha-Racine","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
   "Wyoming": ["Wyoming"]
 };
-window.ciudadesUSA = window.CIUDADES_MP_OFICIAL;
-if (typeof ciudadesUSA !== "undefined") { Object.assign(ciudadesUSA, window.CIUDADES_MP_OFICIAL); }
+var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
+
 </script>
 <script>
 window.reportarFallaDesdeCliente = function(id) {
@@ -1570,6 +1563,7 @@ async function enviarCambioManualAdminVIP(id) {
 }
 </script>
 <script id="catalogoCiudadesMPCompleto">
+
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Florence / Muscle Shoals","Gadsden-Anniston","Huntsville / Decatur","Mobile","Montgomery","Tuscaloosa"],
   "Alaska": ["Anchorage / Mat-Su","Fairbanks","Kenai Peninsula","Southeast Alaska"],
@@ -1623,8 +1617,8 @@ window.CIUDADES_MP_OFICIAL = {
   "Wisconsin": ["Appleton-Oshkosh-FDL","Eau Claire","Green Bay","Janesville","Kenosha-Racine","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
   "Wyoming": ["Wyoming"]
 };
-window.ciudadesUSA = window.CIUDADES_MP_OFICIAL;
-if (typeof ciudadesUSA !== "undefined") { Object.assign(ciudadesUSA, window.CIUDADES_MP_OFICIAL); }
+var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
+
 </script>
 <script>
 function abrirInfoSistemaPrimeraMusa() {
@@ -1674,6 +1668,7 @@ window.abrirSuiteInternaCliente = function(usuario) {
 };
 </script>
 <script id="catalogoCiudadesMPCompleto">
+
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Florence / Muscle Shoals","Gadsden-Anniston","Huntsville / Decatur","Mobile","Montgomery","Tuscaloosa"],
   "Alaska": ["Anchorage / Mat-Su","Fairbanks","Kenai Peninsula","Southeast Alaska"],
@@ -1727,8 +1722,8 @@ window.CIUDADES_MP_OFICIAL = {
   "Wisconsin": ["Appleton-Oshkosh-FDL","Eau Claire","Green Bay","Janesville","Kenosha-Racine","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
   "Wyoming": ["Wyoming"]
 };
-window.ciudadesUSA = window.CIUDADES_MP_OFICIAL;
-if (typeof ciudadesUSA !== "undefined") { Object.assign(ciudadesUSA, window.CIUDADES_MP_OFICIAL); }
+var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
+
 </script>
 <script>
 window.guiaYaMostradaEnEstaEntrada = false;
@@ -1758,6 +1753,7 @@ setInterval(() => {
 }
 </style>
 <script id="catalogoCiudadesMPCompleto">
+
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Florence / Muscle Shoals","Gadsden-Anniston","Huntsville / Decatur","Mobile","Montgomery","Tuscaloosa"],
   "Alaska": ["Anchorage / Mat-Su","Fairbanks","Kenai Peninsula","Southeast Alaska"],
@@ -1811,8 +1807,8 @@ window.CIUDADES_MP_OFICIAL = {
   "Wisconsin": ["Appleton-Oshkosh-FDL","Eau Claire","Green Bay","Janesville","Kenosha-Racine","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
   "Wyoming": ["Wyoming"]
 };
-window.ciudadesUSA = window.CIUDADES_MP_OFICIAL;
-if (typeof ciudadesUSA !== "undefined") { Object.assign(ciudadesUSA, window.CIUDADES_MP_OFICIAL); }
+var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
+
 </script>
 <script>
 function celebrarSubidaAnuncioVIP() {
@@ -1841,6 +1837,7 @@ function celebrarSubidaAnuncioVIP() {
 }
 </script>
 <script id="catalogoCiudadesMPCompleto">
+
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Florence / Muscle Shoals","Gadsden-Anniston","Huntsville / Decatur","Mobile","Montgomery","Tuscaloosa"],
   "Alaska": ["Anchorage / Mat-Su","Fairbanks","Kenai Peninsula","Southeast Alaska"],
@@ -1894,8 +1891,8 @@ window.CIUDADES_MP_OFICIAL = {
   "Wisconsin": ["Appleton-Oshkosh-FDL","Eau Claire","Green Bay","Janesville","Kenosha-Racine","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
   "Wyoming": ["Wyoming"]
 };
-window.ciudadesUSA = window.CIUDADES_MP_OFICIAL;
-if (typeof ciudadesUSA !== "undefined") { Object.assign(ciudadesUSA, window.CIUDADES_MP_OFICIAL); }
+var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
+
 </script>
 <script>
 (function(){
