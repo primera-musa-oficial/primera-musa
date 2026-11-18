@@ -193,7 +193,7 @@ function cargarColaTurnos() {
     return;
   }
 
-  const mostrar = window.vistaAdminActual === "activos" ? activosList : (window.vistaAdminActual === "todas" ? lista : enCola);
+  const vAct = String(window.vistaAdminActual || "cola").toLowerCase(); const mostrar = vAct.includes("activ") ? activosList : (vAct.includes("toda") ? lista : enCola);
   if (!mostrar.length) { cont.innerHTML = `<div class="turno-card" style="text-align:center;">🎉 No hay registros en esta pestaña.</div>`; return; }
   cont.innerHTML = mostrar.map((c, idx) => armarTarjetaUnica(c, idx, lista)).join("");
 }
