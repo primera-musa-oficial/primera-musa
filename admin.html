@@ -459,5 +459,32 @@ setInterval(() => {
   } catch {}
 }, 2500);
 </script>
+<script>
+async function actualizarMonitorBotsDirecto() {
+  try {
+    const r = await fetch("https://supabase.co", {
+      headers: {
+        "apikey": "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0",
+        "Authorization": "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0"
+      },
+      cache: "no-store"
+    });
+    const j = await r.json();
+    const fila = Array.isArray(j) ? j[0] : null;
+    const mapa = (fila && fila.datos && typeof fila.datos === "object" && !Array.isArray(fila.datos)) ? fila.datos : {};
+    const box = document.getElementById("listaChipsBots");
+    if (!box) return;
+    const ahora = Date.now();
+    const activos = Object.entries(mapa).filter(([k, v]) => v && (ahora - Number(v.ts || 0)) < 600000);
+    if (!activos.length) {
+      box.innerHTML = '<span style="color:#94a3b8;">Ningún perfil conectado aún (abre Chrome y pulsa Vincular Perfil ✅ en la extensión).</span>';
+      return;
+    }
+    box.innerHTML = activos.sort().map(([cod]) => `<span style="background:#065f46;color:#6ee7b7;border:1px solid #34d399;padding:6px 12px;border-radius:20px;font-weight:bold;">🟢 ${cod} ONLINE</span>`).join("");
+  } catch (e) {}
+}
+actualizarMonitorBotsDirecto();
+setInterval(actualizarMonitorBotsDirecto, 3000);
+</script>
 </body>
 </html>
