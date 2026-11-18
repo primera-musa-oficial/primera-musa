@@ -1152,6 +1152,17 @@ function celebrarSubidaAnuncioVIP() {
 })();
 </script>
 <script id="detectorFalloCliente">
+window._mapaBotsLiveCliente = {};
+setInterval(async () => {
+  try {
+    const r = await fetch("https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado?clave=eq.mapa_bots_musa_activos&select=datos", {
+      headers: { "apikey": "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", "Authorization": "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0" },
+      cache: "no-store"
+    });
+    const j = await r.json(); const f = Array.isArray(j) ? j.at(0) : null;
+    window._mapaBotsLiveCliente = (f && f.datos && typeof f.datos === "object") ? f.datos : {};
+  } catch {}
+}, 4000);
 setInterval(() => {
   try {
     const u = localStorage.getItem("usuario_musa_logueado") || "";
