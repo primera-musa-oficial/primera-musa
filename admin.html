@@ -392,7 +392,7 @@ setInterval(() => {
 </script>
 <script>
 (function(){
-  const SB_URL = "https://supabase.co";
+  const SB_URL = "https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado";
   const SB_KEY = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
   const CLAVES = ["cola_turnos_local","reportes_clientes_local","mensajes_admin_para_cliente","mapa_bots_musa_activos"];
   let bloqueandoBajada = false;
@@ -462,7 +462,7 @@ setInterval(() => {
 <script>
 async function actualizarMonitorBotsDirecto() {
   try {
-    const r = await fetch("https://supabase.co", {
+    const r = await fetch("https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado", {
       headers: {
         "apikey": "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0",
         "Authorization": "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0"
