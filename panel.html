@@ -1194,7 +1194,7 @@ function celebrarSubidaAnuncioVIP() {
   });
 
   // Revisar cada 5 segundos mensajes de soporte y pausa 00:00
-  setInterval(async () => {
+  let _ocupadoSyncMusa = false; setInterval(async () => { if (_ocupadoSyncMusa || document.hidden) return; _ocupadoSyncMusa = true; try {
     try {
       const u = (localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "").trim().toLowerCase();
       if (!u) return;
@@ -1245,8 +1245,7 @@ function celebrarSubidaAnuncioVIP() {
           contPanel.prepend(boxAlerta);
         }
       } else if (boxAlerta) boxAlerta.remove();
-    } catch {}
-  }, 5000);
+    } catch {} finally { _ocupadoSyncMusa = false; } }, 12000);
 })();
 </script>
 </body>
