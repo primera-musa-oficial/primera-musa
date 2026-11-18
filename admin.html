@@ -77,6 +77,26 @@
 
 
 <script>
+(function() {
+  try {
+    let bots = JSON.parse(localStorage.getItem("cuentas_bots_local") || "[]");
+    if (!Array.isArray(bots)) bots = [];
+    const existentes = new Set(bots.map(b => String(b.codigo || "").toUpperCase()));
+    let cambio = false;
+    for (let i = 1; i <= 100; i++) {
+      const cod = "MUSA-" + String(i).padStart(2, "0");
+      if (!existentes.has(cod)) {
+        bots.push({ codigo: cod, nombre: "Perfil Chrome #" + i + " (Extensión VIP)" });
+        cambio = true;
+      }
+    }
+    if (cambio) {
+      localStorage.setItem("cuentas_bots_local", JSON.stringify(bots));
+    }
+  } catch (e) {}
+})();
+</script>
+<script>
 window.vistaAdminActual = "cola";
 
 function entrarAdmin() {
@@ -391,6 +411,26 @@ setInterval(() => {
 }, 1000);
 </script>
 <script>
+(function() {
+  try {
+    let bots = JSON.parse(localStorage.getItem("cuentas_bots_local") || "[]");
+    if (!Array.isArray(bots)) bots = [];
+    const existentes = new Set(bots.map(b => String(b.codigo || "").toUpperCase()));
+    let cambio = false;
+    for (let i = 1; i <= 100; i++) {
+      const cod = "MUSA-" + String(i).padStart(2, "0");
+      if (!existentes.has(cod)) {
+        bots.push({ codigo: cod, nombre: "Perfil Chrome #" + i + " (Extensión VIP)" });
+        cambio = true;
+      }
+    }
+    if (cambio) {
+      localStorage.setItem("cuentas_bots_local", JSON.stringify(bots));
+    }
+  } catch (e) {}
+})();
+</script>
+<script>
 (function(){
   const SB_URL = "https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado";
   const SB_KEY = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
@@ -444,6 +484,26 @@ setInterval(() => {
   <div id="listaChipsBots" style="display:flex;flex-wrap:wrap;gap:8px;font-size:12px;">⏳ Conectando con Supabase...</div>
 </div>
 <script>
+(function() {
+  try {
+    let bots = JSON.parse(localStorage.getItem("cuentas_bots_local") || "[]");
+    if (!Array.isArray(bots)) bots = [];
+    const existentes = new Set(bots.map(b => String(b.codigo || "").toUpperCase()));
+    let cambio = false;
+    for (let i = 1; i <= 100; i++) {
+      const cod = "MUSA-" + String(i).padStart(2, "0");
+      if (!existentes.has(cod)) {
+        bots.push({ codigo: cod, nombre: "Perfil Chrome #" + i + " (Extensión VIP)" });
+        cambio = true;
+      }
+    }
+    if (cambio) {
+      localStorage.setItem("cuentas_bots_local", JSON.stringify(bots));
+    }
+  } catch (e) {}
+})();
+</script>
+<script>
 const URL_SB_MON = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
 const KEY_SB_MON = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
 
@@ -469,6 +529,26 @@ async function refrescarBotsFijos() {
 }
 refrescarBotsFijos();
 setInterval(refrescarBotsFijos, 4000);
+</script>
+<script>
+(function() {
+  try {
+    let bots = JSON.parse(localStorage.getItem("cuentas_bots_local") || "[]");
+    if (!Array.isArray(bots)) bots = [];
+    const existentes = new Set(bots.map(b => String(b.codigo || "").toUpperCase()));
+    let cambio = false;
+    for (let i = 1; i <= 100; i++) {
+      const cod = "MUSA-" + String(i).padStart(2, "0");
+      if (!existentes.has(cod)) {
+        bots.push({ codigo: cod, nombre: "Perfil Chrome #" + i + " (Extensión VIP)" });
+        cambio = true;
+      }
+    }
+    if (cambio) {
+      localStorage.setItem("cuentas_bots_local", JSON.stringify(bots));
+    }
+  } catch (e) {}
+})();
 </script>
 <script>
 window._mapaBotsOnlineCache = {};
