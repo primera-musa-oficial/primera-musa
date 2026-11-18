@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRIMERA MUSA 👑 • Panel de Administración</title>
+<link href="https://googleapis.com" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+  body { margin: 0; min-height: 100vh; background: radial-gradient(circle at top, #132920 0%, #060e0b 80%); color: #f8fafc; }
+  .hidden { display: none !important; }
+  input, select, textarea { width: 100%; background: rgba(0,0,0,0.55); border: 1px solid rgba(234,179,8,0.45); border-radius: 10px; padding: 9px 11px; color: #fff; font-size: 12.5px; outline: none; }
+  .btn-gold { background: linear-gradient(135deg,#eab308,#d97706); border: 1.5px solid #fef08a; color: #000; font-weight: 900; border-radius: 10px; padding: 9px 14px; cursor: pointer; font-size: 12px; }
+  .btn-red { background: linear-gradient(135deg,#dc2626,#991b1b); border: 1px solid #fde047; color: #fff; font-weight: 800; border-radius: 10px; padding: 8px 13px; cursor: pointer; font-size: 11.5px; }
+  .btn-green { background: linear-gradient(135deg,#059669,#047857); border: 1px solid #fde047; color: #fff; font-weight: 800; border-radius: 10px; padding: 8px 13px; cursor: pointer; font-size: 11.5px; }
+  .btn-step { background: rgba(255,255,255,0.08); border: 1px solid rgba(234,179,8,0.4); color: #fde047; border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 800; cursor: pointer; }
+  .btn-step.activo { background: linear-gradient(135deg,#dc2626,#b91c1c); color: #fff; border-color: #fde047; }
+  #adminLogin { position: fixed; inset: 0; background: radial-gradient(circle at center, #142c22, #040907 85%); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .login-box { background: rgba(10,14,18,0.95); border: 2px solid #eab308; border-radius: 22px; max-width: 340px; width: 100%; padding: 26px 22px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.95); }
+  .topbar { background: rgba(8,18,14,0.95); border-bottom: 1.5px solid rgba(234,179,8,0.35); padding: 14px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+  .wrap { max-width: 1200px; margin: 18px auto 50px; padding: 0 16px; }
+  .turno-card { background: linear-gradient(160deg, rgba(16,36,27,0.92), rgba(8,18,14,0.96)); border: 1.5px solid rgba(234,179,8,0.45); border-radius: 18px; padding: 18px; margin-bottom: 16px; box-shadow: 0 12px 30px rgba(0,0,0,0.55); }
+  .dato-pill { background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.12); border-radius: 9px; padding: 7px 10px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+</style>
+</head>
+<body>
+
+<div id="adminLogin">
+  <div class="login-box">
+    <div style="font-size:36px;">👑🔐</div>
+    <h1 style="font-family:'Cinzel',serif;color:#fde047;font-size:22px;margin:4px 0;">CONTROL MAESTRO</h1>
+    <div style="font-size:10px;color:#94a3b8;letter-spacing:1.5px;margin-bottom:16px;">ACCESO EXCLUSIVO ADMINISTRADORA</div>
+    <input id="admUser" type="text" placeholder="👤 Usuario Admin" style="margin-bottom:10px;">
+    <input id="admPass" type="password" placeholder="🔑 Contraseña Maestra" style="margin-bottom:10px;">
+    <div id="admErr" style="color:#fda4af;font-size:11.5px;font-weight:700;min-height:16px;margin-bottom:8px;"></div>
+    <button type="button" class="btn-gold" style="width:100%;padding:12px;" onclick="entrarAdmin()">Entrar al Panel Admin 👑</button>
+  </div>
+</div>
+<div id="adminPanelMain" class="hidden">
+  <header class="topbar">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;">
+      <div>
+        <div style="font-family:'Cinzel',serif;color:#fde047;font-size:21px;font-weight:900;">PRIMERA MUSA 👑 • ADMIN</div>
+        <div style="font-size:11px;color:#86efac;">Gestión de Turnos, Asignación de Páginas y Publicación en Vivo</div>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(234,179,8,0.16),rgba(220,38,38,0.18));border:1px solid rgba(253,224,71,0.55);border-radius:10px;padding:6px 12px;box-shadow:0 0 15px rgba(234,179,8,0.18);">
+        <div style="font-family:'Cinzel',serif;font-size:11.5px;font-weight:900;letter-spacing:1.6px;background:linear-gradient(90deg,#fde047,#ffffff,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">⚡ SYSTEM ARCHITECTED BY ANDRUS • FOR ANDRUS</div>
+        <div style="font-size:9px;color:#cbd5e1;letter-spacing:1.2px;font-weight:700;margin-top:1px;">PROPRIETARY CORE ENGINE • EDITION 2026</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button type="button" class="btn-gold" onclick="cargarColaTurnos()">🔄 Actualizar Cola</button>
+      <button type="button" class="btn-red" onclick="location.reload()">Salir</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px;">
+      <div class="turno-card" style="margin:0;padding:14px;"><div style="font-size:10.5px;color:#94a3b8;font-weight:800;">SOLICITUDES EN COLA</div><div id="statCola" style="font-size:24px;font-weight:900;color:#fde047;">0</div></div>
+      <div class="turno-card" style="margin:0;padding:14px;"><div style="font-size:10.5px;color:#94a3b8;font-weight:800;">ANUNCIOS ACTIVOS</div><div id="statActivos" style="font-size:24px;font-weight:900;color:#34d399;">0</div></div>
+            <div class="turno-card" style="margin:0;padding:14px;"><div style="font-size:10.5px;color:#94a3b8;font-weight:800;">TOTAL CLIENTAS</div><div id="statTotal" style="font-size:24px;font-weight:900;color:#fff;">0</div></div>
+      <div class="turno-card" style="margin:0;padding:14px;border-color:rgba(244,63,94,0.55);"><div style="font-size:10.5px;color:#fda4af;font-weight:800;">🚨 REPORTES / FALLAS</div><div id="statReportes" style="font-size:24px;font-weight:900;color:#fb7185;">0</div></div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+            <button type="button" id="btnFiltroCola" class="btn-gold" onclick="cambiarVistaAdmin('cola')">🎫 Cola por Turno de Llegada</button>
+      <button type="button" id="btnFiltroActivos" class="btn-step" onclick="cambiarVistaAdmin('activos')">🟢 Anuncios Activos (Reloj en Vivo)</button>
+            <button type="button" id="btnFiltroTodas" class="btn-step" onclick="cambiarVistaAdmin('todas')">👑 Todas las Clientas y Cuentas</button>
+            <button type="button" id="btnFiltroReportes" class="btn-step" onclick="cambiarVistaAdmin('reportes')">🚨 Reportes y Fallas (Orden de Llegada)</button>
+      <button type="button" id="btnFiltroBots" class="btn-step" onclick="cambiarVistaAdmin('bots')">🔌 Cuentas y Bots (MUSA-01)</button>
+    </div>
+
+    <div id="listaTarjetasAdmin">Cargando solicitudes en tiempo real...</div>
+  </div>
+</div>
+
+
+
+<script>
+window.vistaAdminActual = "cola";
+
+function entrarAdmin() {
+  const u = document.getElementById("admUser").value.trim().toLowerCase();
+  const p = document.getElementById("admPass").value.trim();
+  if (u === "lamusaadmin" && p === "MusaVIP2026!") {
+    document.getElementById("adminLogin").style.display = "none";
+    document.getElementById("adminPanelMain").classList.remove("hidden");
+    cargarColaTurnos();
+  } else {
+    document.getElementById("admErr").innerText = "❌ Usuario o contraseña incorrectos.";
+  }
+}
+
+function cambiarVistaAdmin(v) {
+  window.vistaAdminActual = v;
+  const mapa = { cola: "btnFiltroCola", activos: "btnFiltroActivos", todas: "btnFiltroTodas", reportes: "btnFiltroReportes", bots: "btnFiltroBots" };
+  Object.keys(mapa).forEach(k => {
+    const el = document.getElementById(mapa[k]);
+    if (el) el.className = (k === v) ? "btn-gold" : "btn-step";
+  });
+  cargarColaTurnos();
+}
+
+function copiarTextoAdmin(txt, btn) {
+  navigator.clipboard.writeText(txt);
+  const orig = btn.innerText; btn.innerText = "✅ Copiado";
+  setTimeout(() => btn.innerText = orig, 1400);
+}
+
+function obtenerCuentasBot() {
+  let bots = JSON.parse(localStorage.getItem("cuentas_bot_musa") || "[]");
+  if (bots.length === 0) {
+    bots = [{ codigo: "MUSA-01", nombre: "Perfil Chrome #1 - Miami FL" }, { codigo: "MUSA-02", nombre: "Perfil Chrome #2 - Orlando FL" }];
+    localStorage.setItem("cuentas_bot_musa", JSON.stringify(bots));
+  }
+  return bots;
+}
+
+function formatearMs(ms) {
+  if (!ms || ms <= 0) return "0d 0h 0m";
+  return `${Math.floor(ms/86400000)}d ${Math.floor((ms%86400000)/3600000)}h ${Math.floor((ms%3600000)/60000)}m`;
+}
+function responderTicketDirectoAdmin(idRep) {
+  const reps = JSON.parse(localStorage.getItem("reportes_clientes_local") || "[]");
+  const it = reps.find(x => x.id === idRep);
+  if (!it) return;
+  const txt = prompt("Escribe tu respuesta para " + it.alias + " (le saldrá arriba en su panel):", it.respuesta_admin || "Listo mami, revisa ya está subiendo 💋");
+  if (!txt || !txt.trim()) return;
+  it.respuesta_admin = txt.trim();
+  localStorage.setItem("reportes_clientes_local", JSON.stringify(reps));
+  const buz = JSON.parse(localStorage.getItem("mensajes_admin_para_cliente") || "[]");
+  buz.push({ id: Date.now(), usuario: it.usuario, texto: txt.trim(), leido: false });
+  localStorage.setItem("mensajes_admin_para_cliente", JSON.stringify(buz));
+  alert("✅ Mensaje enviado al panel de " + it.alias);
+  cargarColaTurnos();
+}
+
+function cargarColaTurnos() {
+  const cont = document.getElementById("listaTarjetasAdmin");
+  const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const enCola = lista.filter(c => c.activo !== true);
+  const activosList = lista.filter(c => c.activo === true);
+  const repsPend = JSON.parse(localStorage.getItem("reportes_clientes_local") || "[]").filter(r => !r.resuelto);
+
+  document.getElementById("statCola").innerText = enCola.length;
+  document.getElementById("statActivos").innerText = activosList.length;
+  document.getElementById("statTotal").innerText = lista.length;
+  if (document.getElementById("statReportes")) document.getElementById("statReportes").innerText = repsPend.length;
+
+  if (window.vistaAdminActual === "bots") {
+    const bots = obtenerCuentasBot();
+    cont.innerHTML = `<div class="turno-card"><div style="font-size:12px;font-weight:900;color:#fde047;margin-bottom:8px;">🔌 NUEVA CUENTA DE BOT</div><div style="display:grid;grid-template-columns:1fr auto;gap:8px;"><input id="nuevoBotNombre" type="text" placeholder="Ej. Perfil Chrome #3 - Tampa FL"><button type="button" class="btn-gold" onclick="const n=document.getElementById('nuevoBotNombre').value.trim();if(!n)return;const b=obtenerCuentasBot();b.push({codigo:'MUSA-'+String(b.length+1).padStart(2,'0'),nombre:n});localStorage.setItem('cuentas_bot_musa',JSON.stringify(b));cargarColaTurnos();">+ Generar Código 🔑</button></div></div>` + bots.map(b => `<div class="turno-card" style="display:flex;justify-content:space-between;align-items:center;"><div><span style="background:#1e3a8a;border:1px solid #fde047;color:#fde047;font-weight:900;padding:3px 9px;border-radius:8px;">🔑 ${b.codigo}</span> <b style="margin-left:8px;">${b.nombre}</b></div><button type="button" class="btn-step" onclick="copiarTextoAdmin('${b.codigo}',this)">📋 Copiar Código</button></div>`).join("");
+    return;
+  }
+  if (window.vistaAdminActual === "reportes") {
+    if (!repsPend.length) { cont.innerHTML = `<div class="turno-card" style="text-align:center;">✅ Sin reportes pendientes.</div>`; return; }
+        cont.innerHTML = repsPend.map((r, i) => `
+      <div class="turno-card" style="border-color:rgba(244,63,94,0.6);">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+          <div><span style="background:#be123c;border:1px solid #fde047;color:#fff;font-weight:900;font-size:12px;padding:3px 9px;border-radius:8px;">🚨 TICKET #${i + 1}</span> <b style="font-size:15px;margin-left:6px;">${r.alias}</b> <span style="font-size:11px;color:#94a3b8;">(${r.usuario} • ${r.hora})</span></div>
+          <span style="font-size:11px;font-weight:800;color:#fde047;">🌐 Bot: ${r.pagina || "Sin asignar"}</span>
+        </div>
+                <div style="background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.4);border-radius:10px;padding:10px;margin-bottom:10px;font-size:12.5px;color:#fff;white-space:pre-line;">"${r.mensaje}"</div>
+        ${r.nuevo_telefono ? `<div style="margin-bottom:8px;"><button type="button" class="btn-step" onclick="copiarTextoAdmin('${r.nuevo_telefono}',this)">📋 Copiar Nuevo Teléfono: +1 ${r.nuevo_telefono}</button></div>` : ""}
+        ${(Array.isArray(r.fotos_nuevas) && r.fotos_nuevas.length > 0) ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${r.fotos_nuevas.map((src, idx) => `<a href="${src}" download="NuevaFoto_${idx+1}_${r.usuario}.jpg" title="Clic para descargar"><img src="${src}" style="width:62px;height:78px;object-fit:cover;border-radius:8px;border:2px solid #fde047;"></a>`).join("")}</div>` : ""}
+        ${r.respuesta_admin ? `<div style="background:rgba(16,185,129,0.16);border:1px solid #34d399;border-radius:9px;padding:8px 10px;font-size:11.5px;color:#a7f3d0;margin-bottom:10px;"><b>💬 Tu respuesta enviada:</b> ${r.respuesta_admin}</div>` : ""}
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <button type="button" class="btn-gold" onclick="const reps=JSON.parse(localStorage.getItem(\x27reportes_clientes_local\x27)||\x27[]\x27);const it=reps.find(x=>x.id===${r.id});if(!it)return;const txt=prompt(\x27Respuesta para \x27+it.alias+\x27:\x27,\x27Listo mami, revisa ya está subiendo 💋\x27);if(txt&&txt.trim()){it.respuesta_admin=txt.trim();localStorage.setItem(\x27reportes_clientes_local\x27,JSON.stringify(reps));const buz=JSON.parse(localStorage.getItem(\x27mensajes_admin_para_cliente\x27)||\x27[]\x27);buz.push({id:Date.now(),usuario:it.usuario,texto:txt.trim(),leido:false});localStorage.setItem(\x27mensajes_admin_para_cliente\x27,JSON.stringify(buz));cargarColaTurnos();}">💬 Responder a la Clienta</button>
+          <button type="button" class="btn-green" onclick="const reps=JSON.parse(localStorage.getItem('reportes_clientes_local')||'[]').filter(x=>x.id!==${r.id});localStorage.setItem('reportes_clientes_local',JSON.stringify(reps));cargarColaTurnos();">✅ Marcar Resuelto</button>
+        </div>
+      </div>
+    `).join("");
+    return;
+  }
+
+  const mostrar = window.vistaAdminActual === "activos" ? activosList : (window.vistaAdminActual === "todas" ? lista : enCola);
+  if (!mostrar.length) { cont.innerHTML = `<div class="turno-card" style="text-align:center;">🎉 No hay registros en esta pestaña.</div>`; return; }
+  cont.innerHTML = mostrar.map((c, idx) => armarTarjetaUnica(c, idx, lista)).join("");
+}
+
+function armarTarjetaUnica(c, idx, lista) {
+      verificarCicloHumano(c);
+    const enMicroDescanso = c.en_micro_descanso_hasta && Number(c.en_micro_descanso_hasta) > Date.now();
+    const minMicro = enMicroDescanso ? Math.ceil((Number(c.en_micro_descanso_hasta) - Date.now()) / 60000) : 0;
+    const horasJornada = c.inicio_jornada_ms ? Math.min(18, Math.floor((Date.now() - Number(c.inicio_jornada_ms)) / 3600000)) : 0;
+        const editandoAhora = c.editando_en_vivo && (Date.now() - Number(c.editando_en_vivo) < 120000);
+    const totalEdiciones = Number(c.total_ediciones || 0);
+    const historialArr = Array.isArray(c.historial_cambios) ? c.historial_cambios : [];
+    const historialHtml = historialArr.length > 0
+      ? `<details style="margin-top:8px;background:rgba(0,0,0,0.45);border:1px solid rgba(253,224,71,0.3);border-radius:9px;padding:7px 10px;">
+          <summary style="cursor:pointer;font-size:11px;font-weight:800;color:#fde047;">📜 Ver Historial de Actividad de la Clienta (${totalEdiciones} ${totalEdiciones === 1 ? 'edición' : 'ediciones'})</summary>
+          <div style="margin-top:6px;display:flex;flex-direction:column;gap:4px;font-size:11px;color:#e2e8f0;">
+            ${historialArr.slice().reverse().map(h => `<div style="border-left:2px solid #eab308;padding-left:7px;"><b>${h.hora}</b> — ${h.detalle}</div>`).join("")}
+          </div>
+        </details>`
+      : `<div style="font-size:10.5px;color:#94a3b8;margin-top:6px;">📜 Ediciones realizadas por la clienta: <b>0</b></div>`;
+    const info = String(c.ultimo_anuncio || "");
+  const paso = info.includes("PASO:4") || c.activo ? 4 : (info.includes("PASO:3") ? 3 : (info.includes("PASO:2") ? 2 : 1));
+  const idxPag = info.indexOf("PAGINA:");
+  const pag = idxPag !== -1 ? info.slice(idxPag + 7).split("|").trim() : "Sin asignar";
+  const venceMs = Number(c.vence_ms || 0), diffMs = venceMs - Date.now();
+  let txtRenta = `⏳ Plan: ${c.plan || "1 semana"}`, colRenta = "#fde047";
+  if (c.renta_finalizada) { txtRenta = "🔓 RENTA FINALIZADA • Bot liberado"; colRenta = "#7dd3fc"; }
+  else if (c.detenido) { txtRenta = "⏸️ DETENIDO (Pendiente de pago)"; colRenta = "#fdba74"; }
+  else if (c.bloqueada) { txtRenta = `🔒 BLOQUEADA • Saldo: ${formatearMs(c.tiempo_congelado_ms)}`; colRenta = "#fbbf24"; }
+  else if (venceMs > 0 && diffMs > 0) { txtRenta = `⏳ Renta restante: ${formatearMs(diffMs)}`; colRenta = "#34d399"; }
+
+  const minsInt = Number(c.intervalo_min || 17);
+  if (!c.proximo_bump_ms || Number(c.proximo_bump_ms) <= Date.now()) { c.proximo_bump_ms = Date.now() + minsInt * 60000; localStorage.setItem("cola_turnos_local", JSON.stringify(lista)); }
+  const diffBump = Math.max(0, Number(c.proximo_bump_ms) - Date.now());
+  const relojStr = String(Math.floor(diffBump/60000)).padStart(2,"0") + ":" + String(Math.floor((diffBump%60000)/1000)).padStart(2,"0");
+  const fotosArr = Array.isArray(c.fotos) ? c.fotos : [];
+  const fotosHtml = fotosArr.map((src, fi) => `<a href="${src}" download="foto_${fi+1}.jpg" style="position:relative;display:inline-block;width:78px;height:102px;border-radius:8px;overflow:hidden;border:2px solid ${fi===0?'#fde047':'#34d399'};"><img src="${src}" style="width:100%;height:100%;object-fit:cover;"><span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.8);color:#fde047;font-size:9px;text-align:center;">${fi===0?'👑 Portada':'⬇ Foto '+(fi+1)}</span></a>`).join("");
+
+  const bloqueInferior = (c.activo || c.bloqueada || c.detenido) ? `
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.1);">
+      <span style="font-size:12px;font-weight:800;color:${colRenta};">${txtRenta}</span>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;">
+        <button type="button" class="btn-step" onclick="extenderRentaLocal(${c.id},1)">+1 Día</button>
+        <button type="button" class="btn-step" onclick="extenderRentaLocal(${c.id},7)">+1 Semana</button>
+        <button type="button" class="btn-gold" style="padding:5px 9px;font-size:11px;" onclick="extenderRentaLocal(${c.id},30)">+1 Mes</button>
+        <button type="button" class="btn-step" style="border-color:#ef4444;color:#fca5a5;" onclick="bloquearYCongelarTiempoAdmin(${c.id})">🔒 Bloqueada</button>
+        <button type="button" class="btn-step" style="border-color:#38bdf8;color:#7dd3fc;" onclick="liberarPaginaFinRentaAdmin(${c.id})">🔓 Liberar Bot (Fin Renta)</button>
+      </div>
+    </div>` : `<div style="margin-top:8px;font-size:11.5px;color:#fde047;font-weight:700;">⏳ Plan pedido: ${c.plan || "1 semana"} (En cola de activación)</div>`;
+
+  return `<div class="turno-card" style="border-color:${c.activo?'rgba(52,211,153,0.6)':'rgba(234,179,8,0.45)'};">
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+            <div>
+        <span style="background:#dc2626;color:#fde047;font-weight:900;font-size:12px;padding:3px 9px;border-radius:8px;">🎫 TURNO #${idx+1}</span>
+${c.es_adicional ? `<span style="background:linear-gradient(90deg,#1d4ed8,#3b82f6);border:1px solid #fde047;color:#fff;font-weight:900;font-size:10.5px;padding:3px 8px;border-radius:8px;margin-left:4px;">➕ ANUNCIO ADICIONAL DE ${c.usuario}</span>` : ""}
+        ${editandoAhora ? `<span style="background:#7c3aed;border:1px solid #fde047;color:#fff;font-size:10.5px;font-weight:900;padding:3px 9px;border-radius:8px;margin-left:5px;">✍️ EDITANDO SU ANUNCIO EN VIVO...</span>` : ""}
+        ${c.cambio_pendiente_mp ? `<span style="background:#ea580c;border:1px solid #fde047;color:#fff;font-size:10.5px;font-weight:900;padding:3px 9px;border-radius:8px;margin-left:5px;">🆕 EDITÓ DATOS/FOTOS (${totalEdiciones}x)</span>` : ""}
+                <b style="margin-left:6px;">${c.alias || c.usuario}</b> <span style="font-size:11px;color:#94a3b8;">(${c.usuario} • ${c.clave})</span>
+        <span style="background:rgba(16,185,129,0.2);border:1px solid #34d399;color:#6ee7b7;font-size:11px;font-weight:800;padding:2px 8px;border-radius:8px;margin-left:6px;">💬 Contacto: ${c.contacto_directo || c.phone || "Sin contacto"}</span>
+        ${c.contacto_directo ? `<button type="button" class="btn-step" style="padding:2px 7px;font-size:10px;" onclick="copiarTextoAdmin('${c.contacto_directo}',this)">📋</button>` : ""}
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">${c.pausa_18h
+  ? `<span style="background:rgba(124,58,237,0.35);border:1px solid #c4b5fd;color:#ddd6fe;font-size:11px;font-weight:900;padding:3px 9px;border-radius:8px;">🌙 Pausa 18h (Esperando clienta)</span>`
+  : (enMicroDescanso
+      ? `<span style="background:rgba(245,158,11,0.25);border:1px solid #fbbf24;color:#fde047;font-size:11px;font-weight:900;padding:3px 9px;border-radius:8px;">☕ Descanso 30m (Faltan ${minMicro}m)</span>`
+      : (c.activo ? `<span style="background:rgba(220,38,38,0.25);border:1px solid #fde047;color:#fde047;font-size:11px;font-weight:900;padding:3px 8px;border-radius:8px;">🚀 Bump: <span class="reloj-bump-vivo" data-target="${c.proximo_bump_ms}" data-min="${minsInt}">${relojStr}</span> • ${horasJornada}h/18h</span>` : ""))
+}<span style="font-size:11px;color:#cbd5e1;">📅 ${c.fecha_hora || "Hoy"}</span></div>
+    </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:6px;margin-bottom:6px;">
+      <div class="dato-pill"><span><b>Plan:</b> ${c.plan || "1 semana"}</span></div>
+      <div class="dato-pill"><span><b>Alias / Edad:</b> ${c.alias || c.usuario} (${c.age || 23})</span><button type="button" class="btn-step" onclick="copiarTextoAdmin('${c.alias || c.usuario}',this)">📋 Copiar</button></div>
+      <div class="dato-pill"><span><b>Ciudad:</b> ${c.city || ""}, ${c.state || ""} ${c.area?'('+c.area+')':''}</span><button type="button" class="btn-step" onclick="copiarTextoAdmin('${c.city || ""}, ${c.state || ""}',this)">📋 Copiar</button></div>
+      <div class="dato-pill"><span><b>Teléfono:</b> +1 ${c.phone || ""}</span><button type="button" class="btn-step" onclick="copiarTextoAdmin('${c.phone || ""}',this)">📋 Copiar</button></div>
+    </div>
+    <div class="dato-pill" style="margin-bottom:6px;"><div><b>Headline:</b> ${c.headline || "—"}</div><button type="button" class="btn-step" onclick="copiarTextoAdmin(\`${(c.headline||"").replace(/`/g,"")}\`,this)">📋 Copiar</button></div>
+    <div class="dato-pill" style="margin-bottom:8px;"><div><b>Body:</b> ${c.body || "—"}</div><button type="button" class="btn-step" onclick="copiarTextoAdmin(\`${(c.body||"").replace(/`/g,"")}\`,this)">📋 Copiar</button></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">${fotosHtml}</div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px;"><select id="pagInp_${c.id}"><option value="">— Selecciona Bot (${pag}) —</option>${obtenerCuentasBot().map(b=>`<option value="${b.codigo} • ${b.nombre}">${b.codigo} • ${b.nombre}</option>`).join("")}</select><button type="button" class="btn-gold" onclick="guardarCambioLocal(${c.id},null,document.getElementById('pagInp_${c.id}').value)">Asignar Bot ✅</button></div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <button type="button" class="btn-step ${paso===1?'activo':''}" onclick="guardarCambioLocal(${c.id},1,null)">1. Revisando</button>
+      <button type="button" class="btn-step ${paso===2?'activo':''}" onclick="guardarCambioLocal(${c.id},2,null)">2. Subiendo fotos</button>
+      <button type="button" class="btn-step ${paso===3?'activo':''}" onclick="guardarCambioLocal(${c.id},3,null)">3. Verificando SMS</button>
+      ${c.activo
+  ? `<span style="background:rgba(16,185,129,0.2);border:1px solid #34d399;color:#6ee7b7;font-size:11px;font-weight:900;padding:6px 12px;border-radius:8px;">✅ Activada</span>
+     <button type="button" class="btn-gold" style="padding:5px 10px;font-size:11px;" onclick="abrirMensajeBienvenidaAdmin(${c.id})">📲 Copiar Mensaje + Foto</button>`
+  : `<button type="button" class="btn-green" onclick="guardarCambioLocal(${c.id},4,null);abrirMensajeBienvenidaAdmin(${c.id});">✅ Activada</button>`
+}
+      ${c.activo ? (c.detenido ? `<button type="button" class="btn-gold" style="padding:5px 9px;font-size:11px;" onclick="toggleDetenerLocal(${c.id},false)">▶️ Reanudar</button>` : `<button type="button" class="btn-step" style="border-color:#f97316;color:#fdba74;" onclick="toggleDetenerLocal(${c.id},true)">⏸️ Detener (Sin Pago)</button>`) : ""}
+      <button type="button" class="btn-red" style="margin-left:auto;" onclick="rechazarSolicitudAdmin(${c.id})">🚫 Rechazar</button>
+    </div>
+    ${bloqueInferior}${historialHtml}
+  </div>`;
+}
+function toggleDetenerLocal(id, detener) { const l=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]"), it=l.find(x=>x.id===id); if(!it)return; it.detenido=detener; it.activo=!detener; localStorage.setItem("cola_turnos_local",JSON.stringify(l)); cargarColaTurnos(); }
+function extenderRentaLocal(id, d) { const l=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]"), it=l.find(x=>x.id===id); if(!it)return; const base=(it.vence_ms&&Number(it.vence_ms)>Date.now())?Number(it.vence_ms):Date.now(); it.vence_ms=base+d*86400000; it.activo=true; it.detenido=false; it.renta_finalizada=false; localStorage.setItem("cola_turnos_local",JSON.stringify(l)); cargarColaTurnos(); }
+function bloquearYCongelarTiempoAdmin(id) { const l=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]"), it=l.find(x=>x.id===id); if(!it)return; it.tiempo_congelado_ms=Math.max(0,Number(it.vence_ms||0)-Date.now()); it.bloqueada=true; it.activo=false; it.vence_ms=0; localStorage.setItem("cola_turnos_local",JSON.stringify(l)); alert("🔒 Bloqueada. Saldo congelado: "+formatearMs(it.tiempo_congelado_ms)); cargarColaTurnos(); }
+function liberarPaginaFinRentaAdmin(id) {
+  if (!confirm("🔓 ¿Finalizar renta de esta clienta y detener su publicación?")) return;
+  let l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const it = l.find(x => x.id === id);
+  if (!it) return;
+
+  const info = String(it.ultimo_anuncio || "");
+  const mBot = info.match(/MUSA-\d+/);
+  const codBot = mBot ? mBot : "";
+
+  if (codBot && confirm(`🔌 Esta clienta tenía asignado el perfil ${codBot}.\n\n• Pulsa ACEPTAR para ELIMINAR también ${codBot} de tu lista de bots.\n• Pulsa CANCELAR para dejar ${codBot} libre para otra clienta.`)) {
+    let bots = obtenerCuentasBot().filter(b => b.codigo !== codBot);
+    localStorage.setItem("cuentas_bot_musa", JSON.stringify(bots));
+  }
+
+  l = l.filter(x => x.id !== id);
+  localStorage.setItem("cola_turnos_local", JSON.stringify(l));
+  alert("✅ Renta finalizada: el anuncio y la asignación se han eliminado del panel.");
+  cargarColaTurnos();
+}
+function rechazarSolicitudAdmin(id) { if(!confirm("¿Rechazar solicitud?"))return; localStorage.setItem("cola_turnos_local",JSON.stringify(JSON.parse(localStorage.getItem("cola_turnos_local")||"[]").filter(x=>x.id!==id))); cargarColaTurnos(); }
+function verificarCicloHumano(it) {
+  if (!it || !it.activo || it.detenido || it.bloqueada) return;
+  const ahora = Date.now();
+  if (!it.inicio_jornada_ms) it.inicio_jornada_ms = ahora;
+  if (!it.proximo_micro_descanso_ms) it.proximo_micro_descanso_ms = ahora + (4.5 * 3600000);
+
+  if (it.en_micro_descanso_hasta && ahora < Number(it.en_micro_descanso_hasta)) return;
+  if (it.en_micro_descanso_hasta && ahora >= Number(it.en_micro_descanso_hasta)) {
+    it.en_micro_descanso_hasta = 0;
+    it.proximo_micro_descanso_ms = ahora + (4.5 * 3600000);
+    it.proximo_bump_ms = calcularSiguienteTiempoUnico(it.id, false);
+  }
+
+  if (ahora >= Number(it.proximo_micro_descanso_ms)) {
+    it.en_micro_descanso_hasta = ahora + (30 * 60000);
+    return;
+  }
+
+  const horasTrabajadas = ahora - Number(it.inicio_jornada_ms);
+  if (horasTrabajadas >= 18 * 3600000) {
+    it.pausa_18h = true;
+    it.detenido = true;
+    it.activo = false;
+  }
+}
+
+function calcularSiguienteTiempoUnico(idCuenta, esPrimeraVez) {
+  const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const baseMinutos = esPrimeraVez ? 17 : (16 + Math.random() * 4);
+  let candidatoMs = Date.now() + Math.round(baseMinutos * 60000);
+
+  const otrosTiempos = lista
+    .filter(x => x.activo === true && x.id !== idCuenta && x.proximo_bump_ms)
+    .map(x => Number(x.proximo_bump_ms));
+
+  let intentos = 0;
+  while (otrosTiempos.some(t => Math.abs(t - candidatoMs) < 90000) && intentos < 25) {
+    candidatoMs += 120000 + Math.floor(Math.random() * 45000);
+    intentos++;
+  }
+  return candidatoMs;
+}
+
+function abrirMensajeBienvenidaAdmin(id) {
+  const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const c = l.find(x => x.id === id);
+  if (!c) return;
+  const fotoP = (Array.isArray(c.fotos) && c.fotos.length > 0) ? c.fotos : "";
+  const textoMsg = `🎄 ¡Hola ${c.alias || c.usuario}! Tu anuncio VIP ya está PUBLICADO Y ACTIVO en MegaPersonals (${c.city || "Miami"}, ${c.state || "FL"}) 💋✨\n\n🔑 Tus datos para entrar a tu Panel de Control:\n👤 Usuario: ${c.usuario}\n🔒 Contraseña: ${c.clave}\n⏳ Tiempo contratado: ${c.plan || "1 semana"}\n\nDesde tu panel puedes ver tu reloj en vivo, pausar/reanudar, editar tus fotos o reportar cualquier novedad. ¡Muchos éxitos mami! 🔥💎`;
+
+  let modal = document.getElementById("modalMsgClienteVIP");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "modalMsgClienteVIP";
+    modal.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:16px;";
+    document.body.appendChild(modal);
+  }
+  modal.style.display = "flex";
+  modal.innerHTML = `
+    <div style="background:linear-gradient(160deg,#0f291e,#07120d);border:2px solid #eab308;border-radius:20px;max-width:440px;width:100%;padding:20px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.95);">
+      <div style="font-size:14px;font-weight:900;color:#fde047;margin-bottom:8px;">📲 MENSAJE LISTO PARA ENVIAR A LA CLIENTA</div>
+      ${fotoP ? `<div style="margin-bottom:10px;"><img src="${fotoP}" style="width:95px;height:125px;object-fit:cover;border-radius:10px;border:2px solid #fde047;"><br><a href="${fotoP}" download="Anuncio_${c.alias||c.usuario}.jpg" style="font-size:11px;color:#86efac;font-weight:800;">⬇ Descargar foto publicada para adjuntar</a></div>` : ""}
+      <textarea id="txtMsgListoVIP" rows="7" style="width:100%;background:rgba(0,0,0,0.6);border:1px solid #eab308;border-radius:10px;color:#fff;font-size:12px;padding:10px;margin-bottom:10px;">${textoMsg}</textarea>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button type="button" class="btn-gold" onclick="navigator.clipboard.writeText(document.getElementById('txtMsgListoVIP').value);this.innerText='✅ ¡Mensaje Copiado!';">📋 Copiar Mensaje</button>
+        <button type="button" class="btn-red" onclick="document.getElementById('modalMsgClienteVIP').style.display='none'">Cerrar</button>
+      </div>
+    </div>`;
+}
+
+function guardarCambioLocal(id, paso, pag) { const l=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]"), it=l.find(x=>x.id===id); if(!it)return; if(pag&&pag.trim())it.ultimo_anuncio=String(it.ultimo_anuncio||"").replace(/\| PAGINA:[^|]+/g,"").trim()+" | PAGINA:"+pag.trim(); if(paso!==null){it.ultimo_anuncio=String(it.ultimo_anuncio||"PASO:1").replace(/PASO:\d+/g,"PASO:"+paso);if(paso===4){
+  it.activo=true;
+  it.detenido=false;
+  it.intervalo_min=17;
+  it.proximo_bump_ms=calcularSiguienteTiempoUnico(it.id, true);
+  if(!it.vence_ms){
+    const dp=String(it.plan||"").includes("3")?21:(String(it.plan||"").includes("2")?14:7);
+    it.vence_ms=Date.now()+dp*86400000;
+  }
+}} localStorage.setItem("cola_turnos_local",JSON.stringify(l)); cargarColaTurnos(); }
+setInterval(() => {
+  const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  let huboCambio = false;
+  document.querySelectorAll(".reloj-bump-vivo").forEach(el => {
+    const idC = Number(el.getAttribute("data-id") || 0);
+    let target = Number(el.getAttribute("data-target") || 0);
+    let diff = target - Date.now();
+    if (diff <= 0) {
+      const nuevoTarget = calcularSiguienteTiempoUnico(idC, false);
+      el.setAttribute("data-target", nuevoTarget);
+      diff = nuevoTarget - Date.now();
+      const it = lista.find(x => x.id === idC);
+      if (it) { it.proximo_bump_ms = nuevoTarget; huboCambio = true; }
+    }
+    el.innerText = String(Math.floor(diff/60000)).padStart(2,"0") + ":" + String(Math.floor((diff%60000)/1000)).padStart(2,"0");
+  });
+  if (huboCambio) localStorage.setItem("cola_turnos_local", JSON.stringify(lista));
+}, 1000);
+</script>
+<script>
+(function(){
+  const SB_URL = "https://supabase.co";
+  const SB_KEY = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  const CLAVES = ["cola_turnos_local","reportes_clientes_local","mensajes_admin_para_cliente","mapa_bots_musa_activos"];
+  let bloqueandoBajada = false;
+
+  async function subirClaveNube(k, valStr) {
+    try {
+      bloqueandoBajada = true;
+      const datos = JSON.parse(valStr || "[]");
+      await fetch(SB_URL + "?on_conflict=clave", {
+        method: "POST",
+        headers: { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+        body: JSON.stringify([{ clave: k, datos: datos, actualizado_en: new Date().toISOString() }])
+      });
+    } catch(e) {} finally { setTimeout(() => { bloqueandoBajada = false; }, 1200); }
+  }
+
+  const _origSetItem = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function(k, v) {
+    _origSetItem(k, v);
+    if (CLAVES.includes(k)) subirClaveNube(k, v);
+  };
+
+  async function bajarTodoDeNube() {
+    if (bloqueandoBajada) return;
+    try {
+      const r = await fetch(SB_URL + "?select=clave,datos", { headers: { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY } });
+      if (!r.ok) return;
+      const filas = await r.json();
+      let huboCambio = false;
+      filas.forEach(f => {
+        if (CLAVES.includes(f.clave)) {
+          const nuevoStr = JSON.stringify(f.datos);
+          if (localStorage.getItem(f.clave) !== nuevoStr) {
+            _origSetItem(f.clave, nuevoStr);
+            huboCambio = true;
+          }
+        }
+      });
+      if (huboCambio && typeof cargarColaTurnos === "function") cargarColaTurnos();
+    } catch(e) {}
+  }
+
+  bajarTodoDeNube();
+  setInterval(bajarTodoDeNube, 4000);
+})();
+</script>
+</body>
+</html>
