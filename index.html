@@ -1151,5 +1151,29 @@ function celebrarSubidaAnuncioVIP() {
   setInterval(bajarTodoDeNube, 4000);
 })();
 </script>
+<script id="detectorFalloCliente">
+setInterval(() => {
+  try {
+    const u = localStorage.getItem("usuario_musa_logueado") || "";
+    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const c = lista.find(x => x.usuario === u);
+    const reloj = document.getElementById("relojBumpCliente") || document.querySelector("[id*='reloj'], [id*='bump'], .reloj-bump");
+    let banner = document.getElementById("bannerAlertaSesionCliente");
+    if (c && c.error_publicacion) {
+      if (reloj && reloj.innerText.includes(":")) reloj.innerText = "00:00";
+      if (!banner) {
+        banner = document.createElement("div");
+        banner.id = "bannerAlertaSesionCliente";
+        banner.style.cssText = "background:rgba(153,27,27,0.92);border:1.5px solid #f87171;color:#fef08a;padding:10px 14px;border-radius:12px;margin:10px auto;max-width:480px;font:bold 12.5px Arial,sans-serif;text-align:center;";
+        banner.innerText = "⚠️ Tu anuncio está detenido en 00:00 por revisión técnica de sesión. Por favor avísanos por soporte para reactivarlo al instante.";
+        const main = document.querySelector(".wrap, .card, body");
+        if (main) main.prepend(banner);
+      }
+    } else if (banner) {
+      banner.remove();
+    }
+  } catch (e) {}
+}, 1000);
+</script>
 </body>
 </html>
