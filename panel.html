@@ -137,53 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-<script id="entradaLimpiaDefinitiva">
-window._guiaAbiertaManualmente = false;
-(function() {
-  const tieneSesion = Boolean(localStorage.getItem("musa_cli_u") && localStorage.getItem("musa_cli_p"));
-  if (tieneSesion) {
-    const st = document.createElement("style");
-    st.id = "stCeroDestellos";
-    st.innerHTML = `
-      form, input[type="password"], #loginBox, #vistaLogin, .login-box,
-      div[id*="modal" i]:not(#modalStoryMusaVip), div[class*="modal" i]:not(#modalStoryMusaVip) {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-      }
-    `;
-    document.head.appendChild(st);
-  }
 
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest("button, a");
-    if (!btn || btn.closest("#modalStoryMusaVip")) return;
-    const txt = (btn.innerText || "").toLowerCase();
-
-    if ((txt.includes("guía") || txt.includes("guia")) && !btn.closest("div[style*='fixed'], div[class*='modal' i]")) {
-      window._guiaAbiertaManualmente = true;
-      document.getElementById("stCeroDestellos")?.remove();
-      setTimeout(() => {
-        document.querySelectorAll("div, section, aside").forEach(el => {
-          const t = (el.innerText || "").toLowerCase();
-          if ((t.includes("guía") || t.includes("guia")) && window.getComputedStyle(el).position === "fixed") {
-            el.style.setProperty("display", "flex", "important");
-            el.style.setProperty("visibility", "visible", "important");
-            el.style.setProperty("opacity", "1", "important");
-          }
-        });
-      }, 40);
-      return;
-    }
-
-    const modalPadre = btn.closest("div[style*='fixed'], div[style*='absolute'], div[class*='modal' i], div[id*='modal' i], div[class*='overlay' i]");
-    if (modalPadre && modalPadre.id !== "modalStoryMusaVip") {
-      window._guiaAbiertaManualmente = false;
-      modalPadre.style.setProperty("display", "none", "important");
-    }
-  }, true);
-})();
-</script>
 </head>
 <body>
 <div class="garland"><div class="bulb r"></div><div class="bulb g"></div><div class="bulb v"></div><div class="bulb r"></div><div class="bulb g"></div><div class="bulb v"></div><div class="bulb r"></div><div class="bulb g"></div></div>
@@ -1205,459 +1159,77 @@ function celebrarSubidaAnuncioVIP() {
 })();
 </script>
 
-<script id="escudoFotosUsadasMusa">
-const URL_SB_FOTOS = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
-const KEY_SB_FOTOS = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
-window._huellasFotosPendientes = [];
-
-async function calcularHashArchivo(file) {
-  const buf = await file.arrayBuffer();
-  const hashBuf = await crypto.subtle.digest("SHA-256", buf);
-  return Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
-async function leerHuellasUsadasNube() {
-  try {
-    const r = await fetch(URL_SB_FOTOS + "?clave=eq.huellas_fotos_usadas_musa&select=datos", {
-      headers: { "apikey": KEY_SB_FOTOS, "Authorization": "Bearer " + KEY_SB_FOTOS },
-      cache: "no-store"
-    });
-    const j = await r.json();
-    const fila = Array.isArray(j) ? j.at(0) : null;
-    const arr = (fila && fila.datos) ? (typeof fila.datos === "string" ? JSON.parse(fila.datos) : fila.datos) : [];
-    return Array.isArray(arr) ? arr : [];
-  } catch { return []; }
-}
-
-async function guardarHuellasUsadasNube(lista) {
-  try {
-    await fetch(URL_SB_FOTOS + "?on_conflict=clave", {
-      method: "POST",
-      headers: { "apikey": KEY_SB_FOTOS, "Authorization": "Bearer " + KEY_SB_FOTOS, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
-      body: JSON.stringify([{ clave: "huellas_fotos_usadas_musa", datos: lista, actualizado_en: new Date().toISOString() }])
-    });
-  } catch {}
-}
-
-document.addEventListener("change", async (e) => {
-  const inp = e.target;
-  if (!inp || inp.type !== "file" || !inp.files || !inp.files.length) return;
-
-  const usadas = await leerHuellasUsadasNube();
-  const setUsadas = new Set(usadas);
-  const nuevasLote = new Set();
-
-  for (const file of Array.from(inp.files)) {
-    const h = await calcularHashArchivo(file);
-    if (setUsadas.has(h) || nuevasLote.has(h)) {
-      inp.value = "";
-      window._huellasFotosPendientes = [];
-      alert("🚫 FOTOS USADAS DETECTADAS:\n\nUna o más fotos ya fueron utilizadas anteriormente en el sistema (o están duplicadas).\n\nPor seguridad anti-bloqueos, debes subir fotos nuevas para poder continuar.");
-      e.stopImmediatePropagation();
-      return;
-    }
-    nuevasLote.add(h);
-  }
-  window._huellasFotosPendientes = Array.from(nuevasLote);
-}, true);
-
-document.addEventListener("click", async (e) => {
-  const btn = e.target.closest("button");
-  if (!btn || !window._huellasFotosPendientes.length) return;
-  const txt = (btn.innerText || "").toLowerCase();
-  if (txt.includes("continuar") || txt.includes("enviar") || txt.includes("finalizar") || txt.includes("guardar") || txt.includes("registrar")) {
-    const usadas = await leerHuellasUsadasNube();
-    const unidas = Array.from(new Set([...usadas, ...window._huellasFotosPendientes]));
-    await guardarHuellasUsadasNube(unidas);
-    window._huellasFotosPendientes = [];
-  }
-}, true);
-</script>
-<script id="escudoNumerosUsadosMusa">
-const URL_SB_NUM = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
-const KEY_SB_NUM = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
-
-function normalizar10Digitos(txt) {
-  const d = String(txt || "").replace(/\D/g, "");
-  return d.length === 11 && d.startsWith("1") ? d.slice(1) : d;
-}
-
-async function leerNumerosUsadosGlobal() {
-  const usados = new Set();
-  try {
-    const r = await fetch(URL_SB_NUM + "?clave=in.(cola_turnos_local,numeros_usados_musa)&select=clave,datos", {
-      headers: { "apikey": KEY_SB_NUM, "Authorization": "Bearer " + KEY_SB_NUM },
-      cache: "no-store"
-    });
-    const filas = await r.json();
-    if (Array.isArray(filas)) {
-      filas.forEach(f => {
-        const d = typeof f.datos === "string" ? JSON.parse(f.datos) : f.datos;
-        if (f.clave === "cola_turnos_local" && Array.isArray(d)) {
-          d.forEach(c => {
-            const n = normalizar10Digitos(c.telefono || c.phone || c.nuevo_telefono);
-            if (n.length >= 10) usados.add(n);
-          });
-        } else if (f.clave === "numeros_usados_musa" && Array.isArray(d)) {
-          d.forEach(n => { const clean = normalizar10Digitos(n); if (clean.length >= 10) usados.add(clean); });
-        }
-      });
-    }
-  } catch {}
-  return usados;
-}
-
-async function registrarNumeroUsadoGlobal(num10) {
-  if (num10.length < 10) return;
-  try {
-    const actuales = Array.from(await leerNumerosUsadosGlobal());
-    if (!actuales.includes(num10)) actuales.push(num10);
-    await fetch(URL_SB_NUM + "?on_conflict=clave", {
-      method: "POST",
-      headers: { "apikey": KEY_SB_NUM, "Authorization": "Bearer " + KEY_SB_NUM, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
-      body: JSON.stringify([{ clave: "numeros_usados_musa", datos: actuales, actualizado_en: new Date().toISOString() }])
-    });
-  } catch {}
-}
-
-document.addEventListener("click", async (e) => {
-  const btn = e.target.closest("button");
-  if (!btn || btn.dataset.validadoNumOk === "1") return;
-  const txt = (btn.innerText || "").toLowerCase();
-  if (!txt.includes("continuar") && !txt.includes("siguiente") && !txt.includes("registrar") && !txt.includes("enviar") && !txt.includes("guardar")) return;
-
-  const inputsTel = Array.from(document.querySelectorAll("input[type='tel'], input[placeholder*='tel' i], input[placeholder*='num' i], input[id*='tel' i], input[id*='phone' i]"))
-    .filter(el => el.offsetParent !== null && normalizar10Digitos(el.value).length >= 10);
-
-  if (!inputsTel.length) return;
-  const numIngresado = normalizar10Digitos(inputsTel.at(0).value);
-
-  e.preventDefault();
-  e.stopImmediatePropagation();
-
-  const usados = await leerNumerosUsadosGlobal();
-  if (usados.has(numIngresado)) {
-    alert("🚫 NÚMERO USADO DETECTADO:\n\nEl número +1 " + numIngresado + " ya fue utilizado anteriormente en el sistema.\n\nPor seguridad anti-bloqueos, debes ingresar un número nuevo que no haya sido usado.");
-    inputsTel.at(0).focus();
-    return;
-  }
-
-  await registrarNumeroUsadoGlobal(numIngresado);
-  btn.dataset.validadoNumOk = "1";
-  btn.click();
-  setTimeout(() => { delete btn.dataset.validadoNumOk; }, 1200);
-}, true);
-</script>
-<script id="escudoTextosUnicosMusa">
-const URL_SB_TXT = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
-const KEY_SB_TXT = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
-
-function normTxtUnico(t) {
-  return String(t || "").toLowerCase().replace(/\s+/g, " ").trim();
-}
-
-async function leerTextosUsadosGlobal(usuarioActual) {
-  const heads = new Set(), bodies = new Set();
-  try {
-    const r = await fetch(URL_SB_TXT + "?clave=in.(cola_turnos_local,textos_usados_musa)&select=clave,datos", {
-      headers: { "apikey": KEY_SB_TXT, "Authorization": "Bearer " + KEY_SB_TXT },
-      cache: "no-store"
-    });
-    const filas = await r.json();
-    if (Array.isArray(filas)) {
-      filas.forEach(f => {
-        const d = typeof f.datos === "string" ? JSON.parse(f.datos) : f.datos;
-        if (f.clave === "cola_turnos_local" && Array.isArray(d)) {
-          d.forEach(c => {
-            if (usuarioActual && c.usuario === usuarioActual) return;
-            const h = normTxtUnico(c.headline || c.titulo);
-            const b = normTxtUnico(c.body || c.descripcion);
-            if (h.length > 3) heads.add(h);
-            if (b.length > 5) bodies.add(b);
-          });
-        } else if (f.clave === "textos_usados_musa" && d && typeof d === "object") {
-          (d.heads || []).forEach(x => { if (x.u !== usuarioActual && x.t) heads.add(normTxtUnico(x.t)); });
-          (d.bodies || []).forEach(x => { if (x.u !== usuarioActual && x.t) bodies.add(normTxtUnico(x.t)); });
-        }
-      });
-    }
-  } catch {}
-  return { heads, bodies };
-}
-
-async function registrarTextosUsadosGlobal(usuarioActual, hNorm, bNorm) {
-  try {
-    const r = await fetch(URL_SB_TXT + "?clave=eq.textos_usados_musa&select=datos", {
-      headers: { "apikey": KEY_SB_TXT, "Authorization": "Bearer " + KEY_SB_TXT },
-      cache: "no-store"
-    });
-    const j = await r.json();
-    const fila = Array.isArray(j) ? j.at(0) : null;
-    const raw = (fila && fila.datos) ? (typeof fila.datos === "string" ? JSON.parse(fila.datos) : fila.datos) : {};
-    const data = {
-      heads: Array.isArray(raw.heads) ? raw.heads : [],
-      bodies: Array.isArray(raw.bodies) ? raw.bodies : []
-    };
-    if (hNorm && !data.heads.some(x => normTxtUnico(x.t) === hNorm)) data.heads.push({ u: usuarioActual || "REG", t: hNorm });
-    if (bNorm && !data.bodies.some(x => normTxtUnico(x.t) === bNorm)) data.bodies.push({ u: usuarioActual || "REG", t: bNorm });
-
-    await fetch(URL_SB_TXT + "?on_conflict=clave", {
-      method: "POST",
-      headers: { "apikey": KEY_SB_TXT, "Authorization": "Bearer " + KEY_SB_TXT, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
-      body: JSON.stringify([{ clave: "textos_usados_musa", datos: data, actualizado_en: new Date().toISOString() }])
-    });
-  } catch {}
-}
-
-document.addEventListener("click", async (e) => {
-  const btn = e.target.closest("button");
-  if (!btn || btn.dataset.validadoTxtOk === "1") return;
-  const txt = (btn.innerText || "").toLowerCase();
-  if (!txt.includes("continuar") && !txt.includes("siguiente") && !txt.includes("registrar") && !txt.includes("enviar") && !txt.includes("guardar")) return;
-
-  const inpHead = Array.from(document.querySelectorAll("input")).find(el => el.offsetParent !== null && /headline|t[ií]tulo/i.test((el.id || "") + " " + (el.placeholder || "")));
-  const inpBody = Array.from(document.querySelectorAll("textarea")).find(el => el.offsetParent !== null);
-
-  if (!inpHead && !inpBody) return;
-  const hVal = inpHead ? normTxtUnico(inpHead.value) : "";
-  const bVal = inpBody ? normTxtUnico(inpBody.value) : "";
-  if (hVal.length < 4 && bVal.length < 6) return;
-
-  e.preventDefault();
-  e.stopImmediatePropagation();
-
-  const uActual = localStorage.getItem("usuario_musa_logueado") || "";
-  const { heads, bodies } = await leerTextosUsadosGlobal(uActual);
-
-  if (hVal && heads.has(hVal)) {
-    alert("🚫 HEADLINE REPETIDO DETECTADO:\n\nEste título (Headline) ya está siendo utilizado en otra cuenta del sistema.\n\nPor seguridad anti-bloqueos, cada página debe tener un Headline 100% único y diferente.");
-    inpHead.focus();
-    return;
-  }
-  if (bVal && bodies.has(bVal)) {
-    alert("🚫 BODY REPETIDO DETECTADO:\n\nEsta descripción (Body) ya fue utilizada en otra cuenta del sistema.\n\nPor seguridad anti-bloqueos, escribe un Body original y único para continuar.");
-    inpBody.focus();
-    return;
-  }
-
-  await registrarTextosUsadosGlobal(uActual, hVal, bVal);
-  btn.dataset.validadoTxtOk = "1";
-  btn.click();
-  setTimeout(() => { delete btn.dataset.validadoTxtOk; }, 1200);
-}, true);
-</script>
-<script id="historiasVisuales7DiasMusa">
-(function() {
-  const historias = [
-    { tag: "✨ DOMINGO DE BENDICIONES", ico: "🕊️", tit: "HOY ES UN DÍA DE PAZ Y BENDICIONES", txt: "Feliz Domingo, Reina. Que hoy la paz, la salud y las buenas energías llenen tu vida. Descansa tranquila mientras tu sistema sigue cuidando tu espacio.", bg: "radial-gradient(circle at top, #065f46 0%, #041510 55%, #090d16 100%)" },
-    { tag: "👑 LUNES DE ÉXITO TOTAL", ico: "🚀", tit: "ARRANCA LA SEMANA BRILLANDO ARRIBA", txt: "¡Feliz Lunes! Hoy se abren puertas de abundancia y grandes oportunidades para ti. Tu anuncio ya está posicionado en lo más alto.", bg: "radial-gradient(circle at top, #7f1d1d 0%, #1c0508 55%, #050807 100%)" },
-    { tag: "💎 MARTES DE PODER", ico: "💎", tit: "ENFOQUE, ELEGANCIA Y RESULTADOS", txt: "Que este martes todo lo que proyectes se multiplique. Sigue imparable; nosotros mantenemos tu visibilidad al máximo.", bg: "radial-gradient(circle at top, #1e3a8a 0%, #09132e 55%, #04070d 100%)" },
-    { tag: "🌟 MIÉRCOLES BENDECIDO", ico: "🌟", tit: "MITAD DE SEMANA LLENA DE LUZ", txt: "Hoy es un día de bendiciones y prosperidad. Sigue brillando con confianza; nuestro motor VIP trabaja 24/7 por ti.", bg: "radial-gradient(circle at top, #581c87 0%, #19072b 55%, #05040a 100%)" },
-    { tag: "🔥 JUEVES DE ABUNDANCIA", ico: "🔥", tit: "ATRAE LO MEJOR PARA TI HOY", txt: "Jueves de cosechar éxitos y buenas noticias. Mantén tu energía arriba que hoy será un día espectacular.", bg: "radial-gradient(circle at top, #9a3412 0%, #240a04 55%, #060403 100%)" },
-    { tag: "🥂 VIERNES VIP", ico: "👑", tit: "¡VIERNES DE MÁXIMO BRILLO!", txt: "Hoy es un día de bendiciones, movimiento y éxito. Disfruta tu fin de semana con el control total en tu teléfono.", bg: "radial-gradient(circle at top, #854d0e 0%, #211303 55%, #050403 100%)" },
-    { tag: "💋 SÁBADO DE REINA", ico: "✨", tit: "SÁBADO DE PROSPERIDAD Y ALEGRÍA", txt: "Que hoy te sobren motivos para sonreír y celebrar tus logros. Tu sistema sigue activo trabajando sin parar.", bg: "radial-gradient(circle at top, #831843 0%, #240513 55%, #060305 100%)" }
-  ];
-
-  function abrirHistoriaDelDia() {
-    const hoy = new Date();
-    const fechaLocal = hoy.getFullYear() + "-" + String(hoy.getMonth() + 1).padStart(2, "0") + "-" + String(hoy.getDate()).padStart(2, "0");
-    const claveVista = "musa_story_vista_" + fechaLocal;
-    if (localStorage.getItem(claveVista) === "1" || document.getElementById("modalStoryMusaVip")) return;
-
-    const h = historias[hoy.getDay()];
-    const overlay = document.createElement("div");
-    overlay.id = "modalStoryMusaVip";
-    overlay.style.cssText = "position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.84);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px;font-family:'Segoe UI',Arial,sans-serif;";
-
-    overlay.innerHTML = `
-      <div style="position:relative;width:100%;max-width:370px;border-radius:26px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,0.9);border:2px solid #eab308;background:${h.bg};padding:52px 24px 36px 24px;min-height:460px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center;">
-        <div style="position:absolute;top:14px;left:16px;right:54px;height:4px;background:rgba(255,255,255,0.25);border-radius:4px;overflow:hidden;">
-          <div style="width:100%;height:100%;background:#fde047;"></div>
-        </div>
-        <button type="button" id="cerrarStoryMusaBtn" title="Cerrar" style="position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.7);border:1.5px solid #fde047;color:#fde047;font-size:16px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
-        <div style="background:rgba(0,0,0,0.55);border:1px solid #fde047;color:#fde047;padding:6px 16px;border-radius:20px;font-size:11px;font-weight:900;letter-spacing:1.4px;">${h.tag}</div>
-        <div>
-          <div style="font-size:80px;filter:drop-shadow(0 0 22px rgba(250,204,21,0.75));margin:8px 0;">${h.ico}</div>
-          <div style="font-size:25px;font-weight:900;line-height:1.18;color:#fef08a;text-shadow:0 3px 12px rgba(0,0,0,0.85);margin:6px 0;">${h.tit}</div>
-        </div>
-        <div style="font-size:14.5px;line-height:1.5;color:#f8fafc;font-weight:600;background:rgba(0,0,0,0.45);padding:15px;border-radius:18px;border:1px solid rgba(253,224,71,0.3);">${h.txt}</div>
-        <div style="font-size:11px;font-weight:900;letter-spacing:2px;color:#fde047;opacity:0.92;margin-top:14px;">👑 PRIMERA MUSA • VIP</div>
-      </div>
-    `;
-
-    document.body.appendChild(overlay);
-    const cerrar = () => { localStorage.setItem(claveVista, "1"); overlay.remove(); };
-    document.getElementById("cerrarStoryMusaBtn").onclick = cerrar;
-    overlay.addEventListener("click", (e) => { if (e.target === overlay) cerrar(); });
-  }
-
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", abrirHistoriaDelDia);
-  else abrirHistoriaDelDia();
-})();
-</script>
 
 
-<script id="clienteSesionYRelojDefinitivo">
-window._mapaBotsLiveCli = {};
 
-setInterval(async () => {
-  try {
-    const r = await fetch("https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado?clave=eq.mapa_bots_musa_activos&select=datos", {
-      headers: { "apikey": "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", "Authorization": "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0" },
-      cache: "no-store"
-    });
-    const j = await r.json();
-    const f = Array.isArray(j) ? j.at(0) : null;
-    window._mapaBotsLiveCli = (f && f.datos && typeof f.datos === "object") ? f.datos : {};
-  } catch {}
-}, 4000);
 
-// 1. Mantener sesión abierta en móvil/PC al actualizar
-document.addEventListener("click", (e) => {
-  const b = e.target.closest("button");
-  if (!b) return;
-  const t = (b.innerText || "").toLowerCase();
-  if (t.includes("entrar") || t.includes("iniciar") || t.includes("acceder")) {
-    const u = Array.from(document.querySelectorAll("input[type='text']")).find(i => i.offsetParent !== null && i.value.trim().length > 1);
-    const p = Array.from(document.querySelectorAll("input[type='password']")).find(i => i.offsetParent !== null && i.value.trim().length > 1);
-    if (u) {
-      localStorage.setItem("musa_cli_u", u.value.trim());
-      localStorage.setItem("usuario_musa_logueado", u.value.trim());
-    }
-    if (p) localStorage.setItem("musa_cli_p", p.value.trim());
-  }
-  if (t.includes("cerrar sesión") || t.includes("salir")) {
-    localStorage.removeItem("musa_cli_u");
-    localStorage.removeItem("musa_cli_p");
-    localStorage.removeItem("usuario_musa_logueado");
-  }
-}, true);
 
-(function reintentarAutoLoginMovil() {
-  let intentos = 0;
-  const tmr = setInterval(() => {
-    intentos++;
-    const uSaved = localStorage.getItem("musa_cli_u");
-    const pSaved = localStorage.getItem("musa_cli_p");
-    if (!uSaved || !pSaved || intentos > 15) { clearInterval(tmr); return; }
 
-    const inpPass = Array.from(document.querySelectorAll("input[type='password']")).find(i => i.offsetParent !== null);
-    const inpUser = Array.from(document.querySelectorAll("input[type='text']")).find(i => i.offsetParent !== null);
-    const btnEntrar = Array.from(document.querySelectorAll("button")).find(b => b.offsetParent !== null && /entrar|iniciar|acceder/i.test(b.innerText));
 
-    if (inpUser && inpPass && btnEntrar) {
-      inpUser.value = uSaved;
-      inpUser.dispatchEvent(new Event("input", { bubbles: true }));
-      inpPass.value = pSaved;
-      inpPass.dispatchEvent(new Event("input", { bubbles: true }));
-      clearInterval(tmr);
-      setTimeout(() => btnEntrar.click(), 250);
-    }
-  }, 80);
-})();
 
-// 2. Clavar reloj en 00:00 si el bot/pestaña/sesión está caído (>22 seg sin latido o con error)
-setInterval(() => {
-  try {
-    const u = localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "";
-    if (!u) return;
-    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-    const c = lista.find(x => String(x.usuario || "").toLowerCase() === u.toLowerCase());
-    if (!c) return;
 
-    const codCli = String(c.bot_asignado || "").toUpperCase();
-    const infoBot = window._mapaBotsLiveCli[codCli];
-    const sinLatido = codCli && (!infoBot || (Date.now() - Number(infoBot.ts || 0)) > 75000 || Boolean(infoBot.alerta));
-    const detenido = Boolean(c.error_publicacion) || (c.activo && sinLatido);
-
-    let banner = document.getElementById("bannerAlertaSesionCliente");
-    window._musaDetenidoAhora = detenido; if (detenido) {
-      document.querySelectorAll("div, span, b, strong, p, h1, h2, h3").forEach(el => {
-        if (el.children.length === 0 && /^\d{1,2}:\d{2}$/.test(el.innerText.trim())) {
-          el.innerText = "00:00";
-        }
-      });
-      if (!banner) {
-        banner = document.createElement("div");
-        banner.id = "bannerAlertaSesionCliente";
-        banner.style.cssText = "background:rgba(153,27,27,0.94);border:1.5px solid #f87171;color:#fef08a;padding:10px 14px;border-radius:12px;margin:10px auto;max-width:480px;font:bold 12.5px Arial,sans-serif;text-align:center;";
-        banner.innerText = "⚠️ Tu anuncio está detenido en 00:00 por revisión técnica de sesión/conexión. Por favor avísanos por soporte para reactivarlo al instante.";
-        const main = document.querySelector(".wrap, .card, main, body");
-        if (main) main.prepend(banner);
-      }
-    } else if (banner) { window._musaDetenidoAhora = false;
-      banner.remove();
-    }
-  } catch {}
-}, 400);
-</script>
-<script id="observerCeroSinParpadeo">
-window._musaDetenidoAhora = false;
-(function() {
-  function clavarCerosInstantaneo() {
-    if (!window._musaDetenidoAhora) return;
-    document.querySelectorAll("div, span, b, strong, p, h1, h2, h3").forEach(el => {
-      if (el.children.length === 0 && /^\d{1,2}:\d{2}$/.test(el.innerText.trim()) && el.innerText.trim() !== "00:00") {
-        el.innerText = "00:00";
-      }
-    });
-  }
-  const obs = new MutationObserver(clavarCerosInstantaneo);
-  if (document.body) obs.observe(document.body, { childList: true, subtree: true, characterData: true });
-  else window.addEventListener("DOMContentLoaded", () => obs.observe(document.body, { childList: true, subtree: true, characterData: true }));
-})();
-</script>
-<script id="visorRespuestaAdminArriba">
+<script id="motorUnicoMusaLigero">
 (function() {
   const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
   const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
 
-  async function revisarMensajesSoporte() {
+  // Guardar usuario/clave al iniciar sesión y entrar directo al recargar
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    const t = (b.innerText || "").toLowerCase();
+    if (t.includes("entrar") || t.includes("iniciar") || t.includes("acceder")) {
+      const u = Array.from(document.querySelectorAll("input[type='text']")).find(i => i.offsetParent !== null && i.value.trim().length > 1);
+      const p = Array.from(document.querySelectorAll("input[type='password']")).find(i => i.offsetParent !== null && i.value.trim().length > 1);
+      if (u) { localStorage.setItem("musa_cli_u", u.value.trim()); localStorage.setItem("usuario_musa_logueado", u.value.trim()); }
+      if (p) localStorage.setItem("musa_cli_p", p.value.trim());
+    }
+    if (t.includes("cerrar sesión") || t.includes("salir")) {
+      localStorage.removeItem("musa_cli_u"); localStorage.removeItem("musa_cli_p"); localStorage.removeItem("usuario_musa_logueado");
+    }
+  }, true);
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const uSaved = localStorage.getItem("musa_cli_u");
+    const pSaved = localStorage.getItem("musa_cli_p");
+    const inpU = document.querySelector("input[type='text']");
+    const inpP = document.querySelector("input[type='password']");
+    const btnE = Array.from(document.querySelectorAll("button")).find(b => /entrar|iniciar|acceder/i.test(b.innerText));
+    if (uSaved && pSaved && inpU && inpP && btnE) {
+      inpU.value = uSaved; inpP.value = pSaved;
+      btnE.click();
+    }
+  });
+
+  // Revisar cada 5 segundos mensajes de soporte y estado del bot (ligero, sin trabar el teléfono)
+  setInterval(async () => {
     try {
-      const u = (localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "").trim().toLowerCase();
+      const u = (localStorage.getItem("musa_cli_u") || "").trim().toLowerCase();
       if (!u) return;
-
-      const r = await fetch(URL_SB + "?clave=eq.mensajes_admin_para_cliente&select=datos", {
-        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB },
-        cache: "no-store"
+      const r = await fetch(URL_SB + "?clave=in.(mensajes_admin_para_cliente,mapa_bots_musa_activos)&select=clave,datos", {
+        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
       });
-      const j = await r.json();
-      const fila = Array.isArray(j) ? j.at(0) : null;
-      const lista = fila && fila.datos ? (typeof fila.datos === "string" ? JSON.parse(fila.datos) : fila.datos) : [];
-      if (!Array.isArray(lista)) return;
+      const filas = await r.json();
+      if (!Array.isArray(filas)) return;
 
-      const pendientes = lista.filter(m => String(m.usuario || "").trim().toLowerCase() === u && !m.leido && localStorage.getItem("musa_msg_cerrado_" + m.id) !== "1");
-      const ultimo = pendientes.at(-1);
-      let box = document.getElementById("cartelRespuestaAdminTop");
-
-      if (!ultimo) {
-        if (box) box.remove();
-        return;
-      }
-
-      if (!box) {
-        box = document.createElement("div");
-        box.id = "cartelRespuestaAdminTop";
-        box.style.cssText = "position:relative;background:linear-gradient(135deg,#065f46 0%,#041510 100%);border:2px solid #fde047;color:#ffffff;padding:13px 38px 13px 15px;border-radius:14px;margin:10px auto;max-width:480px;box-shadow:0 8px 24px rgba(0,0,0,0.6);font-family:Arial,sans-serif;text-align:left;z-index:9999;";
-        const destino = document.querySelector(".wrap, .card, main, body");
-        if (destino) destino.prepend(box);
-      }
-
-      box.innerHTML = `
-        <div style="font-size:11px;font-weight:900;color:#fde047;letter-spacing:0.8px;margin-bottom:4px;">💬 RESPUESTA DE SOPORTE VIP:</div>
-        <div style="font-size:13.5px;font-weight:700;line-height:1.4;color:#ecfdf5;">${ultimo.texto}</div>
-        <button type="button" id="cerrarMsgSoporteBtn" style="position:absolute;top:9px;right:10px;background:rgba(0,0,0,0.45);border:1px solid #fde047;color:#fde047;width:24px;height:24px;border-radius:50%;font-weight:900;cursor:pointer;">✕</button>
-      `;
-
-      document.getElementById("cerrarMsgSoporteBtn").onclick = () => {
-        localStorage.setItem("musa_msg_cerrado_" + ultimo.id, "1");
-        box.remove();
-      };
+      filas.forEach(f => {
+        const d = typeof f.datos === "string" ? JSON.parse(f.datos) : f.datos;
+        if (f.clave === "mensajes_admin_para_cliente" && Array.isArray(d)) {
+          const pend = d.filter(m => String(m.usuario || "").trim().toLowerCase() === u && !m.leido && localStorage.getItem("musa_msg_cerrado_" + m.id) !== "1").at(-1);
+          let box = document.getElementById("cartelRespuestaAdminTop");
+          if (pend) {
+            if (!box) {
+              box = document.createElement("div");
+              box.id = "cartelRespuestaAdminTop";
+              box.style.cssText = "position:relative;background:#065f46;border:2px solid #fde047;color:#fff;padding:12px 36px 12px 14px;border-radius:12px;margin:10px auto;max-width:480px;font:bold 13px Arial,sans-serif;";
+              (document.querySelector(".wrap, .card, main, body") || document.body).prepend(box);
+            }
+            box.innerHTML = `<div style="color:#fde047;font-size:11px;">💬 RESPUESTA DE SOPORTE:</div><div>${pend.texto}</div><button onclick="localStorage.setItem('musa_msg_cerrado_${pend.id}','1');this.parentElement.remove();" style="position:absolute;top:8px;right:8px;background:none;border:1px solid #fde047;color:#fde047;border-radius:50%;width:22px;height:22px;cursor:pointer;">✕</button>`;
+          } else if (box) box.remove();
+        }
+      });
     } catch {}
-  }
-
-  setInterval(revisarMensajesSoporte, 3000);
-  setTimeout(revisarMensajesSoporte, 1000);
+  }, 5000);
 })();
 </script>
 </body>
