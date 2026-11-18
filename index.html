@@ -232,6 +232,42 @@ document.addEventListener("click", (e) => {
   }
 }, true);
 </script>
+<style id="estiloFelizNavidadFuegos">
+  .trineo-santa, #trineoSanta, [id*="trineo" i], [class*="trineo" i], [id*="santa" i] {
+    display: none !important;
+  }
+  @keyframes destelloOro {
+    0%, 100% { text-shadow: 0 0 8px #fde047, 0 0 18px #eab308, 0 0 28px #ef4444; transform: scale(1); }
+    50% { text-shadow: 0 0 14px #fff, 0 0 26px #fde047, 0 0 40px #10b981; transform: scale(1.03); }
+  }
+  @keyframes chispaFuego {
+    0% { transform: scale(0.2); opacity: 1; }
+    80% { transform: scale(1.3); opacity: 0.85; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+  #bannerFelizNavidadVIP {
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    padding: 8px 12px;
+    margin: 0 auto 6px auto;
+    max-width: 500px;
+    font: 900 15px 'Segoe UI', Arial, sans-serif;
+    letter-spacing: 2px;
+    color: #fef08a;
+    animation: destelloOro 2.4s infinite ease-in-out;
+    pointer-events: none;
+    user-select: none;
+  }
+  .fuego-art {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff 10%, #fde047 45%, #ef4444 80%, transparent 100%);
+    animation: chispaFuego 1.8s infinite ease-out;
+  }
+</style>
 </head>
 <body>
 <div class="garland"><div class="bulb r"></div><div class="bulb g"></div><div class="bulb v"></div><div class="bulb r"></div><div class="bulb g"></div><div class="bulb v"></div><div class="bulb r"></div><div class="bulb g"></div></div>
@@ -2080,5 +2116,28 @@ var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
 </script>
 
 
+<script id="scriptFelizNavidadFuegos">
+window.addEventListener("DOMContentLoaded", () => {
+  // Ocultar el contenedor de emojis de renos/trineo si existe
+  document.querySelectorAll("div, marquee, span").forEach(el => {
+    if ((el.innerText || "").includes("🦌") || (el.innerText || "").includes("🛷")) {
+      el.style.display = "none";
+    }
+  });
+
+  if (!document.getElementById("bannerFelizNavidadVIP")) {
+    const b = document.createElement("div");
+    b.id = "bannerFelizNavidadVIP";
+    b.innerHTML = `
+      <span class="fuego-art" style="left:12%;top:15%;animation-delay:0s;"></span>
+      <span class="fuego-art" style="left:82%;top:20%;animation-delay:0.6s;"></span>
+      <span class="fuego-art" style="left:25%;top:55%;animation-delay:1.1s;"></span>
+      <span class="fuego-art" style="left:70%;top:50%;animation-delay:0.3s;"></span>
+      🎆 ✨ ¡FELIZ NAVIDAD! ✨ 🎆
+    `;
+    document.body.prepend(b);
+  }
+});
+</script>
 </body>
 </html>
