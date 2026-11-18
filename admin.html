@@ -772,5 +772,24 @@ document.addEventListener("click", async (e) => {
   window._guardandoLocalAhora = false;
 });
 </script>
+<script id="relojTiempoRealAdmin">
+setInterval(() => {
+  try {
+    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    document.querySelectorAll(".turno-card").forEach(card => {
+      const txt = card.innerText || "";
+      const c = lista.find(x => x.usuario && txt.includes(x.usuario));
+      if (!c || !c.proximo_bump_ms) return;
+      const badge = Array.from(card.querySelectorAll("span, div")).find(el => el.children.length === 0 && el.innerText.includes("Bump:"));
+      if (!badge) return;
+      const segs = Math.max(0, Math.ceil((Number(c.proximo_bump_ms) - Date.now()) / 1000));
+      const mm = String(Math.floor(segs / 60)).padStart(2, "0");
+      const ss = String(segs % 60).padStart(2, "0");
+      const sufijo = badge.innerText.includes("•") ? " •" + badge.innerText.split("•").slice(1).join("•") : "";
+      badge.innerText = `🚀 Bump: ${mm}:${ss}${sufijo}`;
+    });
+  } catch (e) {}
+}, 1000);
+</script>
 </body>
 </html>
