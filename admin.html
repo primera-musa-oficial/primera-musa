@@ -863,33 +863,38 @@ setInterval(() => {
   });
 }, 1000);
 </script>
-<script id="sesionPersistenteAdmin">
-(function() {
-  function desbloquearAdminSiGuardado() {
-    if (localStorage.getItem("musa_admin_sesion_fija") === "1") {
-      const loginBox = document.getElementById("loginAdminBox") || document.querySelector("[id*='login' i]");
-      const panelBox = document.getElementById("panelAdminMain") || document.querySelector("[id*='panel' i], main, .wrap");
-      if (loginBox && loginBox.querySelector("input[type='password']")) loginBox.style.display = "none";
-      if (panelBox) panelBox.style.display = "block";
-    }
+
+<script id="autoLoginAdminReal">
+window.addEventListener("load", () => {
+  localStorage.removeItem("musa_admin_sesion_fija");
+  const uSaved = localStorage.getItem("musa_adm_u");
+  const pSaved = localStorage.getItem("musa_adm_p");
+  const inpPass = Array.from(document.querySelectorAll("input[type='password']")).find(i => i.offsetParent !== null);
+  const inpUser = Array.from(document.querySelectorAll("input[type='text']")).find(i => i.offsetParent !== null);
+  const btnEntrar = Array.from(document.querySelectorAll("button")).find(b => b.offsetParent !== null && /entrar|iniciar|acceder/i.test(b.innerText));
+
+  if (pSaved && inpPass && btnEntrar) {
+    if (inpUser && uSaved) inpUser.value = uSaved;
+    inpPass.value = pSaved;
+    btnEntrar.click();
   }
+
   document.addEventListener("click", (e) => {
-    const btn = e.target.closest("button");
-    if (!btn) return;
-    const t = (btn.innerText || "").toLowerCase();
+    const b = e.target.closest("button");
+    if (!b) return;
+    const t = (b.innerText || "").toLowerCase();
     if (t.includes("entrar") || t.includes("iniciar") || t.includes("acceder")) {
-      setTimeout(() => {
-        const passVisible = Array.from(document.querySelectorAll("input[type='password']")).some(i => i.offsetParent !== null);
-        if (!passVisible) localStorage.setItem("musa_admin_sesion_fija", "1");
-      }, 300);
+      const p = document.querySelector("input[type='password']");
+      const u = document.querySelector("input[type='text']");
+      if (p && p.value) localStorage.setItem("musa_adm_p", p.value);
+      if (u && u.value) localStorage.setItem("musa_adm_u", u.value);
     }
     if (t.includes("cerrar sesión") || t.includes("salir")) {
-      localStorage.removeItem("musa_admin_sesion_fija");
+      localStorage.removeItem("musa_adm_p");
+      localStorage.removeItem("musa_adm_u");
     }
   });
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", desbloquearAdminSiGuardado);
-  else desbloquearAdminSiGuardado();
-})();
+});
 </script>
 </body>
 </html>
