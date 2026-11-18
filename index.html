@@ -2258,14 +2258,19 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   }
 });
 </script>
+
 <script id="alertasPushClienteIndividual">
 (function() {
+  function obtenerUsuarioActual() {
+    const raw = window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "";
+    return String(raw).trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  }
   function obtenerCanalCliente() {
-    const u = (localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    const u = obtenerUsuarioActual();
     return u ? "musa-vip-" + u : "";
   }
 
-  // Avisar al celular de la clienta cada vez que su anuncio suba al tope
+  // 1. Avisar al celular cada vez que suba al tope
   window.addEventListener("load", () => {
     if (typeof window.celebrarSubidaAnuncioVIP === "function") {
       const _orig = window.celebrarSubidaAnuncioVIP;
@@ -2284,26 +2289,18 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
     }
   });
 
-  // Mostrar botón discreto arriba del panel de la clienta para conectar su app ntfy
+  // 2. Vigilar pausas y aviso cuando falte <= 24 horas (1 día) para renovar
+  let _ultimoEstadoPushPausa = null;
   setInterval(() => {
-    const canal = obtenerCanalCliente();
-    const cont = document.querySelector(".wrap, .card, main");
-    if (!canal || !cont || cont.offsetParent === null || document.getElementById("btnActivarPushClienta")) return;
-
-    const bar = document.createElement("div");
-    bar.id = "btnActivarPushClienta";
-    bar.style.cssText = "text-align:center;margin:6px auto 10px auto;";
-    bar.innerHTML = `<button type="button" onclick="mostrarGuiaPushClienta('${canal}')" style="background:rgba(234,179,8,0.15);border:1px solid #eab308;color:#fde047;border-radius:20px;padding:6px 14px;font:bold 11.5px Arial,sans-serif;cursor:pointer;">🔔 Recibir Alertas de Subida en mi Celular</button>`;
-    cont.prepend(bar);
-  }, 2000);
-
-    let _ultimoEstadoPushPausa = null;
-  setInterval(() => {
+    const u = obtenerUsuarioActual();
     const canal = obtenerCanalCliente();
     if (!canal) return;
+
+    // A) Aviso de pausa / reactivación
     const pausado = Boolean(window._musaPausadoAhora);
-    if (_ultimoEstadoPushPausa === null) { _ultimoEstadoPushPausa = pausado; return; }
-    if (pausado !== _ultimoEstadoPushPausa) {
+    if (_ultimoEstadoPushPausa === null) {
+      _ultimoEstadoPushPausa = pausado;
+    } else if (pausado !== _ultimoEstadoPushPausa) {
       _ultimoEstadoPushPausa = pausado;
       fetch("https://ntfy.sh" + canal, {
         method: "POST",
@@ -2317,15 +2314,50 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
           : "Tu anuncio ya esta activo nuevamente y retomando sus subidas al tope."
       }).catch(() => {});
     }
+
+    // B) Aviso cuando falte 1 día (<= 24 horas) de renta para renovar
+    try {
+      const cola = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+      const c = cola.find(x => String(x.usuario || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "") === u);
+      const venceMs = Number(c?.vence_ms || c?.fin_renta_ms || 0);
+      const restanteMs = venceMs - Date.now();
+      const claveAviso1Dia = "musa_aviso_1dia_" + u + "_" + venceMs;
+      if (venceMs > 0 && restanteMs > 0 && restanteMs <= 86400000 && localStorage.getItem(claveAviso1Dia) !== "1") {
+        localStorage.setItem(claveAviso1Dia, "1");
+        fetch("https://ntfy.sh" + canal, {
+          method: "POST",
+          headers: { "Title": "QUEDA 1 DIA DE RENTA - RENUEVA", "Priority": "high", "Tags": "hourglass_flowing_sand,crown" },
+          body: "Te queda menos de 1 dia de renta en Primera Musa VIP. Renueva ahora para mantener tu turno activo."
+        }).catch(() => {});
+      }
+    } catch {}
   }, 5000);
+
+  // 3. Insertar el botón dorado justo encima de la barra "Salir / Guía VIP"
+  setInterval(() => {
+    const canal = obtenerCanalCliente();
+    if (!canal || document.getElementById("btnActivarPushClienta")) return;
+
+    const btnGuia = Array.from(document.querySelectorAll("button")).find(b => b.offsetParent !== null && /gu[ií]a vip/i.test(b.innerText));
+    const destino = btnGuia ? btnGuia.parentElement : null;
+    if (!destino || !destino.parentElement) return;
+
+    const bar = document.createElement("div");
+    bar.id = "btnActivarPushClienta";
+    bar.style.cssText = "text-align:center;margin:0 auto 10px auto;width:100%;";
+    bar.innerHTML = `<button type="button" onclick="mostrarGuiaPushClienta('${canal}')" style="background:linear-gradient(135deg,#065f46,#047857);border:1.5px solid #fde047;color:#fef08a;border-radius:20px;padding:7px 16px;font:900 12px Arial,sans-serif;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,0.4);">🔔 Activar Alertas en mi Celular</button>`;
+    destino.parentElement.insertBefore(bar, destino);
+  }, 1500);
+
   window.mostrarGuiaPushClienta = function(canal) {
-    const msg = "📲 RECIBE ALERTAS EN VIVO EN TU CELULAR:\n\n" +
+    if (navigator.clipboard) navigator.clipboard.writeText(canal).catch(() => {});
+    alert(
+      "📲 RECIBE ALERTAS EN VIVO EN TU CELULAR:\n\n" +
       "1. Descarga la app gratis 'ntfy' en Play Store o App Store.\n" +
       "2. Abre la app, toca el '+' y suscríbete a tu canal privado:\n\n" +
       "👉  " + canal + "\n\n" +
-      "(Se copiará tu canal automáticamente al tocar Aceptar)";
-    alert(msg);
-    if (navigator.clipboard) navigator.clipboard.writeText(canal).catch(() => {});
+      "✅ ¡Ya se copió tu canal automáticamente! Te avisará cuando suba tu anuncio, si entra en pausa o cuando te falte 1 día para renovar."
+    );
   };
 })();
 </script>
