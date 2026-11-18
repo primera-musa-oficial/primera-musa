@@ -136,51 +136,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-<script id="ocultarBienvenidaRepetida">
+
+<script id="entradaLimpiaDefinitiva">
 window._guiaAbiertaManualmente = false;
 (function() {
-  const CLAVE = "musa_guia_navidad_vista_v4";
-  if (localStorage.getItem("musa_cli_u")) localStorage.setItem(CLAVE, "1");
-
-  function ocultarGuiasAutomaticas() {
-    if (window._guiaAbiertaManualmente) return;
-    if (localStorage.getItem(CLAVE) !== "1") return;
-    document.querySelectorAll("div, section, aside").forEach(el => {
-      if (el.id === "modalStoryMusaVip" || el.closest("#modalStoryMusaVip")) return;
-      const st = window.getComputedStyle(el);
-      if ((st.position === "fixed" || st.position === "absolute") && st.display !== "none" && Number(st.zIndex || 0) >= 10) {
-        const t = (el.innerText || "").toLowerCase();
-        if (t.includes("guía") || t.includes("guia") || t.includes("navidad") || t.includes("indicaciones") || t.includes("bienvenid")) {
-          el.style.setProperty("display", "none", "important");
-        }
+  const tieneSesion = Boolean(localStorage.getItem("musa_cli_u") && localStorage.getItem("musa_cli_p"));
+  if (tieneSesion) {
+    const st = document.createElement("style");
+    st.id = "stCeroDestellos";
+    st.innerHTML = `
+      form, input[type="password"], #loginBox, #vistaLogin, .login-box,
+      div[id*="modal" i]:not(#modalStoryMusaVip), div[class*="modal" i]:not(#modalStoryMusaVip) {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
       }
-    });
+    `;
+    document.head.appendChild(st);
   }
-
-  setInterval(ocultarGuiasAutomaticas, 60);
-  window.addEventListener("DOMContentLoaded", ocultarGuiasAutomaticas);
 
   document.addEventListener("click", (e) => {
     const btn = e.target.closest("button, a");
     if (!btn || btn.closest("#modalStoryMusaVip")) return;
-    const txtBtn = (btn.innerText || "").toLowerCase();
+    const txt = (btn.innerText || "").toLowerCase();
 
-    if ((txtBtn.includes("guía") || txtBtn.includes("guia")) && !btn.closest("div[style*='fixed'], div[class*='modal' i]")) {
+    if ((txt.includes("guía") || txt.includes("guia")) && !btn.closest("div[style*='fixed'], div[class*='modal' i]")) {
       window._guiaAbiertaManualmente = true;
+      document.getElementById("stCeroDestellos")?.remove();
       setTimeout(() => {
         document.querySelectorAll("div, section, aside").forEach(el => {
           const t = (el.innerText || "").toLowerCase();
           if ((t.includes("guía") || t.includes("guia")) && window.getComputedStyle(el).position === "fixed") {
             el.style.setProperty("display", "flex", "important");
+            el.style.setProperty("visibility", "visible", "important");
+            el.style.setProperty("opacity", "1", "important");
           }
         });
-      }, 50);
+      }, 40);
       return;
     }
 
     const modalPadre = btn.closest("div[style*='fixed'], div[style*='absolute'], div[class*='modal' i], div[id*='modal' i], div[class*='overlay' i]");
-    if (modalPadre) {
-      localStorage.setItem(CLAVE, "1");
+    if (modalPadre && modalPadre.id !== "modalStoryMusaVip") {
       window._guiaAbiertaManualmente = false;
       modalPadre.style.setProperty("display", "none", "important");
     }
