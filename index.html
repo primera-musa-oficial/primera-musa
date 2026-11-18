@@ -1318,5 +1318,103 @@ document.addEventListener("click", async (e) => {
   setTimeout(() => { delete btn.dataset.validadoNumOk; }, 1200);
 }, true);
 </script>
+<script id="escudoTextosUnicosMusa">
+const URL_SB_TXT = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
+const KEY_SB_TXT = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+
+function normTxtUnico(t) {
+  return String(t || "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+async function leerTextosUsadosGlobal(usuarioActual) {
+  const heads = new Set(), bodies = new Set();
+  try {
+    const r = await fetch(URL_SB_TXT + "?clave=in.(cola_turnos_local,textos_usados_musa)&select=clave,datos", {
+      headers: { "apikey": KEY_SB_TXT, "Authorization": "Bearer " + KEY_SB_TXT },
+      cache: "no-store"
+    });
+    const filas = await r.json();
+    if (Array.isArray(filas)) {
+      filas.forEach(f => {
+        const d = typeof f.datos === "string" ? JSON.parse(f.datos) : f.datos;
+        if (f.clave === "cola_turnos_local" && Array.isArray(d)) {
+          d.forEach(c => {
+            if (usuarioActual && c.usuario === usuarioActual) return;
+            const h = normTxtUnico(c.headline || c.titulo);
+            const b = normTxtUnico(c.body || c.descripcion);
+            if (h.length > 3) heads.add(h);
+            if (b.length > 5) bodies.add(b);
+          });
+        } else if (f.clave === "textos_usados_musa" && d && typeof d === "object") {
+          (d.heads || []).forEach(x => { if (x.u !== usuarioActual && x.t) heads.add(normTxtUnico(x.t)); });
+          (d.bodies || []).forEach(x => { if (x.u !== usuarioActual && x.t) bodies.add(normTxtUnico(x.t)); });
+        }
+      });
+    }
+  } catch {}
+  return { heads, bodies };
+}
+
+async function registrarTextosUsadosGlobal(usuarioActual, hNorm, bNorm) {
+  try {
+    const r = await fetch(URL_SB_TXT + "?clave=eq.textos_usados_musa&select=datos", {
+      headers: { "apikey": KEY_SB_TXT, "Authorization": "Bearer " + KEY_SB_TXT },
+      cache: "no-store"
+    });
+    const j = await r.json();
+    const fila = Array.isArray(j) ? j.at(0) : null;
+    const raw = (fila && fila.datos) ? (typeof fila.datos === "string" ? JSON.parse(fila.datos) : fila.datos) : {};
+    const data = {
+      heads: Array.isArray(raw.heads) ? raw.heads : [],
+      bodies: Array.isArray(raw.bodies) ? raw.bodies : []
+    };
+    if (hNorm && !data.heads.some(x => normTxtUnico(x.t) === hNorm)) data.heads.push({ u: usuarioActual || "REG", t: hNorm });
+    if (bNorm && !data.bodies.some(x => normTxtUnico(x.t) === bNorm)) data.bodies.push({ u: usuarioActual || "REG", t: bNorm });
+
+    await fetch(URL_SB_TXT + "?on_conflict=clave", {
+      method: "POST",
+      headers: { "apikey": KEY_SB_TXT, "Authorization": "Bearer " + KEY_SB_TXT, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+      body: JSON.stringify([{ clave: "textos_usados_musa", datos: data, actualizado_en: new Date().toISOString() }])
+    });
+  } catch {}
+}
+
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button");
+  if (!btn || btn.dataset.validadoTxtOk === "1") return;
+  const txt = (btn.innerText || "").toLowerCase();
+  if (!txt.includes("continuar") && !txt.includes("siguiente") && !txt.includes("registrar") && !txt.includes("enviar") && !txt.includes("guardar")) return;
+
+  const inpHead = Array.from(document.querySelectorAll("input")).find(el => el.offsetParent !== null && /headline|t[ií]tulo/i.test((el.id || "") + " " + (el.placeholder || "")));
+  const inpBody = Array.from(document.querySelectorAll("textarea")).find(el => el.offsetParent !== null);
+
+  if (!inpHead && !inpBody) return;
+  const hVal = inpHead ? normTxtUnico(inpHead.value) : "";
+  const bVal = inpBody ? normTxtUnico(inpBody.value) : "";
+  if (hVal.length < 4 && bVal.length < 6) return;
+
+  e.preventDefault();
+  e.stopImmediatePropagation();
+
+  const uActual = localStorage.getItem("usuario_musa_logueado") || "";
+  const { heads, bodies } = await leerTextosUsadosGlobal(uActual);
+
+  if (hVal && heads.has(hVal)) {
+    alert("🚫 HEADLINE REPETIDO DETECTADO:\n\nEste título (Headline) ya está siendo utilizado en otra cuenta del sistema.\n\nPor seguridad anti-bloqueos, cada página debe tener un Headline 100% único y diferente.");
+    inpHead.focus();
+    return;
+  }
+  if (bVal && bodies.has(bVal)) {
+    alert("🚫 BODY REPETIDO DETECTADO:\n\nEsta descripción (Body) ya fue utilizada en otra cuenta del sistema.\n\nPor seguridad anti-bloqueos, escribe un Body original y único para continuar.");
+    inpBody.focus();
+    return;
+  }
+
+  await registrarTextosUsadosGlobal(uActual, hVal, bVal);
+  btn.dataset.validadoTxtOk = "1";
+  btn.click();
+  setTimeout(() => { delete btn.dataset.validadoTxtOk; }, 1200);
+}, true);
+</script>
 </body>
 </html>
