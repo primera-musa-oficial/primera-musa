@@ -2035,5 +2035,45 @@ var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
   setInterval(revisarEstadoYMensajesMusa, 6000);
 })();
 </script>
+<script id="controlUnicoModalesBienvenida">
+(function() {
+  if (localStorage.getItem("musa_navidad_vista_ok") === "1") {
+    const st = document.createElement("style");
+    st.id = "stOcultarNavidad";
+    st.innerHTML = "#modalNavidad, .modal-navidad { display: none !important; }";
+    document.head.appendChild(st);
+  }
+
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    const txt = (b.innerText || "").toLowerCase();
+    if (txt.includes("okey")) {
+      localStorage.setItem("musa_navidad_vista_ok", "1");
+      const cont = b.closest("div[style*='fixed'], div[class*='modal' i], div[id*='modal' i]");
+      if (cont) cont.style.display = "none";
+    }
+    if (txt.includes("entendido") || txt.includes("ir a mi panel")) {
+      localStorage.setItem("musa_guia_vista_ok", "1");
+      const cont = b.closest("div[style*='fixed'], div[class*='modal' i], div[id*='modal' i]");
+      if (cont) cont.style.display = "none";
+    }
+  }, true);
+
+  window.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("div").forEach(d => {
+      const t = (d.innerText || "").trim();
+      if (localStorage.getItem("musa_navidad_vista_ok") === "1" && t.includes("EDICIÓN NAVIDEÑA VIP") && t.includes("OKEY")) {
+        const box = d.closest("div[style*='fixed'], div[class*='modal' i], div[id*='modal' i]") || d;
+        box.style.display = "none";
+      }
+      if (localStorage.getItem("musa_guia_vista_ok") === "1" && t.includes("GUÍA RÁPIDA DE FUNCIONES") && t.includes("Entendido")) {
+        const box = d.closest("div[style*='fixed'], div[class*='modal' i], div[id*='modal' i]") || d;
+        box.style.display = "none";
+      }
+    });
+  });
+})();
+</script>
 </body>
 </html>
