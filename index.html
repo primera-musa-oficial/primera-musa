@@ -138,17 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const CLAVE = "musa_guia_navidad_vista_v3";
 
   // 1. Evitar el destello de usuario/clave al recargar si ya hay sesión guardada
-  if (localStorage.getItem("musa_cli_u") && localStorage.getItem("musa_cli_p")) {
-    const stFlash = document.createElement("style");
-    stFlash.id = "antiFlashLoginStyle";
-    stFlash.innerHTML = "html, body { background: #050807 !important; } body { opacity: 0 !important; transition: opacity 0.15s ease; }";
-    document.head.appendChild(stFlash);
-    const rev = setInterval(() => {
-      const passVis = Array.from(document.querySelectorAll("input[type='password']")).some(i => i.offsetParent !== null);
-      if (!passVis) { document.getElementById("antiFlashLoginStyle")?.remove(); clearInterval(rev); }
-    }, 60);
-    setTimeout(() => { document.getElementById("antiFlashLoginStyle")?.remove(); clearInterval(rev); }, 550);
-  }
+  
 
   // 2. Ocultar "Guía Rápida" y "Navidad" tras haberlos cerrado una vez
   function ocultarGuiasIniciales() {
@@ -1553,7 +1543,7 @@ document.addEventListener("click", (e) => {
       clearInterval(tmr);
       setTimeout(() => btnEntrar.click(), 250);
     }
-  }, 350);
+  }, 80);
 })();
 
 // 2. Clavar reloj en 00:00 si el bot/pestaña/sesión está caído (>22 seg sin latido o con error)
