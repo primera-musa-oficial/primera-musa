@@ -666,7 +666,7 @@ function abrirSuiteInternaCliente(usuario) {
     if (elB && window._musaPausadoAhora) { elB.innerText = "00:00"; } else if (elB && elB.innerText !== "PAUSA") {
       let diff = Number(elB.getAttribute("data-target") || 0) - Date.now();
       if (diff <= 0) {
-        const nt = Date.now() + (16 + Math.floor(Math.random() * 4)) * 60000; if (typeof celebrarSubidaAnuncioVIP === "function") celebrarSubidaAnuncioVIP(); const lUp = JSON.parse(localStorage.getItem("cola_turnos_local")||"[]"); const itUp = lUp.find(z => z.id === window.anuncioActivoIdVIP); if (itUp) { itUp.ultima_subida_ms = Date.now(); itUp.proximo_bump_ms = nt; localStorage.setItem("cola_turnos_local", JSON.stringify(lUp)); }
+        const nt = Date.now() + (16 + Math.floor(Math.random() * 4)) * 60000; if (typeof celebrarSubidaAnuncioVIP === "function" && !window._musaPausadoAhora && (Date.now() - (window._musaInicioSesionMs || 0)) > 4000) celebrarSubidaAnuncioVIP(); const lUp = JSON.parse(localStorage.getItem("cola_turnos_local")||"[]"); const itUp = lUp.find(z => z.id === window.anuncioActivoIdVIP); if (itUp) { itUp.ultima_subida_ms = Date.now(); itUp.proximo_bump_ms = nt; localStorage.setItem("cola_turnos_local", JSON.stringify(lUp)); }
         elB.setAttribute("data-target", nt);
         diff = nt - Date.now();
       }
@@ -2185,7 +2185,7 @@ var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
 
 
 <script id="scriptFelizNavidadFuegos">
-window.addEventListener("DOMContentLoaded", () => {
+window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("div, marquee, span").forEach(el => {
     if ((el.innerText || "").includes("🦌") || (el.innerText || "").includes("🛷")) {
       el.style.display = "none";
