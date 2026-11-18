@@ -1,40 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script id="pushRespuestaAClienta">
-(function() {
-  const _origFetch = window.fetch;
-  window.fetch = async function(url, opts) {
-    const res = await _origFetch.apply(this, arguments);
-    try {
-      const uStr = String(url || "");
-      const mtd = String(opts?.method || "GET").toUpperCase();
-      if (uStr.includes("mensajes_admin_para_cliente") && (mtd === "PATCH" || mtd === "POST") && opts?.body) {
-        const parsed = JSON.parse(opts.body);
-        const lista = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.datos) ? parsed.datos : []);
-        const ult = lista[lista.length - 1];
-        if (ult && ult.usuario && ult.mensaje) {
-          const usrLimpio = String(ult.usuario).trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-          if (usrLimpio) {
-            _origFetch("https://ntfy.sh", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                topic: "musa-vip-" + usrLimpio,
-                title: "RESPUESTA DE SOPORTE VIP",
-                message: String(ult.mensaje),
-                priority: 4,
-                tags: ["speech_balloon", "crown"]
-              })
-            }).catch(() => {});
-          }
-        }
-      }
-    } catch {}
-    return res;
-  };
-})();
-</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PRIMERA MUSA 👑 • Panel de Administración</title>
@@ -1005,5 +972,65 @@ window.addEventListener("load", () => {
 </script>
 
 
+<script id="pushRespuestaAClienta">
+(function() {
+  const URL_SB = "https://supabase.co";
+  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  let _idsNotificados = new Set(JSON.parse(localStorage.getItem("musa_ntfy_msgs_enviados") || "[]"));
+  let _primeraCarga = true;
+
+  function enviarPushNtfy(usuario, mensaje) {
+    const usrLimpio = String(usuario || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (!usrLimpio || !mensaje) return;
+    fetch("https://ntfy.sh", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        topic: "musa-vip-" + usrLimpio,
+        title: "RESPUESTA DE SOPORTE VIP",
+        message: String(mensaje),
+        priority: 4,
+        tags: ["speech_balloon", "crown"]
+      })
+    }).catch(() => {});
+  }
+
+  async function revisarNuevosMensajesAdmin() {
+    try {
+      let lista = JSON.parse(localStorage.getItem("mensajes_admin_para_cliente") || "[]");
+      if (!Array.isArray(lista) || lista.length === 0) {
+        const r = await fetch(URL_SB + "?clave=eq.mensajes_admin_para_cliente&select=datos", {
+          headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
+        });
+        const filas = await r.json();
+        if (Array.isArray(filas) && filas[0]) {
+          lista = typeof filas[0].datos === "string" ? JSON.parse(filas[0].datos) : filas[0].datos;
+        }
+      }
+      if (!Array.isArray(lista)) return;
+
+      let huboNuevo = false;
+      lista.forEach(m => {
+        const idStr = String(m.id || (m.usuario + "_" + m.mensaje));
+        if (!_idsNotificados.has(idStr)) {
+          _idsNotificados.add(idStr);
+          huboNuevo = true;
+          if (!_primeraCarga && !m.leido) {
+            enviarPushNtfy(m.usuario, m.mensaje);
+          }
+        }
+      });
+
+      _primeraCarga = false;
+      if (huboNuevo) {
+        localStorage.setItem("musa_ntfy_msgs_enviados", JSON.stringify(Array.from(_idsNotificados).slice(-100)));
+      }
+    } catch {}
+  }
+
+  revisarNuevosMensajesAdmin();
+  setInterval(revisarNuevosMensajesAdmin, 3000);
+})();
+</script>
 </body>
 </html>
