@@ -1518,7 +1518,7 @@ setInterval(() => {
     const detenido = Boolean(c.error_publicacion) || (c.activo && sinLatido);
 
     let banner = document.getElementById("bannerAlertaSesionCliente");
-    if (detenido) {
+    window._musaDetenidoAhora = detenido; if (detenido) {
       document.querySelectorAll("div, span, b, strong, p, h1, h2, h3").forEach(el => {
         if (el.children.length === 0 && /^\d{1,2}:\d{2}$/.test(el.innerText.trim())) {
           el.innerText = "00:00";
@@ -1532,11 +1532,27 @@ setInterval(() => {
         const main = document.querySelector(".wrap, .card, main, body");
         if (main) main.prepend(banner);
       }
-    } else if (banner) {
+    } else if (banner) { window._musaDetenidoAhora = false;
       banner.remove();
     }
   } catch {}
 }, 400);
+</script>
+<script id="observerCeroSinParpadeo">
+window._musaDetenidoAhora = false;
+(function() {
+  function clavarCerosInstantaneo() {
+    if (!window._musaDetenidoAhora) return;
+    document.querySelectorAll("div, span, b, strong, p, h1, h2, h3").forEach(el => {
+      if (el.children.length === 0 && /^\d{1,2}:\d{2}$/.test(el.innerText.trim()) && el.innerText.trim() !== "00:00") {
+        el.innerText = "00:00";
+      }
+    });
+  }
+  const obs = new MutationObserver(clavarCerosInstantaneo);
+  if (document.body) obs.observe(document.body, { childList: true, subtree: true, characterData: true });
+  else window.addEventListener("DOMContentLoaded", () => obs.observe(document.body, { childList: true, subtree: true, characterData: true }));
+})();
 </script>
 </body>
 </html>
