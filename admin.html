@@ -551,7 +551,7 @@ async function refrescarBotsFijos() {
   } catch (e) {}
 }
 refrescarBotsFijos();
-setInterval(refrescarBotsFijos, 4000);
+setInterval(async () => { await refrescarBotsFijos(); if (window.vistaAdminActual === "bots" && typeof cargarColaTurnos === "function") cargarColaTurnos(); }, 4000);
 </script>
 <script>
 (function() {
