@@ -135,13 +135,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+
 <script id="ocultarBienvenidaRepetida">
 window._guiaAbiertaManualmente = false;
 (function() {
   const CLAVE = "musa_guia_navidad_vista_v4";
+  if (localStorage.getItem("musa_cli_u")) localStorage.setItem(CLAVE, "1");
 
   function ocultarGuiasAutomaticas() {
     if (window._guiaAbiertaManualmente) return;
+    if (localStorage.getItem(CLAVE) !== "1") return;
     document.querySelectorAll("div, section, aside").forEach(el => {
       if (el.id === "modalStoryMusaVip" || el.closest("#modalStoryMusaVip")) return;
       const st = window.getComputedStyle(el);
@@ -154,16 +157,14 @@ window._guiaAbiertaManualmente = false;
     });
   }
 
-  if (localStorage.getItem(CLAVE) === "1") {
-    setInterval(ocultarGuiasAutomaticas, 150);
-  }
+  setInterval(ocultarGuiasAutomaticas, 60);
+  window.addEventListener("DOMContentLoaded", ocultarGuiasAutomaticas);
 
   document.addEventListener("click", (e) => {
     const btn = e.target.closest("button, a");
     if (!btn || btn.closest("#modalStoryMusaVip")) return;
     const txtBtn = (btn.innerText || "").toLowerCase();
 
-    // Si pulsan el botón para abrir la Guía Rápida manualmente, permitir que se vea
     if ((txtBtn.includes("guía") || txtBtn.includes("guia")) && !btn.closest("div[style*='fixed'], div[class*='modal' i]")) {
       window._guiaAbiertaManualmente = true;
       setTimeout(() => {
@@ -177,7 +178,6 @@ window._guiaAbiertaManualmente = false;
       return;
     }
 
-    // Si pulsan cerrar o entendido dentro del modal, volver a ocultarlo
     const modalPadre = btn.closest("div[style*='fixed'], div[style*='absolute'], div[class*='modal' i], div[id*='modal' i], div[class*='overlay' i]");
     if (modalPadre) {
       localStorage.setItem(CLAVE, "1");
