@@ -1200,5 +1200,91 @@ function celebrarSubidaAnuncioVIP() {
   });
 })();
 </script>
+<script id="motorLigeroFinalMusa">
+(function() {
+  const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
+  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+
+  // 1. Evitar que Guía Rápida / Navidad salgan solas después de cerrarlas la primera vez
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    const modal = b.closest("div[style*='fixed'], div[class*='modal' i], div[id*='modal' i]");
+    if (modal) {
+      const t = (modal.innerText || "").toLowerCase();
+      if (t.includes("guía") || t.includes("guia") || t.includes("navidad") || t.includes("okey")) {
+        localStorage.setItem("musa_bienvenida_vista_ok", "1");
+      }
+    }
+  }, true);
+
+  window.addEventListener("load", () => {
+    if (localStorage.getItem("musa_bienvenida_vista_ok") === "1") {
+      document.querySelectorAll("div[style*='fixed'], div[class*='modal' i], div[id*='modal' i]").forEach(m => {
+        const t = (m.innerText || "").toLowerCase();
+        if (t.includes("guía") || t.includes("guia") || t.includes("navidad")) m.style.display = "none";
+      });
+    }
+  });
+
+  // 2. Revisar cada 5 segundos mensajes de soporte y estado real del bot (sin sobrecargar el teléfono)
+  setInterval(async () => {
+    try {
+      const u = (localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "").trim().toLowerCase();
+      if (!u) return;
+
+      const r = await fetch(URL_SB + "?clave=in.(cola_turnos_local,mapa_bots_musa_activos,mensajes_admin_para_cliente)&select=clave,datos", {
+        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
+      });
+      const filas = await r.json();
+      if (!Array.isArray(filas)) return;
+
+      let cola = [], mapaBots = {}, msgs = [];
+      filas.forEach(f => {
+        const d = typeof f.datos === "string" ? JSON.parse(f.datos) : f.datos;
+        if (f.clave === "cola_turnos_local" && Array.isArray(d)) cola = d;
+        if (f.clave === "mapa_bots_musa_activos" && d && typeof d === "object") mapaBots = d;
+        if (f.clave === "mensajes_admin_para_cliente" && Array.isArray(d)) msgs = d;
+      });
+
+      const contPanel = document.querySelector(".wrap, .card, main");
+      if (!contPanel || contPanel.offsetParent === null) return;
+
+      // A) Mostrar respuesta de soporte arriba si hay una nueva
+      const pend = msgs.filter(m => String(m.usuario || "").trim().toLowerCase() === u && !m.leido && localStorage.getItem("musa_msg_cerrado_" + m.id) !== "1").at(-1);
+      let boxMsg = document.getElementById("cartelRespuestaAdminTop");
+      if (pend) {
+        if (!boxMsg) {
+          boxMsg = document.createElement("div");
+          boxMsg.id = "cartelRespuestaAdminTop";
+          boxMsg.style.cssText = "position:relative;background:#065f46;border:2px solid #fde047;color:#fff;padding:11px 34px 11px 13px;border-radius:12px;margin:8px auto;font:bold 12.5px Arial,sans-serif;";
+          contPanel.prepend(boxMsg);
+        }
+        boxMsg.innerHTML = `<div style="color:#fde047;font-size:10.5px;">💬 RESPUESTA DE SOPORTE VIP:</div><div>${pend.texto}</div><button onclick="localStorage.setItem('musa_msg_cerrado_${pend.id}','1');this.parentElement.remove();" style="position:absolute;top:7px;right:8px;background:none;border:1px solid #fde047;color:#fde047;border-radius:50%;width:21px;height:21px;cursor:pointer;">✕</button>`;
+      } else if (boxMsg) boxMsg.remove();
+
+      // B) Verificar si el bot está pausado/caído y poner 00:00
+      const c = cola.find(x => String(x.usuario || "").trim().toLowerCase() === u);
+      const codBot = String(c?.bot_asignado || "").toUpperCase();
+      const infoBot = mapaBots[codBot];
+      const caido = c && c.activo && codBot && (!infoBot || (Date.now() - Number(infoBot.ts || 0)) > 60000 || Boolean(infoBot.alerta));
+      let boxAlerta = document.getElementById("bannerAlertaSesionCliente");
+
+      if (c && (c.error_publicacion || caido)) {
+        document.querySelectorAll("div, span, b, strong, h1, h2, h3").forEach(el => {
+          if (el.children.length === 0 && /^\d{1,2}:\d{2}$/.test(el.innerText.trim())) el.innerText = "00:00";
+        });
+        if (!boxAlerta) {
+          boxAlerta = document.createElement("div");
+          boxAlerta.id = "bannerAlertaSesionCliente";
+          boxAlerta.style.cssText = "background:#7f1d1d;border:1.5px solid #f87171;color:#fef08a;padding:9px 12px;border-radius:11px;margin:8px auto;font:bold 12px Arial,sans-serif;text-align:center;";
+          boxAlerta.innerText = "⚠️ Tu anuncio está pausado en 00:00 por revisión técnica. Avísanos por soporte para reactivarlo.";
+          contPanel.prepend(boxAlerta);
+        }
+      } else if (boxAlerta) boxAlerta.remove();
+    } catch {}
+  }, 5000);
+})();
+</script>
 </body>
 </html>
