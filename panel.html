@@ -132,16 +132,28 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
+
 <script id="ocultarBienvenidaRepetida">
 (function() {
-  const CLAVE = "musa_bienvenida_navidad_vista_v2";
-  function ocultarTodoAvisoInicial() {
+  const CLAVE = "musa_guia_navidad_vista_v3";
+
+  // 1. Evitar el destello de usuario/clave al recargar si ya hay sesión guardada
+  if (localStorage.getItem("musa_cli_u") && localStorage.getItem("musa_cli_p")) {
+    const stFlash = document.createElement("style");
+    stFlash.id = "antiFlashLoginStyle";
+    stFlash.innerHTML = "body { opacity: 0 !important; }";
+    document.head.appendChild(stFlash);
+    setTimeout(() => { document.getElementById("antiFlashLoginStyle")?.remove(); }, 950);
+  }
+
+  // 2. Ocultar "Guía Rápida" y "Navidad" tras haberlos cerrado una vez
+  function ocultarGuiasIniciales() {
     document.querySelectorAll("div, section, aside").forEach(el => {
       if (el.id === "modalStoryMusaVip" || el.closest("#modalStoryMusaVip")) return;
       const st = window.getComputedStyle(el);
-      if (st.position === "fixed" && st.display !== "none") {
+      if ((st.position === "fixed" || st.position === "absolute") && st.display !== "none" && Number(st.zIndex || 0) >= 10) {
         const t = (el.innerText || "").toLowerCase();
-        if (t.includes("navidad") || t.includes("indicaciones") || t.includes("bienvenid") || t.includes("okey") || t.includes("sistema")) {
+        if (t.includes("guía") || t.includes("guia") || t.includes("rápida") || t.includes("rapida") || t.includes("navidad") || t.includes("indicaciones") || t.includes("bienvenid")) {
           el.style.setProperty("display", "none", "important");
         }
       }
@@ -149,18 +161,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (localStorage.getItem(CLAVE) === "1") {
-    setInterval(ocultarTodoAvisoInicial, 150);
-    window.addEventListener("DOMContentLoaded", ocultarTodoAvisoInicial);
+    setInterval(ocultarGuiasIniciales, 120);
+    window.addEventListener("DOMContentLoaded", ocultarGuiasIniciales);
   }
 
   document.addEventListener("click", (e) => {
     const btn = e.target.closest("button");
     if (!btn || btn.closest("#modalStoryMusaVip")) return;
-    const modalPadre = btn.closest("div[style*='fixed'], div[class*='modal' i], div[id*='modal' i]");
+    const modalPadre = btn.closest("div[style*='fixed'], div[style*='absolute'], div[class*='modal' i], div[id*='modal' i], div[class*='overlay' i]");
     if (modalPadre) {
-      localStorage.setItem(CLAVE, "1");
-      modalPadre.style.setProperty("display", "none", "important");
-      setInterval(ocultarTodoAvisoInicial, 150);
+      const t = (modalPadre.innerText || "").toLowerCase();
+      if (t.includes("guía") || t.includes("guia") || t.includes("navidad") || t.includes("indicaciones") || t.includes("okey") || t.includes("entendido")) {
+        localStorage.setItem(CLAVE, "1");
+        modalPadre.style.setProperty("display", "none", "important");
+        setInterval(ocultarGuiasIniciales, 120);
+      }
     }
   }, true);
 })();
