@@ -1175,5 +1175,73 @@ setInterval(() => {
   } catch (e) {}
 }, 1000);
 </script>
+<script id="escudoFotosUsadasMusa">
+const URL_SB_FOTOS = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
+const KEY_SB_FOTOS = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+window._huellasFotosPendientes = [];
+
+async function calcularHashArchivo(file) {
+  const buf = await file.arrayBuffer();
+  const hashBuf = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function leerHuellasUsadasNube() {
+  try {
+    const r = await fetch(URL_SB_FOTOS + "?clave=eq.huellas_fotos_usadas_musa&select=datos", {
+      headers: { "apikey": KEY_SB_FOTOS, "Authorization": "Bearer " + KEY_SB_FOTOS },
+      cache: "no-store"
+    });
+    const j = await r.json();
+    const fila = Array.isArray(j) ? j.at(0) : null;
+    const arr = (fila && fila.datos) ? (typeof fila.datos === "string" ? JSON.parse(fila.datos) : fila.datos) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch { return []; }
+}
+
+async function guardarHuellasUsadasNube(lista) {
+  try {
+    await fetch(URL_SB_FOTOS + "?on_conflict=clave", {
+      method: "POST",
+      headers: { "apikey": KEY_SB_FOTOS, "Authorization": "Bearer " + KEY_SB_FOTOS, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+      body: JSON.stringify([{ clave: "huellas_fotos_usadas_musa", datos: lista, actualizado_en: new Date().toISOString() }])
+    });
+  } catch {}
+}
+
+document.addEventListener("change", async (e) => {
+  const inp = e.target;
+  if (!inp || inp.type !== "file" || !inp.files || !inp.files.length) return;
+
+  const usadas = await leerHuellasUsadasNube();
+  const setUsadas = new Set(usadas);
+  const nuevasLote = new Set();
+
+  for (const file of Array.from(inp.files)) {
+    const h = await calcularHashArchivo(file);
+    if (setUsadas.has(h) || nuevasLote.has(h)) {
+      inp.value = "";
+      window._huellasFotosPendientes = [];
+      alert("🚫 FOTOS USADAS DETECTADAS:\n\nUna o más fotos ya fueron utilizadas anteriormente en el sistema (o están duplicadas).\n\nPor seguridad anti-bloqueos, debes subir fotos nuevas para poder continuar.");
+      e.stopImmediatePropagation();
+      return;
+    }
+    nuevasLote.add(h);
+  }
+  window._huellasFotosPendientes = Array.from(nuevasLote);
+}, true);
+
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button");
+  if (!btn || !window._huellasFotosPendientes.length) return;
+  const txt = (btn.innerText || "").toLowerCase();
+  if (txt.includes("continuar") || txt.includes("enviar") || txt.includes("finalizar") || txt.includes("guardar") || txt.includes("registrar")) {
+    const usadas = await leerHuellasUsadasNube();
+    const unidas = Array.from(new Set([...usadas, ...window._huellasFotosPendientes]));
+    await guardarHuellasUsadasNube(unidas);
+    window._huellasFotosPendientes = [];
+  }
+}, true);
+</script>
 </body>
 </html>
