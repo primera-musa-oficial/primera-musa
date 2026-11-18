@@ -195,7 +195,7 @@ function cargarColaTurnos() {
 
   const vAct = String(window.vistaAdminActual || "cola").toLowerCase(); const mostrar = vAct.includes("activ") ? activosList : (vAct.includes("toda") ? lista : enCola);
   if (!mostrar.length) { cont.innerHTML = `<div class="turno-card" style="text-align:center;">🎉 No hay registros en esta pestaña.</div>`; return; }
-  cont.innerHTML = mostrar.map((c, idx) => armarTarjetaUnica(c, idx, lista)).join("");
+  const _hNew = JSON.stringify(mostrar.map(x => [x.usuario, x.activo, x.bot_asignado, x.ultimo_anuncio, x.vence_ms, x.bloqueada, x.detenido, x.total_ediciones])) + "|" + window.vistaAdminActual; if (cont.dataset.hashRender !== _hNew) { cont.dataset.hashRender = _hNew; cont.innerHTML = mostrar.map((c, idx) => armarTarjetaUnica(c, idx, lista)).join(""); }
 }
 
 function armarTarjetaUnica(c, idx, lista) {
@@ -727,6 +727,49 @@ document.addEventListener("click", async (e) => {
     headers: { "apikey": keySb, "Authorization": "Bearer " + keySb, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
     body: JSON.stringify([{ clave: "cola_turnos_local", datos: arr, actualizado_en: new Date().toISOString() }])
   });
+});
+</script>
+<script id="antiParpadeoYGuardado">
+window._bloquearSyncHasta = 0;
+const _origSetItem = localStorage.setItem.bind(localStorage);
+localStorage.setItem = function(k, v) {
+  if (k === "cola_turnos_local" && Date.now() < window._bloquearSyncHasta && !window._guardandoLocalAhora) return;
+  _origSetItem(k, v);
+};
+
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button");
+  if (!btn || !btn.innerText.includes("Asignar Bot")) return;
+  const card = btn.closest(".turno-card");
+  const sel = card ? card.querySelector("select") : null;
+  const elegido = sel ? sel.value.trim().toUpperCase() : "";
+  if (!elegido) return;
+
+  window._bloquearSyncHasta = Date.now() + 10000;
+  window._guardandoLocalAhora = true;
+  const txtCard = card.innerText || "";
+  const arr = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const it = arr.find(x => x.usuario && txtCard.includes(x.usuario));
+  if (it) {
+    it.bot_asignado = elegido;
+    it.activo = true;
+    it.proximo_bump_ms = Date.now() + 2000;
+    const base = String(it.ultimo_anuncio || "").replace(/\|?PAGINA:[^|]*/g, "");
+    it.ultimo_anuncio = base + "|PAGINA:" + elegido + "|PASO:4";
+    _origSetItem("cola_turnos_local", JSON.stringify(arr));
+    const cont = document.getElementById("listaTarjetasAdmin");
+    if (cont) cont.dataset.hashRender = "";
+    if (typeof cargarColaTurnos === "function") cargarColaTurnos();
+
+    const urlSb = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado?on_conflict=clave";
+    const keySb = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+    await fetch(urlSb, {
+      method: "POST",
+      headers: { "apikey": keySb, "Authorization": "Bearer " + keySb, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+      body: JSON.stringify([{ clave: "cola_turnos_local", datos: arr, actualizado_en: new Date().toISOString() }])
+    });
+  }
+  window._guardandoLocalAhora = false;
 });
 </script>
 </body>
