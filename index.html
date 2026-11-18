@@ -1,6 +1,63 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script id="loginNubeUniversalMusa">
+(function() {
+  const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
+  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+
+  // Descargar usuarios y cola desde Supabase apenas abre la página en cualquier teléfono nuevo
+  async function sincronizarUsuariosDesdeNube() {
+    try {
+      const r = await fetch(URL_SB + "?clave=in.(cola_turnos_local,usuarios_clientes_musa)&select=clave,datos", {
+        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
+      });
+      const filas = await r.json();
+      if (!Array.isArray(filas)) return;
+      filas.forEach(f => {
+        const d = typeof f.datos === "string" ? JSON.parse(f.datos) : f.datos;
+        if (f.clave === "cola_turnos_local" && Array.isArray(d)) {
+          localStorage.setItem("cola_turnos_local", JSON.stringify(d));
+          const usrs = d.map(x => ({ usuario: x.usuario, clave: x.clave || x.password || x.pass || "" }));
+          const prev = JSON.parse(localStorage.getItem("usuarios_clientes_musa") || "[]");
+          const mapa = new Map(prev.map(u => [String(u.usuario || "").toLowerCase(), u]));
+          usrs.forEach(u => { if (u.usuario && u.clave) mapa.set(String(u.usuario).toLowerCase(), u); });
+          localStorage.setItem("usuarios_clientes_musa", JSON.stringify(Array.from(mapa.values())));
+        }
+        if (f.clave === "usuarios_clientes_musa" && Array.isArray(d)) {
+          const prev = JSON.parse(localStorage.getItem("usuarios_clientes_musa") || "[]");
+          const mapa = new Map(prev.map(u => [String(u.usuario || "").toLowerCase(), u]));
+          d.forEach(u => { if (u.usuario) mapa.set(String(u.usuario).toLowerCase(), u); });
+          localStorage.setItem("usuarios_clientes_musa", JSON.stringify(Array.from(mapa.values())));
+        }
+      });
+    } catch {}
+  }
+
+  sincronizarUsuariosDesdeNube();
+
+  // Interceptar el clic en Entrar para asegurar que sincronizó con la nube antes de validar
+  let _reintentoLoginNube = false;
+  document.addEventListener("click", async (e) => {
+    const b = e.target.closest("button");
+    if (!b || _reintentoLoginNube) return;
+    const t = (b.innerText || "").toLowerCase();
+    if (t.includes("entrar") || t.includes("iniciar") || t.includes("acceder")) {
+      const listaLocal = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+      if (listaLocal.length === 0) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        b.innerText = "⏳ Conectando con la nube...";
+        await sincronizarUsuariosDesdeNube();
+        b.innerText = "🎄 Entrar a mi Suite VIP ✨";
+        _reintentoLoginNube = true;
+        b.click();
+        setTimeout(() => { _reintentoLoginNube = false; }, 500);
+      }
+    }
+  }, true);
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PRIMERA MUSA 💋 • Edición Especial Navidad</title>
