@@ -189,6 +189,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
+<script id="headSinParpadeoModales">
+if (localStorage.getItem("musa_navidad_vista_ok") === "1" || localStorage.getItem("musa_guia_vista_ok") === "1") {
+  const s = document.createElement("style");
+  s.id = "stOcultarModalesInicio";
+  s.innerHTML = "#modalNavidad, #modalGuia, #guiaModal, #modalInstrucciones, .modal-navidad, .modal-guia { display: none !important; }";
+  document.head.appendChild(s);
+}
+</script>
 </head>
 <body>
 <div class="garland"><div class="bulb r"></div><div class="bulb g"></div><div class="bulb v"></div><div class="bulb r"></div><div class="bulb g"></div><div class="bulb v"></div><div class="bulb r"></div><div class="bulb g"></div></div>
@@ -2075,19 +2083,6 @@ var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
   });
 })();
 </script>
-<script id="parcheGuiaSinAutoAbrir">
-window.addEventListener("load", () => {
-  if (localStorage.getItem("musa_guia_vista_ok") === "1") {
-    [100, 400, 900].forEach(ms => setTimeout(() => {
-      document.querySelectorAll("div").forEach(d => {
-        if (d.innerText && d.innerText.includes("GUÍA RÁPIDA DE FUNCIONES") && d.innerText.includes("Entendido")) {
-          const m = d.closest("div[style*='fixed'], div[class*='modal' i], div[id*='modal' i]") || d;
-          m.style.display = "none";
-        }
-      });
-    }, ms));
-  }
-});
-</script>
+
 </body>
 </html>
