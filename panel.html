@@ -2258,5 +2258,55 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   }
 });
 </script>
+<script id="alertasPushClienteIndividual">
+(function() {
+  function obtenerCanalCliente() {
+    const u = (localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    return u ? "musa-vip-" + u : "";
+  }
+
+  // Avisar al celular de la clienta cada vez que su anuncio suba al tope
+  window.addEventListener("load", () => {
+    if (typeof window.celebrarSubidaAnuncioVIP === "function") {
+      const _orig = window.celebrarSubidaAnuncioVIP;
+      window.celebrarSubidaAnuncioVIP = function() {
+        const res = _orig.apply(this, arguments);
+        const canal = obtenerCanalCliente();
+        if (canal && !window._musaPausadoAhora) {
+          fetch("https://ntfy.sh" + canal, {
+            method: "POST",
+            headers: { "Title": "TU ANUNCIO SUBIO AL TOPE", "Tags": "rocket,crown" },
+            body: "Tu anuncio en Primera Musa VIP acaba de subir al primer lugar."
+          }).catch(() => {});
+        }
+        return res;
+      };
+    }
+  });
+
+  // Mostrar botón discreto arriba del panel de la clienta para conectar su app ntfy
+  setInterval(() => {
+    const canal = obtenerCanalCliente();
+    const cont = document.querySelector(".wrap, .card, main");
+    if (!canal || !cont || cont.offsetParent === null || document.getElementById("btnActivarPushClienta")) return;
+
+    const bar = document.createElement("div");
+    bar.id = "btnActivarPushClienta";
+    bar.style.cssText = "text-align:center;margin:6px auto 10px auto;";
+    bar.innerHTML = `<button type="button" onclick="mostrarGuiaPushClienta('${canal}')" style="background:rgba(234,179,8,0.15);border:1px solid #eab308;color:#fde047;border-radius:20px;padding:6px 14px;font:bold 11.5px Arial,sans-serif;cursor:pointer;">🔔 Recibir Alertas de Subida en mi Celular</button>`;
+    cont.prepend(bar);
+  }, 2000);
+
+  window.mostrarGuiaPushClienta = function(canal) {
+    const msg = "📲 RECIBE ALERTAS EN VIVO EN TU CELULAR:\n\n" +
+      "1. Descarga la app gratis 'ntfy' en Play Store o App Store.\n" +
+      "2. Abre la app, toca el '+' y suscríbete a tu canal privado:\n\n" +
+      "👉  " + canal + "\n\n" +
+      "(Se copiará tu canal automáticamente al tocar Aceptar)";
+    alert(msg);
+    if (navigator.clipboard) navigator.clipboard.writeText(canal).catch(() => {});
+  };
+})();
+</script>
 </body>
 </html>
