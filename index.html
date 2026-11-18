@@ -1222,7 +1222,7 @@ function celebrarSubidaAnuncioVIP() {
       const caido = c && c.activo && codBot && (!infoBot || (Date.now() - Number(infoBot.ts || 0)) > 60000 || Boolean(infoBot.alerta));
       let boxAlerta = document.getElementById("bannerAlertaSesionCliente");
 
-      if (c && (c.error_publicacion || caido)) {
+      window._musaPausadoAhora = Boolean(c && (c.error_publicacion || caido)); if (window._musaPausadoAhora) {
         document.querySelectorAll("div, span, b, strong, h1, h2, h3").forEach(el => {
           if (el.children.length === 0 && /^\d{1,2}:\d{2}$/.test(el.innerText.trim())) el.innerText = "00:00";
         });
@@ -1233,7 +1233,7 @@ function celebrarSubidaAnuncioVIP() {
           boxAlerta.innerText = "⚠️ Tu anuncio está pausado en 00:00 por revisión técnica. Avísanos por soporte para reactivarlo.";
           contPanel.prepend(boxAlerta);
         }
-      } else if (boxAlerta) boxAlerta.remove();
+      } else { window._musaPausadoAhora = false; if (boxAlerta) boxAlerta.remove(); }
     } catch {}
   }
 
