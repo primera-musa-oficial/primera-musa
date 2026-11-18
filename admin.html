@@ -524,7 +524,7 @@ async function refrescarBotsFijos() {
       box.innerHTML = '<span style="color:#94a3b8;">Ningún perfil conectado aún (abre Chrome y pulsa Vincular Perfil ✅ en la extensión).</span>';
       return;
     }
-    box.innerHTML = activos.sort().map(([cod]) => `<span style="background:#065f46;color:#6ee7b7;border:1.5px solid #34d399;padding:6px 14px;border-radius:20px;font-weight:900;">🟢 ${cod} ONLINE</span>`).join("");
+    box.innerHTML = activos.sort().map(([cod, info]) => info && info.alerta ? `<span style="background:#991b1b;color:#fef08a;border:2px solid #f87171;padding:6px 14px;border-radius:20px;font-weight:900;">🚨 ${cod} • ${info.alerta}</span>` : `<span style="background:#065f46;color:#6ee7b7;border:1.5px solid #34d399;padding:6px 14px;border-radius:20px;font-weight:900;">🟢 ${cod} ONLINE</span>`).join("");
   } catch (e) {}
 }
 refrescarBotsFijos();
