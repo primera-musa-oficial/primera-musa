@@ -2297,6 +2297,27 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
     cont.prepend(bar);
   }, 2000);
 
+    let _ultimoEstadoPushPausa = null;
+  setInterval(() => {
+    const canal = obtenerCanalCliente();
+    if (!canal) return;
+    const pausado = Boolean(window._musaPausadoAhora);
+    if (_ultimoEstadoPushPausa === null) { _ultimoEstadoPushPausa = pausado; return; }
+    if (pausado !== _ultimoEstadoPushPausa) {
+      _ultimoEstadoPushPausa = pausado;
+      fetch("https://ntfy.sh" + canal, {
+        method: "POST",
+        headers: {
+          "Title": pausado ? "ANUNCIO EN PAUSA TECNICA" : "ANUNCIO REACTIVADO",
+          "Priority": pausado ? "high" : "default",
+          "Tags": pausado ? "warning" : "white_check_mark"
+        },
+        body: pausado
+          ? "Tu anuncio entro en revision tecnica (00:00). Te avisaremos en cuanto vuelva a subir."
+          : "Tu anuncio ya esta activo nuevamente y retomando sus subidas al tope."
+      }).catch(() => {});
+    }
+  }, 5000);
   window.mostrarGuiaPushClienta = function(canal) {
     const msg = "📲 RECIBE ALERTAS EN VIVO EN TU CELULAR:\n\n" +
       "1. Descarga la app gratis 'ntfy' en Play Store o App Store.\n" +
