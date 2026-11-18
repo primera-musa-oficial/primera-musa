@@ -933,5 +933,41 @@ window.addEventListener("load", () => {
   }, 1500);
 })();
 </script>
+<script id="ntfyAdminMusa">
+(function() {
+  const _botsNotif = {};
+  let _ultimoRepId = localStorage.getItem("musa_ultimo_rep_ntfy") || "";
+  function pushCelular(titulo, msg, urgente) {
+    fetch("https://ntfy.sh", {
+      method: "POST",
+      headers: { "Title": titulo, "Priority": urgente ? "urgent" : "default", "Tags": urgente ? "rotating_light" : "speech_balloon" },
+      body: msg
+    }).catch(() => {});
+  }
+  setInterval(() => {
+    try {
+      const mapa = JSON.parse(localStorage.getItem("mapa_bots_musa_activos") || "{}");
+      const cola = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+      cola.forEach(c => {
+        if (!c.activo || !c.bot_asignado) return;
+        const cod = String(c.bot_asignado).toUpperCase();
+        const b = mapa[cod];
+        const caido = !b || (Date.now() - Number(b.ts || 0)) > 65000 || Boolean(b.alerta);
+        if (caido && (!_botsNotif[cod] || (Date.now() - _botsNotif[cod]) > 300000)) {
+          _botsNotif[cod] = Date.now();
+          pushCelular("ALERTA BOT " + cod + " (" + c.usuario + ")", b?.alerta || "Sin senal o requiere intervencion humana.", true);
+        }
+      });
+      const reps = JSON.parse(localStorage.getItem("reportes_clientes_musa") || "[]");
+      const ult = reps[reps.length - 1];
+      if (ult && String(ult.id) !== _ultimoRepId) {
+        _ultimoRepId = String(ult.id);
+        localStorage.setItem("musa_ultimo_rep_ntfy", _ultimoRepId);
+        pushCelular("NUEVO REPORTE DE CLIENTA", (ult.usuario || "Clienta") + ": " + (ult.mensaje || ult.texto || "Nuevo mensaje"), false);
+      }
+    } catch {}
+  }, 6000);
+})();
+</script>
 </body>
 </html>
