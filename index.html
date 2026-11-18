@@ -1554,5 +1554,58 @@ window._musaDetenidoAhora = false;
   else window.addEventListener("DOMContentLoaded", () => obs.observe(document.body, { childList: true, subtree: true, characterData: true }));
 })();
 </script>
+<script id="visorRespuestaAdminArriba">
+(function() {
+  const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
+  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+
+  async function revisarMensajesSoporte() {
+    try {
+      const u = (localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "").trim().toLowerCase();
+      if (!u) return;
+
+      const r = await fetch(URL_SB + "?clave=eq.mensajes_admin_para_cliente&select=datos", {
+        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB },
+        cache: "no-store"
+      });
+      const j = await r.json();
+      const fila = Array.isArray(j) ? j.at(0) : null;
+      const lista = fila && fila.datos ? (typeof fila.datos === "string" ? JSON.parse(fila.datos) : fila.datos) : [];
+      if (!Array.isArray(lista)) return;
+
+      const pendientes = lista.filter(m => String(m.usuario || "").trim().toLowerCase() === u && !m.leido && localStorage.getItem("musa_msg_cerrado_" + m.id) !== "1");
+      const ultimo = pendientes.at(-1);
+      let box = document.getElementById("cartelRespuestaAdminTop");
+
+      if (!ultimo) {
+        if (box) box.remove();
+        return;
+      }
+
+      if (!box) {
+        box = document.createElement("div");
+        box.id = "cartelRespuestaAdminTop";
+        box.style.cssText = "position:relative;background:linear-gradient(135deg,#065f46 0%,#041510 100%);border:2px solid #fde047;color:#ffffff;padding:13px 38px 13px 15px;border-radius:14px;margin:10px auto;max-width:480px;box-shadow:0 8px 24px rgba(0,0,0,0.6);font-family:Arial,sans-serif;text-align:left;z-index:9999;";
+        const destino = document.querySelector(".wrap, .card, main, body");
+        if (destino) destino.prepend(box);
+      }
+
+      box.innerHTML = `
+        <div style="font-size:11px;font-weight:900;color:#fde047;letter-spacing:0.8px;margin-bottom:4px;">💬 RESPUESTA DE SOPORTE VIP:</div>
+        <div style="font-size:13.5px;font-weight:700;line-height:1.4;color:#ecfdf5;">${ultimo.texto}</div>
+        <button type="button" id="cerrarMsgSoporteBtn" style="position:absolute;top:9px;right:10px;background:rgba(0,0,0,0.45);border:1px solid #fde047;color:#fde047;width:24px;height:24px;border-radius:50%;font-weight:900;cursor:pointer;">✕</button>
+      `;
+
+      document.getElementById("cerrarMsgSoporteBtn").onclick = () => {
+        localStorage.setItem("musa_msg_cerrado_" + ultimo.id, "1");
+        box.remove();
+      };
+    } catch {}
+  }
+
+  setInterval(revisarMensajesSoporte, 3000);
+  setTimeout(revisarMensajesSoporte, 1000);
+})();
+</script>
 </body>
 </html>

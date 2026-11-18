@@ -896,5 +896,31 @@ window.addEventListener("load", () => {
   });
 });
 </script>
+<script id="syncMensajesAdminSupabase">
+(function() {
+  const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado?on_conflict=clave";
+  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  let ultimoHashMsg = "";
+
+  setInterval(async () => {
+    try {
+      const rawMsg = localStorage.getItem("mensajes_admin_para_cliente") || "[]";
+      const rawRep = localStorage.getItem("reportes_clientes_local") || "[]";
+      const hashActual = rawMsg + "|" + rawRep;
+      if (hashActual === ultimoHashMsg) return;
+      ultimoHashMsg = hashActual;
+
+      await fetch(URL_SB, {
+        method: "POST",
+        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+        body: JSON.stringify([
+          { clave: "mensajes_admin_para_cliente", datos: JSON.parse(rawMsg), actualizado_en: new Date().toISOString() },
+          { clave: "reportes_clientes_local", datos: JSON.parse(rawRep), actualizado_en: new Date().toISOString() }
+        ])
+      });
+    } catch {}
+  }, 1500);
+})();
+</script>
 </body>
 </html>
