@@ -1,6 +1,40 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script id="pushRespuestaAClienta">
+(function() {
+  const _origFetch = window.fetch;
+  window.fetch = async function(url, opts) {
+    const res = await _origFetch.apply(this, arguments);
+    try {
+      const uStr = String(url || "");
+      const mtd = String(opts?.method || "GET").toUpperCase();
+      if (uStr.includes("mensajes_admin_para_cliente") && (mtd === "PATCH" || mtd === "POST") && opts?.body) {
+        const parsed = JSON.parse(opts.body);
+        const lista = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.datos) ? parsed.datos : []);
+        const ult = lista[lista.length - 1];
+        if (ult && ult.usuario && ult.mensaje) {
+          const usrLimpio = String(ult.usuario).trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+          if (usrLimpio) {
+            _origFetch("https://ntfy.sh", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                topic: "musa-vip-" + usrLimpio,
+                title: "RESPUESTA DE SOPORTE VIP",
+                message: String(ult.mensaje),
+                priority: 4,
+                tags: ["speech_balloon", "crown"]
+              })
+            }).catch(() => {});
+          }
+        }
+      }
+    } catch {}
+    return res;
+  };
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PRIMERA MUSA 👑 • Panel de Administración</title>
@@ -970,47 +1004,6 @@ window.addEventListener("load", () => {
 })();
 </script>
 
-<script id="pushRespuestaAClienta">
-document.addEventListener("click", (e) => {
-  const b = e.target.closest("button");
-  if (!b) return;
-  const txt = (b.innerText || "").toLowerCase();
-  if (txt.includes("enviar") || txt.includes("responder")) {
-    const card = b.closest("div[style*='border'], div[class*='card' i], div");
-    if (!card) return;
-    const inp = card.querySelector("input[type='text'], textarea");
-    const mensaje = inp ? inp.value.trim() : "";
-    if (!mensaje) return;
 
-    // Buscar el usuario real de la clienta en la tarjeta (ignorando palabras comunes)
-    const ignorar = new Set(["reporte", "clienta", "cliente", "mensaje", "enviar", "responder", "soporte", "nuevo", "pendiente", "cerrar", "admin", "usuario"]);
-    const textoCard = card.innerText || "";
-    const arroba = textoCard.match(/@([a-zA-Z0-9_]{2,30})/);
-    let usrLimpio = "";
-
-    if (arroba) {
-      usrLimpio = arroba.toLowerCase().replace(/[^a-z0-9]/g, "");
-    } else {
-      const palabras = textoCard.match(/[a-zA-Z0-9_]{3,25}/g) || [];
-      const candidata = palabras.find(w => !ignorar.has(w.toLowerCase()));
-      if (candidata) usrLimpio = candidata.toLowerCase().replace(/[^a-z0-9]/g, "");
-    }
-
-    if (usrLimpio) {
-      fetch("https://ntfy.sh", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          topic: "musa-vip-" + usrLimpio,
-          title: "RESPUESTA DE SOPORTE VIP",
-          message: mensaje,
-          priority: 4,
-          tags: ["speech_balloon", "crown"]
-        })
-      }).catch(() => {});
-    }
-  }
-}, true);
-</script>
 </body>
 </html>
