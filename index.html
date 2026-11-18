@@ -1168,12 +1168,9 @@ function celebrarSubidaAnuncioVIP() {
 
 
 
-<script id="motorUnicoMusaLigero">
-(function() {
-  const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
-  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
 
-  // Guardar usuario/clave al iniciar sesión y entrar directo al recargar
+<script id="arranqueLimpioPanel">
+(function() {
   document.addEventListener("click", (e) => {
     const b = e.target.closest("button");
     if (!b) return;
@@ -1189,47 +1186,18 @@ function celebrarSubidaAnuncioVIP() {
     }
   }, true);
 
-  window.addEventListener("DOMContentLoaded", () => {
+  window.addEventListener("load", () => {
     const uSaved = localStorage.getItem("musa_cli_u");
     const pSaved = localStorage.getItem("musa_cli_p");
-    const inpU = document.querySelector("input[type='text']");
-    const inpP = document.querySelector("input[type='password']");
-    const btnE = Array.from(document.querySelectorAll("button")).find(b => /entrar|iniciar|acceder/i.test(b.innerText));
+    const inpU = Array.from(document.querySelectorAll("input[type='text']")).find(i => i.offsetParent !== null);
+    const inpP = Array.from(document.querySelectorAll("input[type='password']")).find(i => i.offsetParent !== null);
+    const btnE = Array.from(document.querySelectorAll("button")).find(b => b.offsetParent !== null && /entrar|iniciar|acceder/i.test(b.innerText));
     if (uSaved && pSaved && inpU && inpP && btnE) {
-      inpU.value = uSaved; inpP.value = pSaved;
+      inpU.value = uSaved;
+      inpP.value = pSaved;
       btnE.click();
     }
   });
-
-  // Revisar cada 5 segundos mensajes de soporte y estado del bot (ligero, sin trabar el teléfono)
-  setInterval(async () => {
-    try {
-      const u = (localStorage.getItem("musa_cli_u") || "").trim().toLowerCase();
-      if (!u) return;
-      const r = await fetch(URL_SB + "?clave=in.(mensajes_admin_para_cliente,mapa_bots_musa_activos)&select=clave,datos", {
-        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
-      });
-      const filas = await r.json();
-      if (!Array.isArray(filas)) return;
-
-      filas.forEach(f => {
-        const d = typeof f.datos === "string" ? JSON.parse(f.datos) : f.datos;
-        if (f.clave === "mensajes_admin_para_cliente" && Array.isArray(d)) {
-          const pend = d.filter(m => String(m.usuario || "").trim().toLowerCase() === u && !m.leido && localStorage.getItem("musa_msg_cerrado_" + m.id) !== "1").at(-1);
-          let box = document.getElementById("cartelRespuestaAdminTop");
-          if (pend) {
-            if (!box) {
-              box = document.createElement("div");
-              box.id = "cartelRespuestaAdminTop";
-              box.style.cssText = "position:relative;background:#065f46;border:2px solid #fde047;color:#fff;padding:12px 36px 12px 14px;border-radius:12px;margin:10px auto;max-width:480px;font:bold 13px Arial,sans-serif;";
-              (document.querySelector(".wrap, .card, main, body") || document.body).prepend(box);
-            }
-            box.innerHTML = `<div style="color:#fde047;font-size:11px;">💬 RESPUESTA DE SOPORTE:</div><div>${pend.texto}</div><button onclick="localStorage.setItem('musa_msg_cerrado_${pend.id}','1');this.parentElement.remove();" style="position:absolute;top:8px;right:8px;background:none;border:1px solid #fde047;color:#fde047;border-radius:50%;width:22px;height:22px;cursor:pointer;">✕</button>`;
-          } else if (box) box.remove();
-        }
-      });
-    } catch {}
-  }, 5000);
 })();
 </script>
 </body>
