@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script id="escudoInicioSinFalsaSubida">
+window._musaInicioSesionMs = Date.now();
+window.addEventListener("load", () => {
+  if (typeof window.celebrarSubidaAnuncioVIP === "function") {
+    const _origCelebrar = window.celebrarSubidaAnuncioVIP;
+    window.celebrarSubidaAnuncioVIP = function() {
+      if (window._musaPausadoAhora || (Date.now() - window._musaInicioSesionMs) < 5000) return;
+      return _origCelebrar.apply(this, arguments);
+    };
+  }
+});
+</script>
 <script id="loginNubeUniversalMusa">
 (function() {
   const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
