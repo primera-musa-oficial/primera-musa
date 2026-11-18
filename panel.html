@@ -1552,7 +1552,7 @@ setInterval(() => {
 
     const codCli = String(c.bot_asignado || "").toUpperCase();
     const infoBot = window._mapaBotsLiveCli[codCli];
-    const sinLatido = codCli && (!infoBot || (Date.now() - Number(infoBot.ts || 0)) > 22000 || Boolean(infoBot.alerta));
+    const sinLatido = codCli && (!infoBot || (Date.now() - Number(infoBot.ts || 0)) > 75000 || Boolean(infoBot.alerta));
     const detenido = Boolean(c.error_publicacion) || (c.activo && sinLatido);
 
     let banner = document.getElementById("bannerAlertaSesionCliente");

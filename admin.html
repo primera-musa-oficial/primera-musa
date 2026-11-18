@@ -550,8 +550,8 @@ async function refrescarBotsFijos() {
     box.innerHTML = activos.sort().map(([cod, info]) => info && info.alerta ? `<span style="background:#991b1b;color:#fef08a;border:2px solid #f87171;padding:6px 14px;border-radius:20px;font-weight:900;">🚨 ${cod} • ${info.alerta}</span>` : `<span style="background:#065f46;color:#6ee7b7;border:1.5px solid #34d399;padding:6px 14px;border-radius:20px;font-weight:900;">🟢 ${cod} ONLINE</span>`).join("");
   } catch (e) {}
 }
-refrescarBotsFijos();
-setInterval(async () => { await refrescarBotsFijos(); if (window.vistaAdminActual === "bots" && typeof cargarColaTurnos === "function") cargarColaTurnos(); }, 4000);
+refrescarBotsFijos().then(() => { if (typeof cargarColaTurnos === "function") cargarColaTurnos(); });
+setInterval(async () => { await refrescarBotsFijos().then(() => { if (typeof cargarColaTurnos === "function") cargarColaTurnos(); }); if (window.vistaAdminActual === "bots" && typeof cargarColaTurnos === "function") cargarColaTurnos(); }, 4000);
 </script>
 <script>
 (function() {
@@ -830,7 +830,7 @@ async function quitarBotDeMapa(cod) {
     headers: { "apikey": keySb, "Authorization": "Bearer " + keySb, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
     body: JSON.stringify([{ clave: "mapa_bots_musa_activos", datos: mapa, actualizado_en: new Date().toISOString() }])
   });
-  if (typeof refrescarBotsFijos === "function") await refrescarBotsFijos();
+  if (typeof refrescarBotsFijos === "function") await refrescarBotsFijos().then(() => { if (typeof cargarColaTurnos === "function") cargarColaTurnos(); });
   if (typeof cargarColaTurnos === "function") cargarColaTurnos();
 }
 </script>
