@@ -167,9 +167,32 @@ function cargarColaTurnos() {
   document.getElementById("statTotal").innerText = lista.length;
   if (document.getElementById("statReportes")) document.getElementById("statReportes").innerText = repsPend.length;
 
-  if (window.vistaAdminActual === "bots") {
-    const bots = obtenerCuentasBot();
-    cont.innerHTML = `<div class="turno-card"><div style="font-size:12px;font-weight:900;color:#fde047;margin-bottom:8px;">🔌 NUEVA CUENTA DE BOT</div><div style="display:grid;grid-template-columns:1fr auto;gap:8px;"><input id="nuevoBotNombre" type="text" placeholder="Ej. Perfil Chrome #3 - Tampa FL"><button type="button" class="btn-gold" onclick="const n=document.getElementById('nuevoBotNombre').value.trim();if(!n)return;const b=obtenerCuentasBot();b.push({codigo:'MUSA-'+String(b.length+1).padStart(2,'0'),nombre:n});localStorage.setItem('cuentas_bot_musa',JSON.stringify(b));cargarColaTurnos();">+ Generar Código 🔑</button></div></div>` + bots.map(b => `<div class="turno-card" style="display:flex;justify-content:space-between;align-items:center;"><div><span style="background:#1e3a8a;border:1px solid #fde047;color:#fde047;font-weight:900;padding:3px 9px;border-radius:8px;">🔑 ${b.codigo}</span> <b style="margin-left:8px;">${b.nombre}</b></div><button type="button" class="btn-step" onclick="copiarTextoAdmin('${b.codigo}',this)">📋 Copiar Código</button></div>`).join("");
+    if (window.vistaAdminActual === "bots") {
+    const chips = Array.from(document.querySelectorAll("#listaChipsBots span")).map(s => s.innerText.trim());
+    const conectados = [];
+    chips.forEach(t => {
+      const m = t.match(/MUSA-\d+/i);
+      if (m) conectados.push({ cod: m.at(0).toUpperCase(), alerta: t.includes("🚨") ? t : "" });
+    });
+    if (!conectados.length) {
+      cont.innerHTML = `<div class="turno-card" style="text-align:center;color:#94a3b8;">🔌 No hay perfiles de Chrome activos en este momento. Abre un perfil de Chrome y pulsa <b>Vincular Perfil ✅</b> en la extensión.</div>`;
+      return;
+    }
+    cont.innerHTML = conectados.sort((a,b) => a.cod.localeCompare(b.cod)).map(b => {
+      const cl = lista.find(x => String(x.bot_asignado || "").toUpperCase() === b.cod || String(x.ultimo_anuncio || "").toUpperCase().includes("PAGINA:" + b.cod));
+      const estadoTxt = b.alerta
+        ? `<span style="color:#fda4af;font-weight:900;">${b.alerta}</span>`
+        : (cl && cl.activo
+            ? `<span style="color:#6ee7b7;font-weight:900;">⚡ TRABAJANDO CON: ${cl.alias} (${cl.usuario})</span>`
+            : `<span style="color:#fde047;font-weight:800;">🟢 CONECTADO Y LIBRE (Listo para asignar)</span>`);
+      return `<div class="turno-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-color:${b.alerta ? 'rgba(244,63,94,0.7)' : 'rgba(52,211,153,0.45)'};">
+        <div>
+          <span style="background:#065f46;border:1.5px solid #34d399;color:#6ee7b7;font-weight:900;padding:4px 11px;border-radius:8px;">🤖 ${b.cod}</span>
+          <span style="margin-left:10px;font-size:13px;">${estadoTxt}</span>
+        </div>
+        <button type="button" class="btn-step" onclick="quitarBotDeMapa('${b.cod}')">🗑️ Quitar de Lista</button>
+      </div>`;
+    }).join("");
     return;
   }
   if (window.vistaAdminActual === "reportes") {
@@ -790,6 +813,26 @@ setInterval(() => {
     });
   } catch (e) {}
 }, 1000);
+</script>
+<script id="limpiadorBotsViejos">
+localStorage.removeItem("cuentas_bot_musa");
+localStorage.removeItem("cuentas_bots_local");
+async function quitarBotDeMapa(cod) {
+  const urlSb = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
+  const keySb = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  const r = await fetch(urlSb + "?clave=eq.mapa_bots_musa_activos&select=datos", { headers: { "apikey": keySb, "Authorization": "Bearer " + keySb }, cache: "no-store" });
+  const j = await r.json();
+  const fila = Array.isArray(j) ? j.at(0) : null;
+  const mapa = (fila && fila.datos && typeof fila.datos === "object") ? fila.datos : {};
+  delete mapa[cod];
+  await fetch(urlSb + "?on_conflict=clave", {
+    method: "POST",
+    headers: { "apikey": keySb, "Authorization": "Bearer " + keySb, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+    body: JSON.stringify([{ clave: "mapa_bots_musa_activos", datos: mapa, actualizado_en: new Date().toISOString() }])
+  });
+  if (typeof refrescarBotsFijos === "function") await refrescarBotsFijos();
+  if (typeof cargarColaTurnos === "function") cargarColaTurnos();
+}
 </script>
 </body>
 </html>
