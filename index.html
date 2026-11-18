@@ -1476,5 +1476,32 @@ document.addEventListener("click", async (e) => {
   else abrirHistoriaDelDia();
 })();
 </script>
+<script id="sesionPersistenteCliente">
+(function() {
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const t = (btn.innerText || "").toLowerCase();
+    if (t.includes("entrar") || t.includes("iniciar") || t.includes("acceder")) {
+      const inpU = Array.from(document.querySelectorAll("input[type='text']")).find(i => i.offsetParent !== null && i.value.trim().length > 2);
+      if (inpU) localStorage.setItem("musa_cliente_recordada", inpU.value.trim());
+    }
+    if (t.includes("cerrar sesión") || t.includes("salir")) {
+      localStorage.removeItem("musa_cliente_recordada");
+      localStorage.removeItem("usuario_musa_logueado");
+    }
+  });
+
+  window.addEventListener("load", () => {
+    const uRec = localStorage.getItem("musa_cliente_recordada") || localStorage.getItem("usuario_musa_logueado");
+    const passInp = Array.from(document.querySelectorAll("input[type='password']")).find(i => i.offsetParent !== null);
+    if (uRec && passInp) {
+      localStorage.setItem("usuario_musa_logueado", uRec);
+      if (typeof abrirPanelCliente === "function") abrirPanelCliente(uRec);
+      else if (typeof mostrarDashboard === "function") mostrarDashboard(uRec);
+    }
+  });
+})();
+</script>
 </body>
 </html>

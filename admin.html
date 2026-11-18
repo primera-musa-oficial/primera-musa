@@ -863,5 +863,33 @@ setInterval(() => {
   });
 }, 1000);
 </script>
+<script id="sesionPersistenteAdmin">
+(function() {
+  function desbloquearAdminSiGuardado() {
+    if (localStorage.getItem("musa_admin_sesion_fija") === "1") {
+      const loginBox = document.getElementById("loginAdminBox") || document.querySelector("[id*='login' i]");
+      const panelBox = document.getElementById("panelAdminMain") || document.querySelector("[id*='panel' i], main, .wrap");
+      if (loginBox && loginBox.querySelector("input[type='password']")) loginBox.style.display = "none";
+      if (panelBox) panelBox.style.display = "block";
+    }
+  }
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const t = (btn.innerText || "").toLowerCase();
+    if (t.includes("entrar") || t.includes("iniciar") || t.includes("acceder")) {
+      setTimeout(() => {
+        const passVisible = Array.from(document.querySelectorAll("input[type='password']")).some(i => i.offsetParent !== null);
+        if (!passVisible) localStorage.setItem("musa_admin_sesion_fija", "1");
+      }, 300);
+    }
+    if (t.includes("cerrar sesión") || t.includes("salir")) {
+      localStorage.removeItem("musa_admin_sesion_fija");
+    }
+  });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", desbloquearAdminSiGuardado);
+  else desbloquearAdminSiGuardado();
+})();
+</script>
 </body>
 </html>
