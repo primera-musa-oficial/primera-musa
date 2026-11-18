@@ -2050,7 +2050,7 @@ var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
           boxMsg.style.cssText = "position:relative;background:#065f46;border:2px solid #fde047;color:#fff;padding:12px 36px 12px 14px;border-radius:12px;margin:10px auto;max-width:480px;font:bold 13px Arial,sans-serif;z-index:9999;";
           contPanel.prepend(boxMsg);
         }
-        boxMsg.innerHTML = `<div style="color:#fde047;font-size:11px;">💬 RESPUESTA DE SOPORTE VIP:</div><div>${pend.texto}</div><button onclick="localStorage.setItem('musa_msg_cerrado_${pend.id}','1');this.parentElement.remove();" style="position:absolute;top:8px;right:8px;background:none;border:1px solid #fde047;color:#fde047;border-radius:50%;width:22px;height:22px;cursor:pointer;">✕</button>`;
+        boxMsg.innerHTML = `<div style="color:#fde047;font-size:11px;">💬 RESPUESTA DE SOPORTE VIP:</div><div>${pend.texto}</div><button onclick="cerrarMensajeSoporteDefinitivo('${pend.id}', this)" style="position:absolute;top:8px;right:8px;background:none;border:1px solid #fde047;color:#fde047;border-radius:50%;width:22px;height:22px;cursor:pointer;">✕</button>`;
       } else if (boxMsg) boxMsg.remove();
 
       // 2. Mostrar alerta roja y 00:00 si el bot está caído/pausado
