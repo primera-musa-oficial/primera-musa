@@ -5,44 +5,54 @@
 (function() {
   const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
   const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
-  let _bloqueoLocalHasta = 0;
+  window._bloqueoNubeAdminHasta = 0;
 
-  async function guardarColaEnNube(colaArr) {
+  // Interceptar cualquier GET antiguo hacia cola_turnos_local mientras se está guardando un cambio reciente
+  const _origFetch = window.fetch;
+  window.fetch = async function(url, opts) {
+    const uStr = String(url || "");
+    const mtd = String(opts?.method || "GET").toUpperCase();
+    if (uStr.includes("musa_estado") && mtd === "GET" && Date.now() < window._bloqueoNubeAdminHasta) {
+      return new Response("[]", { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+    return _origFetch.apply(this, arguments);
+  };
+
+  window.subirColaUpsertNube = async function(colaArr) {
     try {
-      await fetch(URL_SB + "?clave=eq.cola_turnos_local", {
-        method: "PATCH",
+      await _origFetch(URL_SB + "?on_conflict=clave", {
+        method: "POST",
         headers: {
           "apikey": KEY_SB,
           "Authorization": "Bearer " + KEY_SB,
           "Content-Type": "application/json",
-          "Prefer": "return=minimal"
+          "Prefer": "resolution=merge-duplicates"
         },
-        body: JSON.stringify({ datos: colaArr, actualizado_en: new Date().toISOString() })
+        body: JSON.stringify({ clave: "cola_turnos_local", datos: colaArr })
       });
     } catch {}
-  }
+  };
 
   const _origSetItem = localStorage.setItem.bind(localStorage);
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
     if (k === "cola_turnos_local" && !window._desdeDescargaInicial) {
-      _bloqueoLocalHasta = Date.now() + 15000;
+      window._bloqueoNubeAdminHasta = Date.now() + 30000;
       try {
         const arr = JSON.parse(v);
-        if (Array.isArray(arr) && arr.length > 0) guardarColaEnNube(arr);
+        if (Array.isArray(arr) && arr.length > 0) window.subirColaUpsertNube(arr);
       } catch {}
     }
   };
 
-  // Descargar solo al abrir la página (nunca en bucle mientras editas)
-  async function cargarInicialDesdeNube() {
-    if (Date.now() < _bloqueoLocalHasta) return;
+  // Descargar una sola vez al abrir la página
+  (async function cargarInicialDesdeNube() {
     try {
-      const r = await fetch(URL_SB + "?select=clave,datos", {
+      const r = await _origFetch(URL_SB + "?select=clave,datos", {
         headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
       });
       const filas = await r.json();
-      if (Array.isArray(filas) && Date.now() >= _bloqueoLocalHasta) {
+      if (Array.isArray(filas) && Date.now() >= window._bloqueoNubeAdminHasta) {
         window._desdeDescargaInicial = true;
         filas.forEach(f => {
           if (!f || !f.clave) return;
@@ -55,11 +65,10 @@
         if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
       }
     } catch { window._desdeDescargaInicial = false; }
-  }
-
-  cargarInicialDesdeNube();
+  })();
 })();
 </script>
+
 
 
 
@@ -1130,7 +1139,7 @@ document.addEventListener("click", async (e) => {
   if (!it) { alert("⚠️ No se pudo identificar la cuenta en esta tarjeta."); return; }
 
   const base = (it.vence_ms && Number(it.vence_ms) > Date.now()) ? Number(it.vence_ms) : Date.now();
-  it.vence_ms = base + dias * 86400000;
+  const nuevoVence = base + dias * 86400000; it.vence_ms = nuevoVence; it.fin_renta_ms = nuevoVence; it.expira_ms = nuevoVence;
   it.activo = true;
   it.pagado = true;
   it.aprobada = true;

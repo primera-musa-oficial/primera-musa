@@ -2642,7 +2642,7 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
 
       const cola = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
       const c = cola.find(x => String(x.usuario || "").trim().toLowerCase() === u);
-      const venceMs = Number(c?.vence_ms || 0);
+      const venceMs = Math.max(Number(c?.vence_ms || 0), Number(c?.fin_renta_ms || 0), Number(c?.expira_ms || 0));
       if (venceMs <= Date.now()) return;
 
       const claveGuardada = "musa_vence_visto_" + u;
