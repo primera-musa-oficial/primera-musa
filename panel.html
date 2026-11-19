@@ -2540,84 +2540,7 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   }, 1000);
 })();
 </script>
-<script id="estadisticasSubidasVIP">
-(function() {
-  function obtenerUsuarioStats() {
-    const raw = window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "";
-    return String(raw).trim().toLowerCase().replace(/[^a-z0-9]/g, "") || "cliente";
-  }
 
-  function hoyClave() {
-    const d = new Date();
-    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-  }
-
-  function leerStatsHoy() {
-    const u = obtenerUsuarioStats();
-    const key = "musa_stats_bumps_" + u;
-    try {
-      const data = JSON.parse(localStorage.getItem(key) || "{}");
-      if (data.fecha !== hoyClave()) {
-        return { fecha: hoyClave(), count: 0, ultimaMs: Number(data.ultimaMs || 0) };
-      }
-      return { fecha: data.fecha, count: Number(data.count || 0), ultimaMs: Number(data.ultimaMs || 0) };
-    } catch {
-      return { fecha: hoyClave(), count: 0, ultimaMs: 0 };
-    }
-  }
-
-  function guardarNuevaSubida() {
-    const u = obtenerUsuarioStats();
-    const key = "musa_stats_bumps_" + u;
-    const actual = leerStatsHoy();
-    const nuevo = { fecha: hoyClave(), count: actual.count + 1, ultimaMs: Date.now() };
-    localStorage.setItem(key, JSON.stringify(nuevo));
-    actualizarVistaStats();
-  }
-
-  function formatearTiempoTranscurrido(ms) {
-    if (!ms || ms <= 0) return "en espera de turno";
-    const seg = Math.max(1, Math.floor((Date.now() - ms) / 1000));
-    if (seg < 60) return "hace unos segundos";
-    const min = Math.floor(seg / 60);
-    if (min < 60) return "hace " + min + (min === 1 ? " min" : " min");
-    const hrs = Math.floor(min / 60);
-    return "hace " + hrs + (hrs === 1 ? " hora" : " horas");
-  }
-
-  // Enganchar con celebrarSubidaAnuncioVIP para sumar +1 cada vez que suba al tope
-  window.addEventListener("load", () => {
-    if (typeof window.celebrarSubidaAnuncioVIP === "function") {
-      const _orig = window.celebrarSubidaAnuncioVIP;
-      window.celebrarSubidaAnuncioVIP = function() {
-        const r = _orig.apply(this, arguments);
-        if (!window._musaPausadoAhora) guardarNuevaSubida();
-        return r;
-      };
-    }
-  });
-
-  function actualizarVistaStats() {
-    const btnPausar = Array.from(document.querySelectorAll("button")).find(b => b.offsetParent !== null && /pausar anuncio|reanudar anuncio/i.test(b.innerText || ""));
-    if (!btnPausar || !btnPausar.parentElement) return;
-
-    let caja = document.getElementById("cajaEstadisticasSubidasVIP");
-    if (!caja) {
-      caja = document.createElement("div");
-      caja.id = "cajaEstadisticasSubidasVIP";
-      caja.style.cssText = "background:linear-gradient(135deg,rgba(6,78,59,0.75),rgba(2,44,34,0.88));border:1px solid rgba(253,224,71,0.55);border-radius:12px;padding:8px 12px;margin:10px auto 6px auto;text-align:center;font-family:Arial,sans-serif;font-size:12px;color:#e2e8f0;box-shadow:0 3px 10px rgba(0,0,0,0.35);";
-      btnPausar.parentElement.insertBefore(caja, btnPausar.nextSibling);
-    }
-
-    const st = leerStatsHoy();
-    const vecesTxt = st.count === 1 ? "1 vez" : st.count + " veces";
-    const ultimaTxt = formatearTiempoTranscurrido(st.ultimaMs);
-    caja.innerHTML = `🚀 <b style="color:#fde047;">Subidas al tope hoy:</b> <span style="color:#fff;font-weight:900;">${vecesTxt}</span> &nbsp;•&nbsp; <span style="color:#a7f3d0;">Última subida: ${ultimaTxt}</span>`;
-  }
-
-  setInterval(actualizarVistaStats, 3000);
-})();
-</script>
 <script id="avisoRenovacionClienteVIP">
 (function() {
   function mostrarBannerRenovado(nuevaFechaTxt) {
@@ -2793,6 +2716,87 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
       r.readAsDataURL(inp.files[0]);
     };
   };
+})();
+</script>
+<script id="fijadorElementosPanelVIP">
+(function() {
+  function getUsr() {
+    return String(window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "").trim();
+  }
+  function hoyClave() {
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function leerStats() {
+    const u = getUsr().toLowerCase().replace(/[^a-z0-9]/g, "") || "cliente";
+    try {
+      const d = JSON.parse(localStorage.getItem("musa_stats_bumps_" + u) || "{}");
+      if (d.fecha !== hoyClave()) return { fecha: hoyClave(), count: 0, ultimaMs: Number(d.ultimaMs || 0) };
+      return { fecha: d.fecha, count: Number(d.count || 0), ultimaMs: Number(d.ultimaMs || 0) };
+    } catch { return { fecha: hoyClave(), count: 0, ultimaMs: 0 }; }
+  }
+  function txtTranscurrido(ms) {
+    if (!ms || ms <= 0) return "en espera de turno";
+    const s = Math.max(1, Math.floor((Date.now() - ms) / 1000));
+    if (s < 60) return "hace unos segundos";
+    const m = Math.floor(s / 60);
+    if (m < 60) return "hace " + m + " min";
+    return "hace " + Math.floor(m / 60) + " h";
+  }
+
+  window.addEventListener("load", () => {
+    if (typeof window.celebrarSubidaAnuncioVIP === "function") {
+      const orig = window.celebrarSubidaAnuncioVIP;
+      window.celebrarSubidaAnuncioVIP = function() {
+        const r = orig.apply(this, arguments);
+        if (!window._musaPausadoAhora) {
+          const u = getUsr().toLowerCase().replace(/[^a-z0-9]/g, "") || "cliente";
+          const act = leerStats();
+          localStorage.setItem("musa_stats_bumps_" + u, JSON.stringify({ fecha: hoyClave(), count: act.count + 1, ultimaMs: Date.now() }));
+          mantenerFijosEnPanel();
+        }
+        return r;
+      };
+    }
+  });
+
+  function mantenerFijosEnPanel() {
+    const u = getUsr();
+    if (!u) return;
+    const btnPausar = Array.from(document.querySelectorAll("button")).find(b => b.offsetParent !== null && /pausar anuncio|reanudar anuncio/i.test(b.innerText || ""));
+    if (!btnPausar || !btnPausar.parentElement) return;
+
+    // 1. Mantener botón de Pagar / Adelantar Renta fijo encima de Pausar
+    let btnPago = document.getElementById("btnPagarRentaVivoVIP");
+    if (!btnPago) {
+      btnPago = document.createElement("button");
+      btnPago.id = "btnPagarRentaVivoVIP";
+      btnPago.type = "button";
+      btnPago.innerText = "💳 Pagar / Adelantar Renta Ahora";
+      btnPago.className = "btn-xmas";
+      btnPago.style.cssText = "display:block;width:100%;margin:8px auto;padding:11px 16px;font-weight:900;font-size:13.5px;";
+      btnPago.onclick = () => { if (typeof window.abrirChatPagoEnVivo === "function") window.abrirChatPagoEnVivo(u); };
+      btnPausar.parentElement.insertBefore(btnPago, btnPausar);
+    }
+
+    // 2. Mantener barra de Subidas al tope hoy fija debajo de Pausar
+    let cajaStats = document.getElementById("cajaEstadisticasSubidasVIP");
+    if (!cajaStats) {
+      cajaStats = document.createElement("div");
+      cajaStats.id = "cajaEstadisticasSubidasVIP";
+      cajaStats.style.cssText = "background:linear-gradient(135deg,rgba(6,78,59,0.78),rgba(2,44,34,0.9));border:1px solid rgba(253,224,71,0.55);border-radius:12px;padding:8px 12px;margin:10px auto 6px auto;text-align:center;font-family:Arial,sans-serif;font-size:12px;color:#e2e8f0;box-shadow:0 3px 10px rgba(0,0,0,0.35);";
+      btnPausar.parentElement.insertBefore(cajaStats, btnPausar.nextSibling);
+    }
+    const st = leerStats();
+    const veces = st.count === 1 ? "1 vez" : st.count + " veces";
+    const nuevoHtml = `🚀 <b style="color:#fde047;">Subidas al tope hoy:</b> <span style="color:#fff;font-weight:900;">${veces}</span> &nbsp;•&nbsp; <span style="color:#a7f3d0;">Última subida: ${txtTranscurrido(st.ultimaMs)}</span>`;
+    if (cajaStats.innerHTML !== nuevoHtml) cajaStats.innerHTML = nuevoHtml;
+  }
+
+  // Vigilar cambios en el DOM al instante (0ms) para que nunca desaparezcan al redibujar
+  const obs = new MutationObserver(() => mantenerFijosEnPanel());
+  obs.observe(document.body, { childList: true, subtree: true });
+  setInterval(mantenerFijosEnPanel, 2000);
 })();
 </script>
 </body>
