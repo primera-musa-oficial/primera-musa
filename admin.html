@@ -1154,5 +1154,131 @@ document.addEventListener("click", async (e) => {
   setInterval(sincronizarBotsEnVivo, 3000);
 })();
 </script>
+<script id="gestorPagosAdminVIP">
+(function() {
+  const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
+  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  window._viendoTabPagosAdmin = false;
+
+  async function leerPagosNube() {
+    const r = await fetch(URL_SB + "?clave=eq.solicitudes_pago_vivo_musa&select=datos", {
+      headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
+    });
+    const filas = await r.json();
+    const arr = Array.isArray(filas) && filas.length ? (typeof filas[0].datos === "string" ? JSON.parse(filas[0].datos) : filas[0].datos) : [];
+    return Array.isArray(arr) ? arr : [];
+  }
+
+  async function guardarPagosNube(arr) {
+    await fetch(URL_SB + "?on_conflict=clave", {
+      method: "POST",
+      headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+      body: JSON.stringify({ clave: "solicitudes_pago_vivo_musa", datos: arr })
+    });
+  }
+
+  window.enviarMetodoPagoAClientaVivo = async function(idSol, usuario) {
+    const inp = document.getElementById("inpMetodoPago_" + idSol);
+    const metodo = inp ? inp.value.trim() : "";
+    if (!metodo) { alert("⚠️ Escribe primero el método de pago."); return; }
+    const arr = await leerPagosNube();
+    const it = arr.find(x => String(x.id) === String(idSol));
+    if (it) {
+      it.metodo = metodo;
+      it.estado = "metodo_enviado";
+      await guardarPagosNube(arr);
+      const uL = String(usuario || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (uL) fetch("https://ntfy.sh" + uL, { method: "POST", headers: { "Title": "METODO DE PAGO LISTO", "Priority": "high" }, body: "Ya tienes listo el metodo de pago en tu panel." }).catch(() => {});
+      alert("✅ Método enviado a @" + usuario);
+      renderizarVistaPagosAdmin(true);
+    }
+  };
+  window.acreditarPagoYArchivar = async function(idSol, usuario, dias) {
+    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const c = l.find(x => String(x.usuario || "").trim().toLowerCase() === String(usuario || "").trim().toLowerCase());
+    if (c) {
+      const base = (c.vence_ms && Number(c.vence_ms) > Date.now()) ? Number(c.vence_ms) : Date.now();
+      const nv = base + Number(dias) * 86400000;
+      c.vence_ms = nv; c.fin_renta_ms = nv; c.expira_ms = nv;
+      c.activo = true; c.pagado = true; c.aprobada = true; c.detenido = false; c.bloqueada = false; c.pausado = false; c.estado = "activa";
+      localStorage.setItem("cola_turnos_local", JSON.stringify(l));
+      if (typeof window.subirColaUpsertNube === "function") await window.subirColaUpsertNube(l);
+    }
+    const uP = String(usuario || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (uP) fetch("https://ntfy.sh" + uP, { method: "POST", headers: { "Title": "PAGO COMPLETADO", "Priority": "high" }, body: "Renta extendida +" + dias + " dias." }).catch(() => {});
+    const arr = await leerPagosNube();
+    const it = arr.find(x => String(x.id) === String(idSol));
+    if (it) { it.estado = "completado"; it.dias_sumados = Number(dias); await guardarPagosNube(arr); }
+    alert("✅ Acreditados +" + dias + " días a @" + usuario);
+    renderizarVistaPagosAdmin(true);
+  };
+
+  function asegurarBotonPestanaPagos() {
+    const tabRef = Array.from(document.querySelectorAll("button")).find(b => /reportes y fallas/i.test(b.innerText || ""));
+    if (!tabRef || !tabRef.parentElement) return;
+    if (!tabRef.parentElement.dataset.hookPagos) {
+      tabRef.parentElement.dataset.hookPagos = "1";
+      tabRef.parentElement.addEventListener("click", (e) => {
+        const b = e.target.closest("button");
+        if (b && b.id !== "btnTabSolicitudesPagoVIP") {
+          window._viendoTabPagosAdmin = false;
+          const bp = document.getElementById("btnTabSolicitudesPagoVIP");
+          if (bp) { bp.style.background = ""; bp.style.color = ""; }
+        }
+      });
+    }
+    if (!document.getElementById("btnTabSolicitudesPagoVIP")) {
+      const btn = document.createElement("button");
+      btn.id = "btnTabSolicitudesPagoVIP";
+      btn.type = "button";
+      btn.className = tabRef.className;
+      btn.innerHTML = '💰 Solicitudes de Pago (<span id="badgeCountPagosVIP">0</span>)';
+      btn.onclick = () => {
+        window._viendoTabPagosAdmin = true;
+        Array.from(tabRef.parentElement.querySelectorAll("button")).forEach(x => { x.style.background = "#0a120f"; x.style.color = "#cbd5e1"; });
+        btn.style.background = "linear-gradient(135deg,#eab308,#ca8a04)";
+        btn.style.color = "#050807";
+        renderizarVistaPagosAdmin(true);
+      };
+      tabRef.parentElement.appendChild(btn);
+    }
+  }
+
+  async function renderizarVistaPagosAdmin(forzar) {
+    asegurarBotonPestanaPagos();
+    try {
+      const arr = await leerPagosNube();
+      const pend = arr.filter(x => x && x.estado !== "completado");
+      const badge = document.getElementById("badgeCountPagosVIP");
+      if (badge) badge.innerText = String(pend.length);
+      if (!window._viendoTabPagosAdmin) return;
+      const cont = document.getElementById("listaTarjetasAdmin");
+      if (!cont || (!forzar && cont.contains(document.activeElement))) return;
+      if (pend.length === 0) {
+        cont.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:28px;background:#0a120f;border:1.5px solid #334155;border-radius:14px;">No hay solicitudes de pago pendientes.</div>';
+        return;
+      }
+      cont.innerHTML = pend.map((p, idx) => `
+        <div class="turno-card" style="background:#0a120f;border:2px solid #eab308;border-radius:16px;padding:14px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+            <div><span style="background:#dc2626;color:#fff;font-weight:900;font-size:11px;padding:4px 9px;border-radius:6px;">💳 PAGO #${idx + 1}</span> <b style="color:#fff;font-size:16px;">${p.usuario}</b> <span style="background:#065f46;color:#6ee7b7;padding:3px 9px;border-radius:12px;font-size:11px;">Plan: ${p.plan}</span></div>
+            <span style="color:#fde047;font-size:11.5px;font-weight:bold;">${p.estado === "esperando_metodo" ? "⏳ Esperando método" : p.estado === "metodo_enviado" ? "💳 Esperando captura" : "🧾 ¡Captura lista!"}</span>
+          </div>
+          <div style="background:#050807;border:1px solid #1e293b;border-radius:10px;padding:10px;margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;">
+            <input type="text" id="inpMetodoPago_${p.id}" value="${p.metodo || ""}" placeholder="Escribe Zelle, CashApp o Crypto..." style="flex:1;min-width:200px;background:#0a120f;color:#fef08a;border:1px solid #eab308;border-radius:8px;padding:8px;font-size:12.5px;">
+            <button type="button" onclick="enviarMetodoPagoAClientaVivo('${p.id}','${p.usuario}')" style="background:linear-gradient(135deg,#eab308,#ca8a04);border:none;color:#050807;font-weight:900;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;">📤 Enviar Método</button>
+          </div>
+          ${p.foto ? `<div style="margin-bottom:10px;"><img src="${p.foto}" style="max-width:210px;max-height:250px;border-radius:8px;border:1.5px solid #eab308;"></div>` : ""}
+          <div style="display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;">
+            <button type="button" onclick="acreditarPagoYArchivar('${p.id}','${p.usuario}',1)" style="background:#1e293b;border:1px solid #475569;color:#fde047;font-weight:bold;padding:6px 11px;border-radius:8px;cursor:pointer;font-size:11.5px;">+1 Día</button>
+            <button type="button" onclick="acreditarPagoYArchivar('${p.id}','${p.usuario}',7)" style="background:#1e293b;border:1px solid #475569;color:#fde047;font-weight:bold;padding:6px 11px;border-radius:8px;cursor:pointer;font-size:11.5px;">+1 Semana</button>
+            <button type="button" onclick="acreditarPagoYArchivar('${p.id}','${p.usuario}',30)" style="background:linear-gradient(135deg,#eab308,#ca8a04);border:none;color:#050807;font-weight:900;padding:6px 11px;border-radius:8px;cursor:pointer;font-size:11.5px;">+1 Mes</button>
+          </div>
+        </div>`).join("");
+    } catch {}
+  }
+  setInterval(() => renderizarVistaPagosAdmin(false), 3000);
+})();
+</script>
 </body>
 </html>
