@@ -1149,41 +1149,7 @@ document.addEventListener("click", async (e) => {
 
 
 
-<script id="liberarBotFinRentaTotalVIP">
-document.addEventListener("click", async function(e) {
-  const btn = e.target.closest("button");
-  if (!btn || !/liberar\s*bot/i.test(btn.innerText || "")) return;
 
-  e.preventDefault();
-  e.stopImmediatePropagation();
-
-  const card = btn.closest(".turno-card");
-  if (!card) return;
-
-  const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-  const txt = (card.innerText || "").toLowerCase();
-  const idx = l.findIndex(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
-  if (idx === -1) return;
-
-  const cta = l[idx];
-  if (!confirm("¿Finalizar renta de @" + (cta.usuario || cta.alias) + ", liberar su bot y eliminar su acceso por completo?")) return;
-
-  l.splice(idx, 1);
-  window._bloqueoNubeAdminHasta = Date.now() + 15000;
-  localStorage.setItem("cola_turnos_local", JSON.stringify(l));
-
-  const U = "https://supabase.co";
-  const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
-  await fetch(U, {
-    method: "POST",
-    headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
-    body: JSON.stringify({ clave: "cola_turnos_local", datos: l })
-  }).catch(() => {});
-
-  if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
-  alert("✅ Renta finalizada. Bot liberado y acceso eliminado por completo.");
-}, true);
-</script>
 
 <script id="filtroBotsOcupadosDOM">
 setInterval(() => {
@@ -1454,6 +1420,48 @@ document.addEventListener("click", function(e) {
     headers: { Title: titulo, Priority: "high", Tags: "crown,white_check_mark" },
     body: msg
   }).catch(() => {});
+}, true);
+</script>
+<script id="liberarBotFinRentaTotalVIP">
+document.addEventListener("click", async function(e) {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  const txtB = (btn.innerText || "").trim();
+  const esLiberar = /liberar\s*bot/i.test(txtB);
+  const esRechazar = /rechazar/i.test(txtB);
+  if (!esLiberar && !esRechazar) return;
+
+  e.preventDefault();
+  e.stopImmediatePropagation();
+
+  const card = btn.closest(".turno-card");
+  if (!card) return;
+
+  const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const txt = (card.innerText || "").toLowerCase();
+  const idx = l.findIndex(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
+  if (idx === -1) return;
+
+  const cta = l[idx];
+  const pregunta = esLiberar
+    ? "¿Finalizar renta de @" + (cta.usuario || cta.alias) + ", liberar su bot y eliminar su acceso?"
+    : "¿Eliminar definitivamente la solicitud de @" + (cta.usuario || cta.alias) + "?";
+  if (!confirm(pregunta)) return;
+
+  l.splice(idx, 1);
+  window._bloqueoNubeAdminHasta = Date.now() + 30000;
+  localStorage.setItem("cola_turnos_local", JSON.stringify(l));
+  card.remove();
+
+  const U = "https://supabase.co";
+  const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  await fetch(U, {
+    method: "POST",
+    headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+    body: JSON.stringify({ clave: "cola_turnos_local", datos: l })
+  }).catch(() => {});
+
+  if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
 }, true);
 </script>
 </body>
