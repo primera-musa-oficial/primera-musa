@@ -1325,8 +1325,7 @@ setInterval(() => {
       const yaActiva = Boolean(cta.activo) && Number(cta.vence_ms || 0) > Date.now();
       const btnExist = card.querySelector(".btn-empezar-conteo-vip");
 
-      if (yaActiva) {
-        if (btnExist) btnExist.remove();
+      if (yaActiva) { if (btnExist) btnExist.remove(); const btnRech = Array.from(card.querySelectorAll("button")).find(b => /rechazar/i.test(b.innerText || "")); if (btnRech) btnRech.remove();
         return;
       }
 
