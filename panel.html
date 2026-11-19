@@ -3128,5 +3128,43 @@ setInterval(() => {
   }, true);
 })();
 </script>
+<script id="bloquearTelYFotosEdicionVIP">
+setInterval(() => {
+  try {
+    const rawU = window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "";
+    if (!String(rawU).trim()) return;
+
+    // 1. Bloquear campos de teléfono una vez iniciada la sesión (en el panel de edición)
+    document.querySelectorAll("input").forEach(inp => {
+      if (inp.offsetParent === null) return;
+      const idName = (inp.id + " " + inp.name + " " + inp.placeholder + " " + inp.type).toLowerCase();
+      if (/tel|phone|celular|whatsapp|numero|número/.test(idName) && !/usuario|clave|pass/.test(idName)) {
+        inp.disabled = true;
+        inp.readOnly = true;
+        inp.style.opacity = "0.55";
+        inp.style.cursor = "not-allowed";
+        inp.title = "Solo el administrador puede cambiar el número";
+      }
+      // 2. Ocultar selectores de archivos/fotos dentro del panel del cliente
+      if (inp.type === "file") {
+        inp.disabled = true;
+        inp.style.display = "none";
+        if (inp.parentElement && /foto|imagen|subir|cambiar/i.test(inp.parentElement.innerText || "")) {
+          inp.parentElement.style.display = "none";
+        }
+      }
+    });
+
+    // 3. Ocultar botones de cambiar o subir fotos dentro del panel de edición
+    document.querySelectorAll("button, label").forEach(el => {
+      if (el.offsetParent === null) return;
+      const t = (el.innerText || "").trim();
+      if (/^(cambiar|subir|editar|reemplazar)\s*(foto|fotos|imagen|imágenes)/i.test(t)) {
+        el.style.display = "none";
+      }
+    });
+  } catch {}
+}, 1200);
+</script>
 </body>
 </html>
