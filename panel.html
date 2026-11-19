@@ -2366,5 +2366,52 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
 })();
 </script>
 
+<script id="escudoEstrictoBotVivo">
+(function() {
+  const URL_SB = "https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado";
+  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+
+  async function verificarBotRealmenteVivo() {
+    try {
+      const u = String(window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "").trim().toLowerCase();
+      if (!u) return;
+
+      const r = await fetch(URL_SB + "?clave=in.(cola_turnos_local,mapa_bots_musa_activos)&select=clave,datos", {
+        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
+      });
+      const filas = await r.json();
+      if (!Array.isArray(filas)) return;
+
+      let cola = [], mapaBots = {};
+      filas.forEach(f => {
+        const d = typeof f.datos === "string" ? JSON.parse(f.datos) : f.datos;
+        if (f.clave === "cola_turnos_local" && Array.isArray(d)) cola = d;
+        if (f.clave === "mapa_bots_musa_activos" && d && typeof d === "object") mapaBots = d;
+      });
+
+      const cuenta = cola.find(c => String(c.usuario || "").trim().toLowerCase() === u);
+      if (!cuenta) return;
+
+      const codBot = String(cuenta.bot_asignado || "").trim().toUpperCase();
+      const infoBot = codBot ? mapaBots[codBot] : null;
+      const sinLatido = !infoBot || (Date.now() - Number(infoBot.ts || 0)) > 65000 || Boolean(infoBot.alerta);
+      const pausada = !cuenta.activo || Boolean(cuenta.pausado) || sinLatido;
+
+      window._musaPausadoAhora = pausada;
+
+      if (pausada) {
+        document.querySelectorAll("*").forEach(el => {
+          if (el.children.length === 0 && /^\d{2}:\d{2}$/.test((el.innerText || "").trim())) {
+            el.innerText = "00:00";
+          }
+        });
+      }
+    } catch {}
+  }
+
+  verificarBotRealmenteVivo();
+  setInterval(verificarBotRealmenteVivo, 5000);
+})();
+</script>
 </body>
 </html>
