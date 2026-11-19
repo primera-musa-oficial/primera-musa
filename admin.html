@@ -1037,33 +1037,7 @@ window.addEventListener("load", () => {
 
 
 
-<script id="fixBotonesTiempoAdmin">
-window.sumarDiasRentaVIP = async function(idCuenta, dias) {
-  const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-  const it = l.find(x => String(x.id) === String(idCuenta));
-  if (!it) { alert("No se encontró el registro ID: " + idCuenta); return; }
 
-  const base = (it.vence_ms && Number(it.vence_ms) > Date.now()) ? Number(it.vence_ms) : Date.now();
-  it.vence_ms = base + Number(dias) * 86400000;
-  it.activo = true;
-  it.detenido = false;
-  it.bloqueada = false;
-  it.renta_finalizada = false;
-
-  localStorage.setItem("cola_turnos_local", JSON.stringify(l));
-  if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
-
-  try {
-    const uSb = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado?clave=eq.cola_turnos_local";
-    const kSb = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
-    await fetch(uSb, {
-      method: "PATCH",
-      headers: { "apikey": kSb, "Authorization": "Bearer " + kSb, "Content-Type": "application/json", "Prefer": "return=minimal" },
-      body: JSON.stringify({ datos: l, actualizado_en: new Date().toISOString() })
-    });
-  } catch {}
-};
-</script>
 <script id="directorioTodasLasClientasVIP">
 (function() {
   window.filtrarDirectorioClientas = function(q) {
@@ -1128,6 +1102,38 @@ window.sumarDiasRentaVIP = async function(idCuenta, dias) {
 
   setInterval(renderizarDirectorioLimpio, 500);
 })();
+</script>
+<script id="fixBotonesTiempoAdmin">
+window.sumarDiasRentaVIP = async function(idCuenta, dias) {
+  const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const it = l.find(x => String(x.id) === String(idCuenta));
+  if (!it) { alert("No se encontró el registro ID: " + idCuenta); return; }
+
+  const base = (it.vence_ms && Number(it.vence_ms) > Date.now()) ? Number(it.vence_ms) : Date.now();
+  it.vence_ms = base + Number(dias) * 86400000;
+  it.activo = true;
+  it.pagado = true;
+  it.aprobada = true;
+  it.detenido = false;
+  it.bloqueada = false;
+  it.pausado = false;
+  it.renta_finalizada = false;
+  it.estado = "activa";
+
+  localStorage.setItem("cola_turnos_local", JSON.stringify(l));
+  if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
+  alert("✅ ¡Renovado! Se sumaron +" + dias + " días a @" + (it.usuario || it.alias || "clienta") + ". Vence el: " + new Date(it.vence_ms).toLocaleDateString());
+
+  try {
+    const uSb = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado?clave=eq.cola_turnos_local";
+    const kSb = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+    await fetch(uSb, {
+      method: "PATCH",
+      headers: { "apikey": kSb, "Authorization": "Bearer " + kSb, "Content-Type": "application/json", "Prefer": "return=minimal" },
+      body: JSON.stringify({ datos: l, actualizado_en: new Date().toISOString() })
+    });
+  } catch {}
+};
 </script>
 </body>
 </html>
