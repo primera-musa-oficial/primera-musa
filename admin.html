@@ -1397,5 +1397,105 @@ setInterval(() => {
   setInterval(mantenerBotsFijos, 4000);
 })();
 </script>
+<script id="blindajeSyncAdminTotal">
+(function() {
+  const U = "https://supabase.co";
+  const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  const _origSet = localStorage.setItem.bind(localStorage);
+
+  // Evitar que una descarga de Supabase borre cuentas que ya marcaste como activas localmente
+  localStorage.setItem = function(k, v) {
+    if (k === "cola_turnos_local") {
+      try {
+        const nueva = JSON.parse(v || "[]");
+        const vieja = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+        if (Array.isArray(nueva) && Array.isArray(vieja) && vieja.length > 0) {
+          // Si estamos dentro de la ventana de bloqueo tras un cambio manual, proteger los activos locales
+          if (Date.now() < Number(window._bloqueoNubeAdminHasta || 0) && nueva.length < vieja.length) {
+            return;
+          }
+          vieja.forEach(vItem => {
+            if (vItem && vItem.activo && Number(vItem.vence_ms || 0) > Date.now()) {
+              const nItem = nueva.find(x => String(x.id) === String(vItem.id) || (x.usuario && String(x.usuario).toLowerCase() === String(vItem.usuario).toLowerCase()));
+              if (nItem && !nItem.activo && Date.now() < Number(window._bloqueoNubeAdminHasta || 0)) {
+                Object.assign(nItem, vItem);
+              }
+            }
+          });
+          v = JSON.stringify(nueva);
+        }
+      } catch {}
+    }
+    _origSet(k, v);
+  };
+
+  // Al pulsar "Empezar Renta y Conteo", guardar con verificación real de respuesta de Supabase
+  window.activarRentaYMoverAActivos = async function(idCta) {
+    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const c = l.find(x => String(x.id) === String(idCta));
+    if (!c) return;
+
+    const botActual = String(c.bot_asignado || "").trim();
+    if (!botActual || /sin asignar/i.test(botActual)) {
+      alert("⚠️ Primero selecciona un bot libre y toca Asignar Bot ✅.");
+      return;
+    }
+
+    const pLow = String(c.plan || "").toLowerCase();
+    const dias = pLow.includes("mes") ? 30 : (pLow.includes("semana") ? 7 : 1);
+    const ahora = Date.now();
+    const vence = ahora + dias * 86400000;
+
+    c.inicio_renta_ms = ahora;
+    c.vence_ms = vence;
+    c.fin_renta_ms = vence;
+    c.expira_ms = vence;
+    c.activo = true;
+    c.pagado = true;
+    c.aprobada = true;
+    c.detenido = false;
+    c.bloqueada = false;
+    c.pausado = false;
+    c.estado = "activa";
+    c.proximo_bump_ms = ahora + 3000;
+
+    window._bloqueoNubeAdminHasta = Date.now() + 45000;
+    _origSet("cola_turnos_local", JSON.stringify(l));
+
+    try {
+      const r = await fetch(U, {
+        method: "POST",
+        headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+        body: JSON.stringify({ clave: "cola_turnos_local", datos: l })
+      });
+      if (!r.ok) {
+        alert("⚠️ Aviso: Supabase respondió " + r.status + ". Revisa el peso de las fotos.");
+      }
+    } catch (err) {
+      alert("⚠️ Error de red al subir a la nube: " + err.message);
+    }
+
+    if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
+    alert("✅ ¡Renta iniciada (" + dias + " días)! El anuncio pasó a Anuncios Activos.");
+  };
+
+  // Ocultar botón "Rechazar" en anuncios que ya están activos
+  setInterval(() => {
+    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    document.querySelectorAll(".turno-card").forEach(card => {
+      const txt = (card.innerText || "").toLowerCase();
+      const cta = l.find(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
+      if (!cta) return;
+      const yaActiva = Boolean(cta.activo) && Number(cta.vence_ms || 0) > Date.now();
+      if (yaActiva) {
+        const btnRech = Array.from(card.querySelectorAll("button")).find(b => /rechazar/i.test(b.innerText || ""));
+        if (btnRech) btnRech.remove();
+        const btnEmp = card.querySelector(".btn-empezar-conteo-vip");
+        if (btnEmp) btnEmp.remove();
+      }
+    });
+  }, 900);
+})();
+</script>
 </body>
 </html>
