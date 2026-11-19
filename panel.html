@@ -700,7 +700,7 @@ function formatearFechaPublicadaMP(ts) {
 }
 
 function formatearVenceCortoMP(ms) {
-  if (!ms || ms <= Date.now()) return "Sin activar";
+  if (!ms || ms <= Date.now()) { try { const u = String(window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "").trim().toLowerCase(); const cta = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]").find(x => String(x.usuario || "").trim().toLowerCase() === u); const alt = Math.max(Number(cta?.vence_ms || 0), Number(cta?.fin_renta_ms || 0), Number(cta?.expira_ms || 0)); if (alt > Date.now()) ms = alt; else return "Sin activar"; } catch { return "Sin activar"; } }
   const d = new Date(Number(ms));
   const dias = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
   let h = d.getHours(), m = String(d.getMinutes()).padStart(2,"0"), ampm = h >= 12 ? "PM" : "AM";
