@@ -1194,7 +1194,7 @@ document.addEventListener("click", async (e) => {
     if (uP) fetch("https://ntfy.sh" + uP, { method: "POST", headers: { "Title": "PAGO COMPLETADO", "Priority": "high" }, body: "Renta extendida +" + dias + " dias." }).catch(() => {});
     const arr = await leerPagos();
     const it = arr.find(x => String(x.id) === String(idSol));
-    if (it) { it.estado = "completado"; it.dias_sumados = Number(dias); await guardarPagos(arr); }
+    window._pagosAprobadosLocal = window._pagosAprobadosLocal || []; window._pagosAprobadosLocal.push(String(idSol)); if (it) { it.estado = "completado"; it.dias_sumados = Number(dias); it.foto = ""; await guardarPagos(arr); }
     alert("✅ Acreditados +" + dias + " días a @" + usr);
     revisarPagosEnVivo(true);
   };
@@ -1202,7 +1202,7 @@ document.addEventListener("click", async (e) => {
   async function revisarPagosEnVivo(forzar) {
     try {
       const arr = await leerPagos();
-      const pend = arr.filter(x => x && x.estado !== "completado");
+      const aprobLoc = window._pagosAprobadosLocal || []; const pend = arr.filter(x => x && x.estado !== "completado" && !aprobLoc.includes(String(x.id)));
       let caja = document.getElementById("zonaPagosEnVivoAdmin");
       if (pend.length === 0) { if (caja) caja.remove(); return; }
 
@@ -1265,8 +1265,7 @@ document.addEventListener("click", async (e) => {
     const arr = Array.isArray(filas) && filas.length ? (typeof filas.at(0).datos === "string" ? JSON.parse(filas.at(0).datos) : filas.at(0).datos) : [];
     const pend = Array.isArray(arr) ? arr.slice().reverse().find(x => String(x.usuario || "").toLowerCase() === String(c.usuario).toLowerCase() && x.estado !== "completado") : null;
     if (pend) {
-      pend.estado = "completado";
-      pend.dias_sumados = dias;
+      pend.estado = "completado"; pend.dias_sumados = dias; pend.foto = ""; window._pagosAprobadosLocal = window._pagosAprobadosLocal || []; window._pagosAprobadosLocal.push(String(pend.id));
       await fetch(uSb + "?on_conflict=clave", {
         method: "POST",
         headers: { "apikey": kSb, "Authorization": "Bearer " + kSb, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
