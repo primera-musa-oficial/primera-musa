@@ -2905,5 +2905,29 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
 </script>
 
 
+<script id="expulsionFinRentaClienteVIP">
+setInterval(() => {
+  try {
+    const raw = window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "";
+    const u = String(raw).trim().toLowerCase();
+    if (!u) return;
+
+    const rawCola = localStorage.getItem("cola_turnos_local");
+    if (!rawCola) return;
+    const lista = JSON.parse(rawCola);
+    if (!Array.isArray(lista) || lista.length === 0) return;
+
+    const existe = lista.some(x => String(x.usuario || "").trim().toLowerCase() === u);
+    if (!existe) {
+      localStorage.removeItem("musa_cli_u");
+      localStorage.removeItem("musa_cli_p");
+      localStorage.removeItem("usuario_musa_logueado");
+      window.usuarioLogueadoVIP = "";
+      alert("⏰ Tu periodo de renta ha finalizado y tu sesión se ha cerrado. ¡Gracias por usar Primera Musa VIP!");
+      location.reload();
+    }
+  } catch {}
+}, 4000);
+</script>
 </body>
 </html>
