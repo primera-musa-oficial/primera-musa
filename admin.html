@@ -1141,50 +1141,7 @@ document.addEventListener("click", async (e) => {
 
 
 
-<script id="fijadorBotsAdminVIP">
-(function() {
-  const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
-  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
 
-  // Evitar que cualquier script inicial vacíe mapa_bots_musa_activos con "{}" al recargar
-  const _origSet = localStorage.setItem.bind(localStorage);
-  localStorage.setItem = function(k, v) {
-    if (k === "mapa_bots_musa_activos") {
-      try {
-        const obj = JSON.parse(v || "{}");
-        if (!obj || typeof obj !== "object" || Object.keys(obj).length === 0) return;
-      } catch { return; }
-    }
-    _origSet(k, v);
-  };
-
-  async function refrescarBotsEnVivo() {
-    try {
-      const r = await fetch(URL_SB + "?clave=eq.mapa_bots_musa_activos&select=datos", {
-        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
-      });
-      const filas = await r.json();
-      const raw = Array.isArray(filas) && filas.length ? filas.at(0).datos : null;
-      const d = typeof raw === "string" ? JSON.parse(raw) : raw;
-      if (d && typeof d === "object" && Object.keys(d).length > 0) {
-        const ahora = Date.now();
-        Object.keys(d).forEach(k => {
-          if (d[k] && d[k].ts && (ahora - Number(d[k].ts)) < 180000) {
-            d[k].ts = ahora;
-          }
-        });
-        _origSet("mapa_bots_musa_activos", JSON.stringify(d));
-        if (typeof window.cargarColaTurnos === "function" && !window._viendoTabPagosAdmin) {
-          window.cargarColaTurnos();
-        }
-      }
-    } catch {}
-  }
-
-  refrescarBotsEnVivo();
-  setInterval(refrescarBotsEnVivo, 3500);
-})();
-</script>
 
 
 
@@ -1383,6 +1340,62 @@ setInterval(() => {
       btnAct.parentElement.insertBefore(btn, btnAct.nextSibling);
     });
   }, 1000);
+})();
+</script>
+<script id="fijadorBotsAdminVIP">
+(function() {
+  const URL_SB = "https://supabase.co";
+  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  const _origSet = localStorage.setItem.bind(localStorage);
+
+  // 1. Al abrir la página, restaurar de inmediato la última foto conocida de los bots para que no salga "Ningún perfil activo"
+  try {
+    const bak = localStorage.getItem("musa_bots_respaldo_fijo");
+    if (bak && Object.keys(JSON.parse(bak)).length > 0) {
+      const obj = JSON.parse(bak);
+      Object.keys(obj).forEach(k => { if (obj[k]) obj[k].ts = Date.now(); });
+      _origSet("mapa_bots_musa_activos", JSON.stringify(obj));
+    }
+  } catch {}
+
+  // 2. Bloquear cualquier intento de vaciar mapa_bots_musa_activos con "{}" y guardar respaldo siempre que tenga datos
+  localStorage.setItem = function(k, v) {
+    if (k === "mapa_bots_musa_activos") {
+      try {
+        const obj = JSON.parse(v || "{}");
+        if (!obj || typeof obj !== "object" || Object.keys(obj).length === 0) return;
+        _origSet("musa_bots_respaldo_fijo", JSON.stringify(obj));
+      } catch { return; }
+    }
+    _origSet(k, v);
+  };
+
+  // 3. Mantener frescos los timestamps de los bots descargados desde Supabase (tolerancia 15 min)
+  async function mantenerBotsFijos() {
+    try {
+      const r = await fetch(URL_SB + "?clave=eq.mapa_bots_musa_activos&select=datos", {
+        headers: { apikey: KEY_SB, Authorization: "Bearer " + KEY_SB }, cache: "no-store"
+      });
+      const filas = await r.json();
+      const raw = Array.isArray(filas) && filas.length ? filas.at(0).datos : null;
+      const d = typeof raw === "string" ? JSON.parse(raw) : raw;
+      if (d && typeof d === "object" && Object.keys(d).length > 0) {
+        const ahora = Date.now();
+        Object.keys(d).forEach(k => {
+          if (d[k] && (ahora - Number(d[k].ts || 0)) < 900000) {
+            d[k].ts = ahora;
+          }
+        });
+        const str = JSON.stringify(d);
+        _origSet("mapa_bots_musa_activos", str);
+        _origSet("musa_bots_respaldo_fijo", str);
+        if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
+      }
+    } catch {}
+  }
+
+  mantenerBotsFijos();
+  setInterval(mantenerBotsFijos, 4000);
 })();
 </script>
 </body>
