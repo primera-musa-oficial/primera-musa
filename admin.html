@@ -1464,43 +1464,7 @@ document.addEventListener("click", async function(e) {
   if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
 }, true);
 </script>
-<script id="botonVaciarTodoAdminVIP">
-window.vaciarTodoSistemaVIP = async function() {
-  if (!confirm("⚠️ ¿Seguro que quieres borrar TODAS las solicitudes y anuncios de prueba para dejar el panel en 0?")) return;
-  window._bloqueoNubeAdminHasta = Date.now() + 60000;
-  localStorage.setItem("cola_turnos_local", "[]");
-  localStorage.setItem("reportes_clientes_local", "[]");
 
-  const U = "https://supabase.co";
-  const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
-  await fetch(U, {
-    method: "POST",
-    headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
-    body: JSON.stringify({ clave: "cola_turnos_local", datos: [] })
-  }).catch(() => {});
-  await fetch(U, {
-    method: "POST",
-    headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
-    body: JSON.stringify({ clave: "reportes_clientes_local", datos: [] })
-  }).catch(() => {});
-
-  alert("✅ ¡Panel y base de datos vaciados a 0!");
-  location.reload();
-};
-
-setInterval(() => {
-  if (document.getElementById("btnVaciarTodoPanelVIP")) return;
-  const tabCola = Array.from(document.querySelectorAll("button")).find(b => /cola por turno/i.test(b.innerText || ""));
-  if (!tabCola || !tabCola.parentElement) return;
-  const b = document.createElement("button");
-  b.id = "btnVaciarTodoPanelVIP";
-  b.type = "button";
-  b.innerText = "🧹 Vaciar Todo (0)";
-  b.style.cssText = "background:#7f1d1d;border:1.5px solid #f87171;color:#fecaca;font-weight:900;padding:7px 12px;border-radius:999px;cursor:pointer;font-size:11.5px;margin-left:6px;";
-  b.onclick = window.vaciarTodoSistemaVIP;
-  tabCola.parentElement.appendChild(b);
-}, 1500);
-</script>
 <script id="syncCeroRegistrosAdminVIP">
 (async function() {
   try {
@@ -1517,6 +1481,27 @@ setInterval(() => {
     }
   } catch {}
 })();
+</script>
+<script id="botonVaciarTodoAdminVIP">
+window.vaciarTodoSistemaVIP = async function() {
+  if (!confirm("⚠️ ¿Borrar TODAS las solicitudes y registros de prueba para dejar todo en 0?")) return;
+  window._bloqueoNubeAdminHasta = Date.now() + 60000;
+  localStorage.setItem("cola_turnos_local", "[]");
+  localStorage.setItem("reportes_clientes_local", "[]");
+  const U = "https://supabase.co";
+  const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  await fetch(U, { method: "POST", headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" }, body: JSON.stringify({ clave: "cola_turnos_local", datos: [] }) }).catch(() => {});
+  await fetch(U, { method: "POST", headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" }, body: JSON.stringify({ clave: "reportes_clientes_local", datos: [] }) }).catch(() => {});
+  location.reload();
+};
+window.addEventListener("DOMContentLoaded", () => {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.innerText = "🧹 Vaciar Todo (0)";
+  b.style.cssText = "position:fixed;bottom:14px;right:14px;z-index:999999;background:#991b1b;border:2px solid #fca5a5;color:#fff;font-weight:900;padding:10px 14px;border-radius:999px;cursor:pointer;font-size:12px;box-shadow:0 6px 18px rgba(0,0,0,0.8);";
+  b.onclick = window.vaciarTodoSistemaVIP;
+  document.body.appendChild(b);
+});
 </script>
 </body>
 </html>
