@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script>window._musaPausadoAhora = true;</script>
 
 
 <script id="escudoInicioSinFalsaSubida">
@@ -712,9 +713,9 @@ function renderizarSuiteInterna() {
   const c = lista.slice().reverse().find(x => String(x.usuario || "").toLowerCase() === String(window.usuarioLogueadoVIP || "").toLowerCase());
   if (!c) { box.innerHTML = `<p>No se encontró tu anuncio.</p><button onclick="location.reload()">Salir</button>`; return; }
 
-  const targetBump = Number(c.proximo_bump_ms || (Date.now() + 17 * 60000));
+  const targetBump = Number(c.proximo_bump_ms || 0);
   const diffB = Math.max(0, targetBump - Date.now());
-  const strBump = window._musaPausadoAhora ? "00:00" : (String(Math.floor(diffB/60000)) + ":" + String(Math.floor((diffB%60000)/1000)).padStart(2,"0"));
+  const strBump = (window._musaPausadoAhora || !c.activo || Boolean(c.pausado) || diffB <= 0) ? "00:00" : (String(Math.floor(diffB/60000)) + ":" + String(Math.floor((diffB%60000)/1000)).padStart(2,"0"));
   const fotosArr = Array.isArray(c.fotos) ? c.fotos : [];
   const fotosTiraHtml = fotosArr.map(src => `<div style="border-left:6px dashed #cbd5e1;border-right:6px dashed #cbd5e1;padding:4px 6px;background:#f1f5f9;margin-bottom:4px;"><img src="${src}" style="width:100%;max-height:360px;object-fit:cover;border-radius:3px;display:block;"></div>`).join("");
   const reps = JSON.parse(localStorage.getItem("reportes_clientes_local") || "[]").filter(r => String(r.usuario||"").toLowerCase() === c.usuario.toLowerCase());
@@ -1552,9 +1553,9 @@ window.renderizarSuiteInterna = function() {
     avisoPend.innerHTML = `<b style="color:#1d4ed8;">✏️ Cambios pendientes</b><br>Se edita en su próximo turno seguro (&gt;15 min): <b id="relojEdicionVivo" data-target="${c.aplicar_edicion_en_ms||(Date.now()+60000)}" style="color:#dc2626;">calculando...</b>`;
   }
 
-  const targetBump = Number(c.proximo_bump_ms || (Date.now() + 17 * 60000));
+  const targetBump = Number(c.proximo_bump_ms || 0);
   const diffB = Math.max(0, targetBump - Date.now());
-  const strBump = window._musaPausadoAhora ? "00:00" : (String(Math.floor(diffB/60000)) + ":" + String(Math.floor((diffB%60000)/1000)).padStart(2,"0"));
+  const strBump = (window._musaPausadoAhora || !c.activo || Boolean(c.pausado) || diffB <= 0) ? "00:00" : (String(Math.floor(diffB/60000)) + ":" + String(Math.floor((diffB%60000)/1000)).padStart(2,"0"));
 
   const extraHtml = `
     <div style="background:rgba(0,0,0,0.55);border:1px solid rgba(234,179,8,0.45);border-radius:10px;padding:7px 10px;font-size:11.5px;display:flex;justify-content:space-between;margin:8px 0 82px;">
