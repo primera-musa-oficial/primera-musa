@@ -1242,105 +1242,7 @@ setInterval(() => {
   } catch {}
 }, 900);
 </script>
-<script id="botonEmpezarConteoRentaVIP">
-(function(){
-  const U="https://supabase.co";
-  const K="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
 
-  async function guardarNubeBlindado(l) {
-    window._bloqueoNubeAdminHasta = Date.now() + 25000;
-    localStorage.setItem("cola_turnos_local", JSON.stringify(l));
-    await fetch(U, {
-      method: "POST",
-      headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
-      body: JSON.stringify({ clave: "cola_turnos_local", datos: l })
-    }).catch(()=>{});
-  }
-
-  // Asegurar que al tocar "Asignar Bot ✅" se guarde de inmediato en Supabase sin activar renta aún
-  document.addEventListener("click", async function(e) {
-    const btn = e.target.closest("button");
-    if (!btn || !/asignar\s*bot/i.test(btn.innerText || "")) return;
-    const card = btn.closest(".turno-card");
-    const sel = card ? card.querySelector("select") : null;
-    const val = sel ? sel.value.trim() : "";
-    if (!val) return;
-
-    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-    const txt = (card.innerText || "").toLowerCase();
-    const c = l.find(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
-    if (c) {
-      c.bot_asignado = val;
-      c.activo = false;
-      await guardarNubeBlindado(l);
-      if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
-    }
-  }, true);
-
-  window.activarRentaYMoverAActivos = async function(idCta) {
-    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-    const c = l.find(x => String(x.id) === String(idCta));
-    if (!c) return;
-
-    const botActual = String(c.bot_asignado || "").trim();
-    if (!botActual || /sin asignar/i.test(botActual)) {
-      alert("⚠️ Primero selecciona un bot libre y toca Asignar Bot ✅.");
-      return;
-    }
-
-    const pLow = String(c.plan || "").toLowerCase();
-    const dias = pLow.includes("mes") ? 30 : (pLow.includes("semana") ? 7 : 1);
-    const ahora = Date.now();
-    const vence = ahora + dias * 86400000;
-
-    c.inicio_renta_ms = ahora;
-    c.vence_ms = vence;
-    c.fin_renta_ms = vence;
-    c.expira_ms = vence;
-    c.activo = true;
-    c.pagado = true;
-    c.aprobada = true;
-    c.detenido = false;
-    c.bloqueada = false;
-    c.pausado = false;
-    c.estado = "activa";
-    c.proximo_bump_ms = ahora + 3000;
-
-    await guardarNubeBlindado(l);
-    if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
-    alert("✅ ¡Renta iniciada (" + dias + " días)! El anuncio pasó a Anuncios Activos.");
-  };
-
-  setInterval(() => {
-    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-    document.querySelectorAll(".turno-card").forEach(card => {
-      // Buscar el botón "Activada" o "Rechazar" en la fila de pasos para ubicar el botón verde al lado
-      const btnAct = Array.from(card.querySelectorAll("button")).find(b => /activada/i.test((b.innerText || "").trim()));
-      if (!btnAct || !btnAct.parentElement) return;
-
-      const txt = (card.innerText || "").toLowerCase();
-      const cta = l.find(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
-      if (!cta) return;
-
-      const yaActiva = Boolean(cta.activo) && Number(cta.vence_ms || 0) > Date.now();
-      const btnExist = card.querySelector(".btn-empezar-conteo-vip");
-
-      if (yaActiva) { if (btnExist) btnExist.remove(); const btnRech = Array.from(card.querySelectorAll("button")).find(b => /rechazar/i.test(b.innerText || "")); if (btnRech) btnRech.remove();
-        return;
-      }
-
-      if (btnExist) return;
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "btn-empezar-conteo-vip";
-      btn.innerText = "▶️ Empezar Renta y Conteo";
-      btn.style.cssText = "background:linear-gradient(135deg,#059669,#047857);border:1.5px solid #34d399;color:#fff;font-weight:900;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:11.5px;";
-      btn.onclick = () => activarRentaYMoverAActivos(cta.id);
-      btnAct.parentElement.insertBefore(btn, btnAct.nextSibling);
-    });
-  }, 1000);
-})();
-</script>
 <script id="fijadorBotsAdminVIP">
 (function() {
   const URL_SB = "https://supabase.co";
@@ -1397,49 +1299,63 @@ setInterval(() => {
   setInterval(mantenerBotsFijos, 4000);
 })();
 </script>
-<script id="blindajeSyncAdminTotal">
+
+<script id="flujoSimpleDosPasosAdminVIP">
 (function() {
   const U = "https://supabase.co";
   const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
   const _origSet = localStorage.setItem.bind(localStorage);
 
-  // Evitar que una descarga de Supabase borre cuentas que ya marcaste como activas localmente
+  // Proteger cambios recientes frente a descargas retrasadas
   localStorage.setItem = function(k, v) {
-    if (k === "cola_turnos_local") {
+    if (k === "cola_turnos_local" && Date.now() < Number(window._bloqueoNubeAdminHasta || 0)) {
       try {
         const nueva = JSON.parse(v || "[]");
         const vieja = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-        if (Array.isArray(nueva) && Array.isArray(vieja) && vieja.length > 0) {
-          // Si estamos dentro de la ventana de bloqueo tras un cambio manual, proteger los activos locales
-          if (Date.now() < Number(window._bloqueoNubeAdminHasta || 0) && nueva.length < vieja.length) {
-            return;
-          }
-          vieja.forEach(vItem => {
-            if (vItem && vItem.activo && Number(vItem.vence_ms || 0) > Date.now()) {
-              const nItem = nueva.find(x => String(x.id) === String(vItem.id) || (x.usuario && String(x.usuario).toLowerCase() === String(vItem.usuario).toLowerCase()));
-              if (nItem && !nItem.activo && Date.now() < Number(window._bloqueoNubeAdminHasta || 0)) {
-                Object.assign(nItem, vItem);
-              }
-            }
-          });
-          v = JSON.stringify(nueva);
-        }
+        if (Array.isArray(nueva) && Array.isArray(vieja) && vieja.length > 0 && nueva.length < vieja.length) return;
       } catch {}
     }
     _origSet(k, v);
   };
 
-  // Al pulsar "Empezar Renta y Conteo", guardar con verificación real de respuesta de Supabase
-  window.activarRentaYMoverAActivos = async function(idCta) {
+  async function subirNubeRapido(l) {
+    window._bloqueoNubeAdminHasta = Date.now() + 30000;
+    _origSet("cola_turnos_local", JSON.stringify(l));
+    await fetch(U, {
+      method: "POST",
+      headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+      body: JSON.stringify({ clave: "cola_turnos_local", datos: l })
+    }).catch(() => {});
+  }
+
+  // Paso 1: Asignar Bot libre (sin activar renta todavía)
+  document.addEventListener("click", async function(e) {
+    const btn = e.target.closest("button");
+    if (!btn || !/asignar\s*bot/i.test(btn.innerText || "")) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    const card = btn.closest(".turno-card");
+    const sel = card ? card.querySelector("select") : null;
+    const val = sel ? sel.value.trim() : "";
+    if (!val || /sin asignar/i.test(val)) { alert("⚠️ Elige primero un bot disponible."); return; }
+
+    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const txt = (card.innerText || "").toLowerCase();
+    const c = l.find(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
+    if (c) {
+      c.bot_asignado = val;
+      c.activo = false;
+      await subirNubeRapido(l);
+      if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
+    }
+  }, true);
+
+  // Paso 2: Activar Conteo y Renta -> Mueve a Activos y avisa a la clienta
+  window.activarConteoYRentaDirectoVIP = async function(idCta) {
     const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
     const c = l.find(x => String(x.id) === String(idCta));
     if (!c) return;
-
-    const botActual = String(c.bot_asignado || "").trim();
-    if (!botActual || /sin asignar/i.test(botActual)) {
-      alert("⚠️ Primero selecciona un bot libre y toca Asignar Bot ✅.");
-      return;
-    }
 
     const pLow = String(c.plan || "").toLowerCase();
     const dias = pLow.includes("mes") ? 30 : (pLow.includes("semana") ? 7 : 1);
@@ -1459,42 +1375,54 @@ setInterval(() => {
     c.estado = "activa";
     c.proximo_bump_ms = ahora + 3000;
 
-    window._bloqueoNubeAdminHasta = Date.now() + 45000;
-    _origSet("cola_turnos_local", JSON.stringify(l));
-
-    try {
-      const r = await fetch(U, {
-        method: "POST",
-        headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
-        body: JSON.stringify({ clave: "cola_turnos_local", datos: l })
-      });
-      if (!r.ok) {
-        alert("⚠️ Aviso: Supabase respondió " + r.status + ". Revisa el peso de las fotos.");
-      }
-    } catch (err) {
-      alert("⚠️ Error de red al subir a la nube: " + err.message);
-    }
-
+    await subirNubeRapido(l);
     if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
-    alert("✅ ¡Renta iniciada (" + dias + " días)! El anuncio pasó a Anuncios Activos.");
+    alert("✅ ¡Conteo y renta activados (" + dias + " días)! El anuncio pasó a Activos.");
   };
 
-  // Ocultar botón "Rechazar" en anuncios que ya están activos
+  // Limpiar botones viejos (1. Revisando, 2. Subiendo, 3. SMS, Activada) y mostrar el botón según el paso
   setInterval(() => {
     const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
     document.querySelectorAll(".turno-card").forEach(card => {
+      // Quitar botones de pasos intermedios innecesarios
+      card.querySelectorAll("button").forEach(b => {
+        const t = (b.innerText || "").trim();
+        if (/^(1\.\s*revisando|2\.\s*subiendo|3\.\s*verificando|activada)$/i.test(t)) {
+          b.remove();
+        }
+      });
+
       const txt = (card.innerText || "").toLowerCase();
       const cta = l.find(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
       if (!cta) return;
+
       const yaActiva = Boolean(cta.activo) && Number(cta.vence_ms || 0) > Date.now();
+      const tieneBot = Boolean(String(cta.bot_asignado || "").trim()) && !/sin asignar/i.test(String(cta.bot_asignado || ""));
+      const btnRech = Array.from(card.querySelectorAll("button")).find(b => /rechazar/i.test(b.innerText || ""));
+      let btnActivar = card.querySelector(".btn-activar-renta-directo");
+
       if (yaActiva) {
-        const btnRech = Array.from(card.querySelectorAll("button")).find(b => /rechazar/i.test(b.innerText || ""));
         if (btnRech) btnRech.remove();
-        const btnEmp = card.querySelector(".btn-empezar-conteo-vip");
-        if (btnEmp) btnEmp.remove();
+        if (btnActivar) btnActivar.remove();
+        return;
+      }
+
+      // En Cola: si ya tiene bot asignado, mostrar "▶️ Activar Conteo y Renta"
+      if (tieneBot) {
+        if (!btnActivar && btnRech && btnRech.parentElement) {
+          btnActivar = document.createElement("button");
+          btnActivar.type = "button";
+          btnActivar.className = "btn-activar-renta-directo";
+          btnActivar.innerText = "▶️ Activar Conteo y Renta";
+          btnActivar.style.cssText = "background:linear-gradient(135deg,#059669,#047857);border:1.5px solid #34d399;color:#fff;font-weight:900;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;";
+          btnActivar.onclick = () => activarConteoYRentaDirectoVIP(cta.id);
+          btnRech.parentElement.insertBefore(btnActivar, btnRech);
+        }
+      } else if (btnActivar) {
+        btnActivar.remove();
       }
     });
-  }, 900);
+  }, 800);
 })();
 </script>
 </body>

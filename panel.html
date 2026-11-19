@@ -2929,5 +2929,26 @@ setInterval(() => {
   } catch {}
 }, 4000);
 </script>
+<script id="saltoAutomaticoPublicadoVIP">
+setInterval(() => {
+  try {
+    const raw = window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "";
+    const u = String(raw).trim().toLowerCase();
+    if (!u) return;
+
+    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const c = lista.find(x => String(x.usuario || "").trim().toLowerCase() === u);
+    if (!c) return;
+
+    const yaPublicada = Boolean(c.activo) && Number(c.vence_ms || 0) > Date.now();
+    const enPantallaEspera = Array.from(document.querySelectorAll("div,h2,h3,h4")).some(el => el.offsetParent !== null && /en cola|esperando activaci[oó]n|revisando tu solicitud/i.test(el.innerText || ""));
+
+    if (yaPublicada && enPantallaEspera && !sessionStorage.getItem("musa_ya_entro_activa_" + u)) {
+      sessionStorage.setItem("musa_ya_entro_activa_" + u, "1");
+      location.reload();
+    }
+  } catch {}
+}, 3000);
+</script>
 </body>
 </html>
