@@ -1144,124 +1144,7 @@ document.addEventListener("click", async (e) => {
 
 
 
-<script id="receptorPagosLimpioVIP">
-(function() {
-  const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
-  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
 
-  async function leerPagos() {
-    const r = await fetch(URL_SB + "?clave=eq.solicitudes_pago_vivo_musa&select=datos", {
-      headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
-    });
-    const filas = await r.json();
-    const d = Array.isArray(filas) && filas.length ? filas.at(0).datos : [];
-    const arr = typeof d === "string" ? JSON.parse(d) : d;
-    return Array.isArray(arr) ? arr : [];
-  }
-
-  async function guardarPagos(arr) {
-    const r = await fetch(URL_SB + "?on_conflict=clave", {
-      method: "POST",
-      headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
-      body: JSON.stringify({ clave: "solicitudes_pago_vivo_musa", datos: arr.slice(-6) })
-    });
-    if (!r.ok) { alert("Error Supabase: " + r.status); return false; }
-    return true;
-  }
-
-  window.enviarMetodoPagoVIP = async function(idSol, usr) {
-    const inp = document.getElementById("inpMet_" + idSol);
-    const met = inp ? inp.value.trim() : "";
-    if (!met) { alert("⚠️ Escribe primero el método de pago."); return; }
-    const arr = await leerPagos();
-    const it = arr.find(x => String(x.id) === String(idSol));
-    if (it) {
-      it.metodo = met;
-      it.estado = "metodo_enviado";
-      const ok = await guardarPagos(arr);
-      if (ok) {
-        const uL = String(usr || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-        if (uL) fetch("https://ntfy.sh" + uL, { method: "POST", headers: { "Title": "METODO DE PAGO LISTO", "Priority": "high" }, body: "Ya tienes listo el metodo de pago en tu panel." }).catch(() => {});
-        alert("✅ Método enviado a @" + usr);
-        revisarPagosEnVivo(true);
-      }
-    }
-  };
-
-  window.confirmarPagoPlanVIP = async function(idSol, usr, planTxt) {
-    const pLow = String(planTxt || "").toLowerCase();
-    const dias = pLow.includes("mes") ? 30 : (pLow.includes("semana") ? 7 : 1);
-
-    const arr = await leerPagos();
-    const it = arr.find(x => String(x.id) === String(idSol));
-    if (it) {
-      it.estado = "completado";
-      it.dias_sumados = dias;
-      it.foto = "";
-      const ok = await guardarPagos(arr);
-      if (!ok) return;
-    }
-
-    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-    const c = l.find(x => String(x.usuario || "").trim().toLowerCase() === String(usr || "").trim().toLowerCase());
-    if (c) {
-      const base = (c.vence_ms && Number(c.vence_ms) > Date.now()) ? Number(c.vence_ms) : Date.now();
-      const nv = base + dias * 86400000;
-      c.vence_ms = nv; c.fin_renta_ms = nv; c.expira_ms = nv;
-      c.activo = true; c.pagado = true; c.aprobada = true; c.detenido = false; c.bloqueada = false; c.pausado = false; c.estado = "activa";
-      localStorage.setItem("cola_turnos_local", JSON.stringify(l));
-      if (typeof window.subirColaUpsertNube === "function") await window.subirColaUpsertNube(l);
-      if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
-    }
-
-    const uP = String(usr || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-    if (uP) fetch("https://ntfy.sh" + uP, { method: "POST", headers: { "Title": "PAGO CONFIRMADO", "Priority": "high" }, body: "Tu pago ha sido completado! Renta extendida (+" + dias + " dias)." }).catch(() => {});
-
-    window._pagosAprobadosLocal = window._pagosAprobadosLocal || [];
-    window._pagosAprobadosLocal.push(String(idSol));
-    alert("✅ Pago confirmado. Renta extendida +" + dias + " días a @" + usr);
-    revisarPagosEnVivo(true);
-  };
-
-  async function revisarPagosEnVivo(forzar) {
-    try {
-      const arr = await leerPagos();
-      const aprob = window._pagosAprobadosLocal || [];
-      const pend = arr.filter(x => x && x.estado !== "completado" && !aprob.includes(String(x.id)));
-      let caja = document.getElementById("zonaPagosEnVivoAdmin");
-      if (pend.length === 0) { if (caja) caja.remove(); return; }
-
-      if (!caja) {
-        caja = document.createElement("div");
-        caja.id = "zonaPagosEnVivoAdmin";
-        caja.style.cssText = "max-width:1100px;margin:12px auto;";
-        const ref = document.getElementById("listaTarjetasAdmin");
-        if (ref && ref.parentElement) ref.parentElement.insertBefore(caja, ref);
-      }
-      if (!forzar && caja.contains(document.activeElement)) return;
-
-      caja.innerHTML = pend.map((p, i) => `
-        <div class="turno-card" style="background:#0a120f;border:2px solid #eab308;border-radius:16px;padding:14px;margin-bottom:12px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-            <div><span style="background:#dc2626;color:#fff;font-weight:900;font-size:11px;padding:4px 9px;border-radius:6px;">💳 PAGO #${i + 1}</span> <b style="color:#fff;font-size:15px;">${p.usuario}</b> <span style="background:#065f46;color:#6ee7b7;padding:3px 9px;border-radius:12px;font-size:11.5px;font-weight:bold;">Plan pedido: ${p.plan}</span></div>
-            <span style="color:#fde047;font-size:12px;font-weight:bold;">${p.estado === "esperando_metodo" ? "⏳ Pidiendo método" : p.estado === "metodo_enviado" ? "💳 Esperando captura" : "🧾 ¡Captura recibida!"}</span>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-            <input type="text" id="inpMet_${p.id}" value="${p.metodo || ""}" placeholder="Escribe Zelle, CashApp o Crypto disponible..." style="flex:1;min-width:200px;background:#050807;color:#fef08a;border:1px solid #eab308;border-radius:8px;padding:8px;font-size:12.5px;">
-            <button type="button" onclick="enviarMetodoPagoVIP('${p.id}','${p.usuario}')" style="background:#1e293b;border:1px solid #eab308;color:#fde047;font-weight:900;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;">📤 Enviar Método</button>
-          </div>
-          ${p.foto ? `<div style="margin-bottom:12px;"><img src="${p.foto}" style="max-width:220px;max-height:260px;border-radius:8px;border:1.5px solid #eab308;"></div>` : ""}
-          <div style="display:flex;justify-content:flex-end;">
-            <button type="button" onclick="confirmarPagoPlanVIP('${p.id}','${p.usuario}','${p.plan}')" style="background:linear-gradient(135deg,#059669,#047857);border:1.5px solid #34d399;color:#fff;font-weight:900;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:13px;">✅ Confirmar Pago (${p.plan})</button>
-          </div>
-        </div>`).join("");
-    } catch {}
-  }
-
-  revisarPagosEnVivo(true);
-  setInterval(() => revisarPagosEnVivo(false), 3500);
-})();
-</script>
 <script id="fijadorBotsAdminVIP">
 (function() {
   const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
@@ -1304,6 +1187,14 @@ document.addEventListener("click", async (e) => {
 
   refrescarBotsEnVivo();
   setInterval(refrescarBotsEnVivo, 3500);
+})();
+</script>
+<script id="receptorPagosLimpioVIP">
+(function(){
+  window.enviarMetodoPagoCola=async function(u){const i=document.getElementById("inpMet_"+u),m=i?i.value.trim():"";if(!m)return alert("Escribe el metodo");const l=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]"),c=l.find(x=>String(x.usuario||"").toLowerCase()===u.toLowerCase());if(c){c.pago_metodo=m;c.pago_estado="metodo_enviado";localStorage.setItem("cola_turnos_local",JSON.stringify(l));if(typeof window.subirColaUpsertNube==="function")await window.subirColaUpsertNube(l);alert("✅ Metodo enviado");pintar(true);}};
+  window.confirmarPagoCola=async function(u,pl){const p=String(pl||"").toLowerCase(),d=p.includes("mes")?30:(p.includes("semana")?7:1),l=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]"),c=l.find(x=>String(x.usuario||"").toLowerCase()===u.toLowerCase());if(c){const b=(c.vence_ms&&Number(c.vence_ms)>Date.now())?Number(c.vence_ms):Date.now(),nv=b+d*86400000;c.vence_ms=nv;c.fin_renta_ms=nv;c.expira_ms=nv;c.activo=true;c.pagado=true;c.aprobada=true;c.detenido=false;c.bloqueada=false;c.pausado=false;c.estado="activa";c.pago_estado="completado";c.pago_foto="";localStorage.setItem("cola_turnos_local",JSON.stringify(l));if(typeof window.subirColaUpsertNube==="function")await window.subirColaUpsertNube(l);if(typeof window.cargarColaTurnos==="function")window.cargarColaTurnos();alert("✅ Pago confirmado! +"+d+" dias");pintar(true);}};
+  function pintar(f){const l=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]"),pend=l.filter(x=>x&&x.pago_estado&&x.pago_estado!=="completado");let c=document.getElementById("zonaPagosEnVivoAdmin");if(!pend.length){if(c)c.remove();return;}if(!c){c=document.createElement("div");c.id="zonaPagosEnVivoAdmin";c.style.cssText="max-width:1100px;margin:12px auto;";const r=document.getElementById("listaTarjetasAdmin");if(r&&r.parentElement)r.parentElement.insertBefore(c,r);}if(!f&&c.contains(document.activeElement))return;c.innerHTML=pend.map((p,i)=>'<div class="turno-card" style="background:#0a120f;border:2px solid #eab308;border-radius:16px;padding:14px;margin-bottom:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:10px;"><div><b style="color:#fde047;">💳 PAGO #'+(i+1)+' - '+p.usuario+'</b> ('+(p.pago_plan||"")+')</div><span style="color:#6ee7b7;font-size:12px;">'+p.pago_estado+'</span></div><div style="display:flex;gap:8px;margin-bottom:10px;"><input id="inpMet_'+p.usuario+'" value="'+(p.pago_metodo||"")+'" placeholder="Zelle, CashApp o Crypto..." style="flex:1;background:#050807;color:#fef08a;border:1px solid #eab308;border-radius:8px;padding:8px;"><button onclick="enviarMetodoPagoCola(\''+p.usuario+'\')" style="background:#eab308;color:#050807;font-weight:900;padding:8px 14px;border-radius:8px;border:none;cursor:pointer;">📤 Enviar</button></div>'+(p.pago_foto?'<div style="margin-bottom:10px;"><img src="'+p.pago_foto+'" style="max-width:210px;border-radius:8px;"></div>':'')+'<div style="text-align:right;"><button onclick="confirmarPagoCola(\''+p.usuario+'\',\''+(p.pago_plan||"")+'\')" style="background:#059669;color:#fff;font-weight:900;padding:9px 16px;border-radius:10px;border:none;cursor:pointer;">✅ Confirmar Pago ('+(p.pago_plan||"")+')</button></div></div>').join("");}
+  setInterval(()=>pintar(false),3000);
 })();
 </script>
 </body>
