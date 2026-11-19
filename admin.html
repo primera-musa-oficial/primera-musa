@@ -221,7 +221,7 @@ function responderTicketDirectoAdmin(idRep) {
 
 function cargarColaTurnos() {
   const cont = document.getElementById("listaTarjetasAdmin");
-  const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]").filter(c => Boolean(c.activo) || Boolean(c.aprobada) || Boolean(c.pagado) || Number(c.vence_ms || 0) > 0);
   const enCola = lista.filter(c => !c.activo);
   const activosList = lista.filter(c => Boolean(c.activo));
   const repsPend = JSON.parse(localStorage.getItem("reportes_clientes_local") || "[]").filter(r => !r.resuelto);
@@ -425,7 +425,7 @@ function verificarCicloHumano(it) {
 }
 
 function calcularSiguienteTiempoUnico(idCuenta, esPrimeraVez) {
-  const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]").filter(c => Boolean(c.activo) || Boolean(c.aprobada) || Boolean(c.pagado) || Number(c.vence_ms || 0) > 0);
   const baseMinutos = esPrimeraVez ? 17 : (16 + Math.random() * 4);
   let candidatoMs = Date.now() + Math.round(baseMinutos * 60000);
 
@@ -479,7 +479,7 @@ function guardarCambioLocal(id, paso, pag) { const l=JSON.parse(localStorage.get
   }
 }} localStorage.setItem("cola_turnos_local",JSON.stringify(l)); cargarColaTurnos(); }
 setInterval(() => {
-  const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]").filter(c => Boolean(c.activo) || Boolean(c.aprobada) || Boolean(c.pagado) || Number(c.vence_ms || 0) > 0);
   let huboCambio = false;
   document.querySelectorAll(".reloj-bump-vivo").forEach(el => {
     const idC = Number(el.getAttribute("data-id") || 0);
@@ -642,7 +642,7 @@ setInterval(async () => { await refrescarBotsFijos().then(() => { if (typeof car
 setInterval(() => {
   try {
     const cont = document.getElementById("listaTarjetasAdmin");
-    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]").filter(c => Boolean(c.activo) || Boolean(c.aprobada) || Boolean(c.pagado) || Number(c.vence_ms || 0) > 0);
     const v = String(window.vistaAdminActual || "cola").toLowerCase();
     if (cont && cont.innerText.includes("No hay registros") && lista.length > 0 && (v.includes("activ") || v.includes("toda"))) {
       const filtrados = v.includes("activ") ? lista.filter(x => Boolean(x.activo)) : lista;
@@ -658,7 +658,7 @@ setInterval(() => {
   const chips = Array.from(document.querySelectorAll("#listaChipsBots span")).map(s => s.innerText.trim());
   const onlineSet = new Set();
   chips.forEach(t => { const m = t.match(/MUSA-\d+/i); if (m) onlineSet.add(m.toUpperCase()); });
-  const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]").filter(c => Boolean(c.activo) || Boolean(c.aprobada) || Boolean(c.pagado) || Number(c.vence_ms || 0) > 0);
 
   document.querySelectorAll(".turno-card").forEach((card, i) => {
     const sel = card.querySelector("select");
@@ -724,7 +724,7 @@ setInterval(() => {
     const chips = Array.from(document.querySelectorAll("#listaChipsBots span")).map(s => s.innerText.trim());
     const onlineSet = new Set();
     chips.forEach(t => { const m = t.match(/MUSA-\d+/i); if (m) onlineSet.add(m[0].toUpperCase()); });
-    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]").filter(c => Boolean(c.activo) || Boolean(c.aprobada) || Boolean(c.pagado) || Number(c.vence_ms || 0) > 0);
 
     document.querySelectorAll(".turno-card").forEach(card => {
       const sel = card.querySelector("select");
@@ -862,7 +862,7 @@ document.addEventListener("click", async (e) => {
 <script id="relojTiempoRealAdmin">
 setInterval(() => {
   try {
-    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]").filter(c => Boolean(c.activo) || Boolean(c.aprobada) || Boolean(c.pagado) || Number(c.vence_ms || 0) > 0);
     document.querySelectorAll(".turno-card").forEach(card => {
       const txt = card.innerText || "";
       const c = lista.find(x => x.usuario && txt.includes(x.usuario));
@@ -912,7 +912,7 @@ setInterval(async () => {
 }, 4000);
 
 setInterval(() => {
-  const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]").filter(c => Boolean(c.activo) || Boolean(c.aprobada) || Boolean(c.pagado) || Number(c.vence_ms || 0) > 0);
   document.querySelectorAll(".turno-card").forEach(card => {
     const txt = card.innerText || "";
     const c = lista.find(x => x.usuario && txt.includes(x.usuario));
@@ -1061,7 +1061,7 @@ window.addEventListener("load", () => {
     );
     if (!esPestanaTodas) return;
 
-    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]").filter(c => Boolean(c.activo) || Boolean(c.aprobada) || Boolean(c.pagado) || Number(c.vence_ms || 0) > 0);
     if (cont.dataset.directorioRendered === String(lista.length) + "_" + JSON.stringify(lista.map(x => [x.id, x.activo, x.bot_asignado, x.vence_ms]))) return;
     cont.dataset.directorioRendered = String(lista.length) + "_" + JSON.stringify(lista.map(x => [x.id, x.activo, x.bot_asignado, x.vence_ms]));
 
