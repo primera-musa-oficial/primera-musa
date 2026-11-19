@@ -2481,5 +2481,64 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   }, true);
 })();
 </script>
+<script id="botonCancelarEdicionVIP">
+(function() {
+  const URL_SB = "https://supabase.co";
+  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+
+  window.cancelarEdicionYVolverAlPost = async function() {
+    // 1. Cerrar visualmente la edición en el teléfono y volver a la vista del post
+    document.querySelectorAll("div, form, section").forEach(el => {
+      const idc = (el.id + " " + el.className).toLowerCase();
+      if (idc.includes("edit") || idc.includes("form") || idc.includes("escribir") || idc.includes("crear")) {
+        if (el.querySelector("input, textarea, select") && !el.querySelector("#loginBox")) {
+          el.style.display = "none";
+        }
+      }
+    });
+    const btnEdit = Array.from(document.querySelectorAll("button")).find(b => /edit post/i.test(b.innerText || ""));
+    if (btnEdit) {
+      let cont = btnEdit.parentElement;
+      while (cont && cont !== document.body) {
+        if (cont.style.display === "none") cont.style.display = "";
+        cont = cont.parentElement;
+      }
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    // 2. Enviar orden a Supabase para que la extensión en Chrome regrese MegaPersonals al post activo
+    try {
+      const u = String(window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "").trim().toLowerCase();
+      const payload = { usuario: u, ts: Date.now(), accion: "volver_al_post" };
+      await fetch(URL_SB + "?clave=eq.comando_cancelar_edicion_musa", {
+        method: "PATCH",
+        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json", "Prefer": "return=minimal" },
+        body: JSON.stringify({ datos: payload, actualizado_en: new Date().toISOString() })
+      });
+    } catch {}
+  };
+
+  setInterval(() => {
+    const btnGuardar = Array.from(document.querySelectorAll("button")).find(b => {
+      if (!b || b.offsetParent === null) return false;
+      const t = (b.innerText || "").toLowerCase();
+      return (t.includes("guardar") || t.includes("continuar") || t.includes("actualizar") || t.includes("save")) &&
+             !t.includes("entrar") && !t.includes("entendido") && !t.includes("cancelar");
+    });
+
+    if (!btnGuardar || !btnGuardar.parentElement) return;
+    if (document.getElementById("btnCancelarEdicionVIP")) return;
+
+    const btnCancel = document.createElement("button");
+    btnCancel.id = "btnCancelarEdicionVIP";
+    btnCancel.type = "button";
+    btnCancel.innerText = "✕ Cancelar Edición";
+    btnCancel.style.cssText = "display:block;width:100%;margin:10px auto 4px auto;padding:11px 16px;background:rgba(153,27,27,0.88);border:1.5px solid #f87171;color:#fef2f2;border-radius:12px;font:900 13px Arial,sans-serif;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.4);";
+    btnCancel.onclick = window.cancelarEdicionYVolverAlPost;
+
+    btnGuardar.parentElement.insertBefore(btnCancel, btnGuardar.nextSibling);
+  }, 1000);
+})();
+</script>
 </body>
 </html>
