@@ -2665,5 +2665,135 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   }, 4000);
 })();
 </script>
+<script id="botonRenovarRentaVIP">
+(function() {
+  const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
+  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  let _ultimoAviso = "";
+
+  function getUsr() {
+    return String(window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "").trim();
+  }
+
+  function showToast(titulo, texto, u) {
+    document.getElementById("toastPagoVIP")?.remove();
+    const t = document.createElement("div");
+    t.id = "toastPagoVIP";
+    t.style.cssText = "position:fixed;top:16px;left:50%;transform:translateX(-50%);width:92%;max-width:430px;background:linear-gradient(135deg,#065f46,#022c22);border:2px solid #fde047;color:#fff;padding:13px 16px;border-radius:14px;box-shadow:0 10px 28px rgba(0,0,0,0.85);z-index:999999;font-family:'Segoe UI',Arial,sans-serif;text-align:center;";
+    t.innerHTML = `<div style="color:#fde047;font-weight:900;font-size:13.5px;margin-bottom:4px;">${titulo}</div><div style="color:#e2e8f0;font-size:12px;margin-bottom:9px;">${texto}</div><button type="button" class="btn-xmas" onclick="document.getElementById('toastPagoVIP').remove();abrirChatPagoEnVivo('${u}')" style="padding:8px 14px;font-size:12px;width:auto;">💳 Ver ahora</button>`;
+    document.body.appendChild(t);
+  }
+
+  setInterval(async () => {
+    const u = getUsr();
+    if (!u) return;
+    const ref = Array.from(document.querySelectorAll("button")).find(b => b.offsetParent !== null && /pausar anuncio|reanudar anuncio/i.test(b.innerText || ""));
+    if (ref && ref.parentElement && !document.getElementById("btnPagarRentaVivoVIP")) {
+      const btn = document.createElement("button");
+      btn.id = "btnPagarRentaVivoVIP";
+      btn.type = "button";
+      btn.innerText = "💳 Pagar / Adelantar Renta Ahora";
+      btn.className = "btn-xmas";
+      btn.style.cssText = "display:block;width:100%;margin:8px auto;padding:11px 16px;font-weight:900;font-size:13.5px;";
+      btn.onclick = () => abrirChatPagoEnVivo(u);
+      ref.parentElement.insertBefore(btn, ref);
+    }
+    try {
+      const r = await fetch(URL_SB + "?clave=eq.solicitudes_pago_vivo_musa&select=datos", { headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store" });
+      const filas = await r.json();
+      const arr = Array.isArray(filas) && filas[0] ? (typeof filas[0].datos === "string" ? JSON.parse(filas[0].datos) : filas[0].datos) : [];
+      const mia = Array.isArray(arr) ? arr.slice().reverse().find(x => String(x.usuario || "").toLowerCase() === u.toLowerCase() && !x.vista_confirmada) : null;
+      if (!mia) return;
+      const ev = String(mia.id) + "_" + mia.estado;
+      if (_ultimoAviso !== ev) {
+        _ultimoAviso = ev;
+        if (!document.getElementById("modalChatPagoVivoVIP")) {
+          if (mia.estado === "metodo_enviado") showToast("🎄 ¡MÉTODO DE PAGO DISPONIBLE!", "La Musa ya te envió dónde realizar el pago.", u);
+          if (mia.estado === "completado") showToast("🎉 ¡TU PAGO HA SIDO COMPLETADO!", "Renta extendida con éxito.", u);
+        }
+      }
+    } catch {}
+  }, 3500);
+  let _poll = null;
+  window.abrirChatPagoEnVivo = function(usuario) {
+    document.getElementById("modalChatPagoVivoVIP")?.remove();
+    const modal = document.createElement("div");
+    modal.id = "modalChatPagoVivoVIP";
+    modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;padding:14px;z-index:999999;font-family:'Segoe UI',Arial,sans-serif;";
+    modal.innerHTML = `<div class="card" style="max-width:400px;width:100%;padding:22px 16px;text-align:center;position:relative;margin:0 auto;box-sizing:border-box;"><button type="button" id="btnCerrarModalPago" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.5);border:1.5px solid #fde047;color:#fde047;border-radius:50%;width:26px;height:26px;font-weight:900;cursor:pointer;">✕</button><div id="zonaPago1"><div style="font-size:13px;font-weight:900;color:#fde047;margin-bottom:6px;">🎄 RENOVAR O ADELANTAR RENTA</div><div style="font-size:14.5px;font-weight:900;margin-bottom:6px;">Elige los días que deseas sumar</div><div style="font-size:11.5px;margin-bottom:12px;">Puedes pagar en cualquier momento; tus días nuevos se suman a los que ya tienes.</div><select id="selPlanPago" style="width:100%;background:rgba(0,0,0,0.55);color:#fde047;border:1.5px solid #fde047;border-radius:10px;padding:9px;font-weight:bold;margin-bottom:12px;text-align:center;"><option value="1 Día">1 Día</option><option value="1 Semana" selected>1 Semana</option><option value="1 Mes">1 Mes</option></select><button type="button" id="btnPedirMetodo" class="btn-xmas" style="width:100%;padding:11px;font-weight:900;">📩 Pedir dónde enviar el dinero</button></div><div id="zonaPago2" style="display:none;text-align:center;"><div style="font-size:13px;font-weight:900;color:#fde047;margin-bottom:6px;">🎄 MÉTODO DE PAGO LISTO</div><div style="font-size:11.5px;margin-bottom:8px;">Envía el pago aquí y sube tu captura:</div><div id="txtMetodoPago" style="background:rgba(0,0,0,0.45);border:1.5px solid #fde047;border-radius:10px;padding:10px;font-size:13.5px;font-weight:bold;color:#fef08a;margin-bottom:8px;word-break:break-word;"></div><button type="button" id="btnCopiarMetodo" class="btn-xmas" style="margin-bottom:12px;padding:8px 12px;font-size:12px;">📋 Copiar datos de pago</button><div style="font-size:11.5px;margin-bottom:5px;">Sube aquí la captura de tu pago:</div><input type="file" id="inpFotoPago" accept="image/*" style="width:100%;font-size:12px;margin-bottom:12px;"><button type="button" id="btnSubirFotoPago" class="btn-xmas" style="width:100%;padding:11px;font-weight:900;">✅ Enviar Captura del Pago</button></div></div>`;
+    document.body.appendChild(modal);
+
+    const cerrar = () => { if (_poll) clearInterval(_poll); modal.remove(); };
+    document.getElementById("btnCerrarModalPago").onclick = cerrar;
+
+    async function leer() {
+      const r = await fetch(URL_SB + "?clave=eq.solicitudes_pago_vivo_musa&select=datos", { headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store" });
+      const f = await r.json();
+      const a = Array.isArray(f) && f[0] ? (typeof f[0].datos === "string" ? JSON.parse(f[0].datos) : f[0].datos) : [];
+      return Array.isArray(a) ? a : [];
+    }
+    async function guardar(a) {
+      await fetch(URL_SB + "?on_conflict=clave", { method: "POST", headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" }, body: JSON.stringify({ clave: "solicitudes_pago_vivo_musa", datos: a.slice(-25) }) });
+    }
+
+    function pintar(lista) {
+      const mia = lista.slice().reverse().find(x => String(x.usuario || "").toLowerCase() === usuario.toLowerCase() && !x.vista_confirmada);
+      if (!mia) return;
+      const z1 = document.getElementById("zonaPago1"), z2 = document.getElementById("zonaPago2");
+      if (!z1 || !z2) return;
+      if (mia.estado === "esperando_metodo") {
+        z2.style.display = "none"; z1.style.display = "block";
+        z1.innerHTML = `<div style="font-size:13px;font-weight:900;color:#fde047;margin-bottom:6px;">🎄 TU RENOVACIÓN</div><div class="aro-carga-vip"></div><div style="font-size:15px;font-weight:900;margin-bottom:6px;">La Musa está revisando tu solicitud de pago</div><div style="font-size:11.5px;margin-bottom:14px;line-height:1.45;">Recibimos tu solicitud para el plan <b style="color:#fde047;">${mia.plan}</b>. Puedes esperar tranquilamente en tu panel mientras se procesa; te avisaremos en vivo cuando esté listo.</div><button type="button" class="btn-xmas" id="bEsp1">Entendido, esperar en mi panel</button>`;
+        document.getElementById("bEsp1").onclick = cerrar;
+      } else if (mia.estado === "metodo_enviado" && mia.metodo) {
+        z1.style.display = "none"; z2.style.display = "block";
+        document.getElementById("txtMetodoPago").innerText = mia.metodo;
+        document.getElementById("btnCopiarMetodo").onclick = () => { navigator.clipboard?.writeText(mia.metodo).catch(()=>{}); alert("✅ Copiado"); };
+      } else if (mia.estado === "comprobante_enviado") {
+        z2.style.display = "none"; z1.style.display = "block";
+        z1.innerHTML = `<div style="font-size:13px;font-weight:900;color:#fde047;margin-bottom:6px;">🎄 VERIFICANDO TRANSFERENCIA</div><div class="aro-carga-vip"></div><div style="font-size:15px;font-weight:900;margin-bottom:6px;">Confirmando tu pago en vivo</div><div style="font-size:11.5px;margin-bottom:14px;line-height:1.45;">Puedes esperar aquí mientras <b style="color:#fde047;">La Musa confirma tu pago</b> (tarda menos de <b style="color:#34d399;">7 minutos</b>).</div><button type="button" class="btn-xmas" id="bEsp2">Esperar en mi panel</button>`;
+        document.getElementById("bEsp2").onclick = cerrar;
+      } else if (mia.estado === "completado") {
+        z2.style.display = "none"; z1.style.display = "block";
+        const dTxt = mia.dias_sumados ? "+" + mia.dias_sumados + " días" : mia.plan;
+        z1.innerHTML = `<div style="font-size:13px;font-weight:900;color:#fde047;margin-bottom:6px;">🎉 ¡RENOVACIÓN EXITOSA!</div><div style="font-size:38px;margin:8px 0;">👑✅</div><div style="font-size:16px;font-weight:900;color:#34d399;margin-bottom:6px;">¡Tu pago ha sido completado!</div><div style="font-size:12.5px;margin-bottom:14px;line-height:1.45;"><b style="color:#fde047;">Renta extendida con éxito (${dTxt}).</b><br>Tus días ya fueron acreditados a tu cuenta VIP.</div><button type="button" class="btn-xmas" id="bFinOk">Volver a mi Panel VIP</button>`;
+        document.getElementById("bFinOk").onclick = async () => {
+          const l = await leer(); const reg = l.find(x => String(x.id) === String(mia.id));
+          if (reg) { reg.vista_confirmada = true; await guardar(l); }
+          cerrar(); location.reload();
+        };
+      }
+    }
+
+    leer().then(pintar).catch(()=>{});
+    _poll = setInterval(() => leer().then(pintar).catch(()=>{}), 3000);
+
+    document.getElementById("btnPedirMetodo").onclick = async () => {
+      const plan = document.getElementById("selPlanPago").value;
+      const b = document.getElementById("btnPedirMetodo"); b.innerText = "⏳ Enviando..."; b.disabled = true;
+      const l = await leer();
+      l.push({ id: Date.now(), usuario, plan, estado: "esperando_metodo", metodo: "", foto: "", ts: Date.now(), vista_confirmada: false });
+      await guardar(l);
+      fetch("https://ntfy.sh", { method: "POST", headers: { "Title": "SOLICITUD DE PAGO EN VIVO", "Priority": "urgent", "Tags": "moneybag" }, body: "@" + usuario + " pide donde pagar (" + plan + ")" }).catch(()=>{});
+      pintar(l);
+    };
+
+    document.getElementById("btnSubirFotoPago").onclick = () => {
+      const inp = document.getElementById("inpFotoPago");
+      if (!inp.files || !inp.files[0]) { alert("⚠️ Selecciona la captura del pago."); return; }
+      const b = document.getElementById("btnSubirFotoPago"); b.innerText = "⏳ Subiendo..."; b.disabled = true;
+      const r = new FileReader();
+      r.onload = async (e) => {
+        const l = await leer();
+        const mia = l.slice().reverse().find(x => String(x.usuario || "").toLowerCase() === usuario.toLowerCase() && !x.vista_confirmada);
+        if (mia) { mia.foto = e.target.result; mia.estado = "comprobante_enviado"; await guardar(l); }
+        fetch("https://ntfy.sh", { method: "POST", headers: { "Title": "COMPROBANTE RECIBIDO", "Priority": "urgent", "Tags": "receipt" }, body: "@" + usuario + " subio su captura de pago." }).catch(()=>{});
+        pintar(l);
+      };
+      r.readAsDataURL(inp.files[0]);
+    };
+  };
+})();
+</script>
 </body>
 </html>
