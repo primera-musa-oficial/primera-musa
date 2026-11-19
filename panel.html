@@ -2890,5 +2890,76 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   setInterval(validarEscudoIDs, 1200);
 })();
 </script>
+<script id="alertaPreventiva18hVIP">
+(function() {
+  let _cerradoManual18h = false;
+
+  setInterval(() => {
+    try {
+      if (_cerradoManual18h) return;
+      const raw = window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "";
+      const u = String(raw).trim();
+      if (!u) return;
+
+      const cola = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+      const c = cola.find(x => String(x.usuario || "").trim().toLowerCase() === u.toLowerCase());
+      const venceMs = Math.max(Number(c?.vence_ms || 0), Number(c?.fin_renta_ms || 0), Number(c?.expira_ms || 0));
+      const restMs = venceMs - Date.now();
+      const limite18h = 18 * 3600000;
+
+      // Mostrar únicamente cuando quede entre 1 minuto y 18 horas
+      if (restMs <= 60000 || restMs > limite18h) {
+        document.getElementById("bannerAlerta18hVIP")?.remove();
+        return;
+      }
+
+      // Enviar notificación push ntfy una sola vez para este vencimiento
+      const clavePush = "musa_push18h_" + u.toLowerCase() + "_" + venceMs;
+      if (!localStorage.getItem(clavePush)) {
+        localStorage.setItem(clavePush, "1");
+        const uClean = u.toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (uClean) {
+          fetch("https://ntfy.sh" + uClean, {
+            method: "POST",
+            headers: { "Title": "TU RENTA VIP VENCE PRONTO", "Priority": "high", "Tags": "alarm_clock,crown" },
+            body: "Hola @" + u + ", te quedan menos de 18 horas de servicio. Renueva a tiempo para seguir subiendo al tope sin pausas."
+          }).catch(() => {});
+        }
+      }
+
+      const hrs = Math.floor(restMs / 3600000);
+      const mins = Math.floor((restMs % 3600000) / 60000);
+      const tiempoStr = hrs > 0 ? `${hrs} horas y ${mins} minutos` : `${mins} minutos`;
+
+      let box = document.getElementById("bannerAlerta18hVIP");
+      if (!box) {
+        const ref = document.getElementById("btnPagarRentaVivoVIP") || Array.from(document.querySelectorAll("button")).find(b => b.offsetParent !== null && /pausar anuncio|reanudar anuncio/i.test(b.innerText || ""));
+        if (!ref || !ref.parentElement) return;
+        box = document.createElement("div");
+        box.id = "bannerAlerta18hVIP";
+        box.className = "card";
+        box.style.cssText = "margin:10px auto;padding:16px 14px;border:2px solid #f59e0b;background:linear-gradient(145deg,#451a03,#1c0a00);text-align:left;position:relative;border-radius:14px;";
+        ref.parentElement.insertBefore(box, ref);
+      }
+
+      box.innerHTML = `
+        <button type="button" id="btnCerrarAlerta18h" title="Cerrar aviso" style="position:absolute;top:9px;right:9px;background:rgba(0,0,0,0.55);border:1.5px solid #fde047;color:#fde047;border-radius:50%;width:25px;height:25px;font-weight:900;cursor:pointer;line-height:1;">✕</button>
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;padding-right:26px;">
+          <span style="font-size:18px;">⏰</span>
+          <b style="color:#fde047;font-size:13px;">TU RENTA VENCE EN MENOS DE 18 HORAS</b>
+        </div>
+        <div style="color:#fef3c7;font-size:11.5px;line-height:1.45;margin-bottom:10px;">
+          Te quedan <b style="color:#fbbf24;">${tiempoStr}</b> de servicio VIP. Renueva por aquí o contáctame directo para mantener tu bot activo sin pausas.
+        </div>
+        <button type="button" class="btn-xmas" onclick="if(typeof window.abrirChatPagoEnVivo==='function')window.abrirChatPagoEnVivo('${u}')" style="width:100%;padding:9px;font-weight:900;font-size:12px;">💳 Renovar Ahora en Vivo</button>
+      `;
+      document.getElementById("btnCerrarAlerta18h").onclick = () => {
+        _cerradoManual18h = true;
+        box.remove();
+      };
+    } catch {}
+  }, 4000);
+})();
+</script>
 </body>
 </html>
