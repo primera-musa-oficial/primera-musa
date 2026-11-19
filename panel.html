@@ -2758,6 +2758,7 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   }, 4000);
 })();
 </script>
+
 <script id="escudoGeneradorVIP">
 (function() {
   const nombres = ["Camila","Valeria","Sofia","Isabella","Valentina","Natalia","Gabriela","Elena","Victoria","Lucia","Daniela","Antonella","Mariana","Renata","Catalina"];
@@ -2777,30 +2778,29 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   const riesgos = ["cashapp","zelle","venmo","paypal","deposit","onlyfans","snapchat","telegram","whatsapp","bareback","bb","full service","fs","qv","hh","roses","donations","price","rates","$"];
 
   function getCampos() {
-    const inps = Array.from(document.querySelectorAll("input, textarea")).filter(el => el.offsetParent !== null);
-    let aliasInp = null, headInp = null, bodyInp = null;
-    inps.forEach(el => {
-      const ph = (el.placeholder || "").toLowerCase();
-      const lbl = (el.parentElement?.innerText || "").toLowerCase();
-      if (!aliasInp && (ph.includes("camila") || lbl.includes("alias"))) aliasInp = el;
-      else if (!headInp && el.tagName === "INPUT" && (lbl.includes("headline") || ph.includes("headline"))) headInp = el;
-      else if (!bodyInp && el.tagName === "TEXTAREA") bodyInp = el;
-    });
+    const visibles = Array.from(document.querySelectorAll("input, textarea")).filter(el => el.offsetParent !== null);
+    const bodyInp = visibles.find(el => el.tagName === "TEXTAREA") || null;
+    const inputsTexto = visibles.filter(el => el.tagName === "INPUT" && (!el.type || el.type === "text"));
+    const aliasInp = inputsTexto.find(el => /camila/i.test(el.placeholder || "")) || null;
+    let headInp = null;
+    if (bodyInp) {
+      const idxB = visibles.indexOf(bodyInp);
+      for (let i = idxB - 1; i >= 0; i--) {
+        if (visibles[i].tagName === "INPUT" && visibles[i] !== aliasInp) { headInp = visibles[i]; break; }
+      }
+    }
     return { aliasInp, headInp, bodyInp };
   }
 
   window.generarCampoVIP = function(tipo) {
     const { aliasInp, headInp, bodyInp } = getCampos();
-    if (tipo === "alias" && aliasInp) {
-      aliasInp.value = nombres[Math.floor(Math.random() * nombres.length)];
-      aliasInp.dispatchEvent(new Event("input", { bubbles: true }));
-    } else if (tipo === "head" && headInp) {
-      headInp.value = heads[Math.floor(Math.random() * heads.length)];
-      headInp.dispatchEvent(new Event("input", { bubbles: true }));
-    } else if (tipo === "body" && bodyInp) {
-      bodyInp.value = bodies[Math.floor(Math.random() * bodies.length)];
-      bodyInp.dispatchEvent(new Event("input", { bubbles: true }));
-    }
+    const target = tipo === "alias" ? aliasInp : (tipo === "head" ? headInp : bodyInp);
+    if (!target) return;
+    if (tipo === "alias") target.value = nombres[Math.floor(Math.random() * nombres.length)];
+    if (tipo === "head") target.value = heads[Math.floor(Math.random() * heads.length)];
+    if (tipo === "body") target.value = bodies[Math.floor(Math.random() * bodies.length)];
+    target.dispatchEvent(new Event("input", { bubbles: true }));
+    target.dispatchEvent(new Event("change", { bubbles: true }));
     validarEscudo();
   };
 
@@ -2822,28 +2822,33 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
     const { aliasInp, headInp, bodyInp } = getCampos();
     if (!bodyInp) return;
 
+    // 1. Poner botón GENERAR junto a Alias *
     if (aliasInp && aliasInp.parentElement) {
-      const lblA = aliasInp.parentElement.querySelector("label");
+      const lblA = aliasInp.parentElement.querySelector("label") || aliasInp.previousElementSibling;
       if (lblA && !lblA.querySelector(".btn-gen-alias-vip")) {
         const b = document.createElement("button");
         b.type = "button";
         b.className = "btn-gen-alias-vip";
         b.innerText = "🎲 GENERAR";
         b.style.cssText = "background:linear-gradient(135deg,#dc2626,#991b1b);border:1px solid #fca5a5;color:#fff;font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;cursor:pointer;margin-left:6px;";
-        b.onclick = () => generarCampoVIP("alias");
+        b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); generarCampoVIP("alias"); };
         lblA.appendChild(b);
       }
     }
 
-    document.querySelectorAll("button").forEach(btn => {
-      if (/generar/i.test(btn.innerText || "") && !btn.dataset.hookEscudo) {
-        btn.dataset.hookEscudo = "1";
-        const t = (btn.parentElement?.innerText || "").toLowerCase();
-        if (t.includes("headline")) btn.onclick = (e) => { e.preventDefault(); e.stopImmediatePropagation(); generarCampoVIP("head"); };
-        if (t.includes("body")) btn.onclick = (e) => { e.preventDefault(); e.stopImmediatePropagation(); generarCampoVIP("body"); };
+    // 2. Interceptar botones GENERAR de Headline y Body
+    Array.from(document.querySelectorAll("button")).filter(b => b.offsetParent !== null && /generar/i.test(b.innerText || "") && !b.classList.contains("btn-gen-alias-vip")).forEach(btn => {
+      if (btn.dataset.hookEscudo) return;
+      btn.dataset.hookEscudo = "1";
+      const txtCont = (btn.closest("div")?.innerText || btn.parentElement?.innerText || "").toLowerCase();
+      if (txtCont.includes("headline")) {
+        btn.addEventListener("click", (e) => { e.preventDefault(); e.stopImmediatePropagation(); generarCampoVIP("head"); }, true);
+      } else if (txtCont.includes("body")) {
+        btn.addEventListener("click", (e) => { e.preventDefault(); e.stopImmediatePropagation(); generarCampoVIP("body"); }, true);
       }
     });
 
+    // 3. Barra Escudo Anti-Baneo
     let barra = document.getElementById("barraEscudoAntiBaneoVIP");
     if (!barra) {
       barra = document.createElement("div");
@@ -2871,7 +2876,7 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   }
 
   document.addEventListener("input", validarEscudo, true);
-  setInterval(validarEscudo, 1500);
+  setInterval(validarEscudo, 1200);
 })();
 </script>
 </body>
