@@ -1501,5 +1501,22 @@ setInterval(() => {
   tabCola.parentElement.appendChild(b);
 }, 1500);
 </script>
+<script id="syncCeroRegistrosAdminVIP">
+(async function() {
+  try {
+    const U = "https://supabase.co";
+    const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+    const r = await fetch(U, { headers: { apikey: K, Authorization: "Bearer " + K }, cache: "no-store" });
+    const filas = await r.json();
+    const raw = Array.isArray(filas) && filas.length ? filas.at(0).datos : null;
+    const arr = typeof raw === "string" ? JSON.parse(raw) : raw;
+    if (Array.isArray(arr) && arr.length === 0) {
+      localStorage.setItem("cola_turnos_local", "[]");
+      localStorage.setItem("reportes_clientes_local", "[]");
+      if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
+    }
+  } catch {}
+})();
+</script>
 </body>
 </html>
