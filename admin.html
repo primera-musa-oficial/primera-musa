@@ -1143,6 +1143,7 @@ document.addEventListener("click", async (e) => {
 
 
 
+
 <script id="receptorPagosLimpioVIP">
 (function() {
   const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
@@ -1158,7 +1159,18 @@ document.addEventListener("click", async (e) => {
     return Array.isArray(arr) ? arr : [];
   }
 
-  async function guardarPagos(arr) { const r = await fetch(URL_SB + "?on_conflict=clave", { method: "POST", headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" }, body: JSON.stringify({ clave: "solicitudes_pago_vivo_musa", datos: arr.slice(-5) }) }); if (!r.ok) alert("Error Supabase: " + r.status); }, body: JSON.stringify({ datos: arr.slice(-5), actualizado_en: new Date().toISOString() }) });
+  async function guardarPagos(arr) {
+    const r = await fetch(URL_SB + "?on_conflict=clave", {
+      method: "POST",
+      headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+      body: JSON.stringify({ clave: "solicitudes_pago_vivo_musa", datos: arr.slice(-5) })
+    });
+    if (!r.ok) {
+      const err = await r.text();
+      alert("⚠️ Error guardando en Supabase (" + r.status + "): " + err);
+      return false;
+    }
+    return true;
   }
 
   window.enviarMetodoPagoVIP = async function(idSol, usr) {
@@ -1170,17 +1182,29 @@ document.addEventListener("click", async (e) => {
     if (it) {
       it.metodo = met;
       it.estado = "metodo_enviado";
-      await guardarPagos(arr);
-      const uL = String(usr || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-      if (uL) fetch("https://ntfy.sh" + uL, { method: "POST", headers: { "Title": "METODO DE PAGO LISTO", "Priority": "high" }, body: "Ya tienes listo el metodo de pago en tu panel." }).catch(() => {});
-      alert("✅ Método enviado a @" + usr);
-      revisarPagosEnVivo(true);
+      const ok = await guardarPagos(arr);
+      if (ok) {
+        const uL = String(usr || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (uL) fetch("https://ntfy.sh" + uL, { method: "POST", headers: { "Title": "METODO DE PAGO LISTO", "Priority": "high" }, body: "Ya tienes listo el metodo de pago en tu panel." }).catch(() => {});
+        alert("✅ Método enviado a @" + usr);
+        revisarPagosEnVivo(true);
+      }
     }
   };
 
   window.confirmarPagoPlanVIP = async function(idSol, usr, planTxt) {
     const pLow = String(planTxt || "").toLowerCase();
     const dias = pLow.includes("mes") ? 30 : (pLow.includes("semana") ? 7 : 1);
+
+    const arr = await leerPagos();
+    const it = arr.find(x => String(x.id) === String(idSol));
+    if (it) {
+      it.estado = "completado";
+      it.dias_sumados = dias;
+      it.foto = "";
+      const ok = await guardarPagos(arr);
+      if (!ok) return;
+    }
 
     const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
     const c = l.find(x => String(x.usuario || "").trim().toLowerCase() === String(usr || "").trim().toLowerCase());
@@ -1199,15 +1223,6 @@ document.addEventListener("click", async (e) => {
 
     window._pagosAprobadosLocal = window._pagosAprobadosLocal || [];
     window._pagosAprobadosLocal.push(String(idSol));
-
-    const arr = await leerPagos();
-    const it = arr.find(x => String(x.id) === String(idSol));
-    if (it) {
-      it.estado = "completado";
-      it.dias_sumados = dias;
-      it.foto = "";
-      await guardarPagos(arr);
-    }
     alert("✅ Pago confirmado. Renta extendida +" + dias + " días a @" + usr);
     revisarPagosEnVivo(true);
   };
