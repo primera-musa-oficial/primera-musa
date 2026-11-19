@@ -3040,58 +3040,31 @@ setInterval(() => {
   setInterval(actualizarRelojVenceUsuario, 3000);
 })();
 </script>
-<script id="blindajeSubidaRegistroNubeVIP">
+
+<script id="loginDirectoNubeVIP">
 (function() {
   const U = "https://supabase.co";
   const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
-  const _origSet = localStorage.setItem.bind(localStorage);
 
-  function achicarFotoBase64(dataUrl) {
-    return new Promise(res => {
-      if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.startsWith("data:image") || dataUrl.length < 180000) return res(dataUrl);
-      const img = new Image();
-      img.onload = () => {
-        const c = document.createElement("canvas");
-        const max = 650;
-        const s = img.width > max ? (max / img.width) : 1;
-        c.width = Math.round(img.width * s);
-        c.height = Math.round(img.height * s);
-        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-        res(c.toDataURL("image/jpeg", 0.72));
-      };
-      img.onerror = () => res(dataUrl);
-      img.src = dataUrl;
-    });
+  async function refrescarListaDesdeNube() {
+    try {
+      const r = await fetch(U, { headers: { apikey: K, Authorization: "Bearer " + K }, cache: "no-store" });
+      if (!r.ok) return;
+      const filas = await r.json();
+      const raw = Array.isArray(filas) && filas.length ? filas.at(0).datos : null;
+      const arr = typeof raw === "string" ? JSON.parse(raw) : raw;
+      if (Array.isArray(arr) && arr.length > 0) {
+        localStorage.setItem("cola_turnos_local", JSON.stringify(arr));
+      }
+    } catch {}
   }
 
-  localStorage.setItem = function(k, v) {
-    _origSet(k, v);
-    if (k === "cola_turnos_local") {
-      (async () => {
-        try {
-          const arr = JSON.parse(v || "[]");
-          if (!Array.isArray(arr) || arr.length === 0) return;
-          for (const item of arr) {
-            if (item.foto1) item.foto1 = await achicarFotoBase64(item.foto1);
-            if (item.foto2) item.foto2 = await achicarFotoBase64(item.foto2);
-            if (item.foto3) item.foto3 = await achicarFotoBase64(item.foto3);
-            if (Array.isArray(item.fotos)) {
-              for (let i = 0; i < item.fotos.length; i++) {
-                item.fotos[i] = await achicarFotoBase64(item.fotos[i]);
-              }
-            }
-          }
-          const ligeroStr = JSON.stringify(arr);
-          _origSet("cola_turnos_local", ligeroStr);
-          await fetch(U, {
-            method: "POST",
-            headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
-            body: JSON.stringify([{ clave: "cola_turnos_local", datos: arr, actualizado_en: new Date().toISOString() }])
-          });
-        } catch {}
-      })();
+  refrescarListaDesdeNube();
+  document.addEventListener("focusin", (e) => {
+    if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "BUTTON")) {
+      refrescarListaDesdeNube();
     }
-  };
+  }, true);
 })();
 </script>
 </body>
