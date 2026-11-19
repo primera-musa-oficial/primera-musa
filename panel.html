@@ -2950,5 +2950,86 @@ setInterval(() => {
   } catch {}
 }, 3000);
 </script>
+<script id="syncRelojUsuarioNubeVIP">
+(function() {
+  const U = "https://supabase.co";
+  const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+
+  async function sincronizarCuentaUsuario() {
+    try {
+      const r = await fetch(U + "&_t=" + Date.now(), {
+        headers: { apikey: K, Authorization: "Bearer " + K },
+        cache: "no-store"
+      });
+      if (!r.ok) return;
+      const filas = await r.json();
+      const raw = Array.isArray(filas) && filas.length ? filas.at(0).datos : null;
+      const lista = typeof raw === "string" ? JSON.parse(raw) : raw;
+      if (!Array.isArray(lista) || lista.length === 0) return;
+
+      localStorage.setItem("cola_turnos_local", JSON.stringify(lista));
+
+      const rawU = window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "";
+      const u = String(rawU).trim().toLowerCase();
+      if (!u) return;
+
+      const c = lista.find(x => String(x.usuario || "").trim().toLowerCase() === u);
+      if (!c) return;
+
+      const venceMs = Math.max(Number(c.vence_ms || 0), Number(c.fin_renta_ms || 0), Number(c.expira_ms || 0));
+      if (venceMs <= Date.now()) return;
+
+      // 1. Actualizar visualmente cualquier tarjeta "VENCE" en pantalla al instante
+      if (typeof window.formatearVenceCortoMP === "function") {
+        const txtVence = window.formatearVenceCortoMP(venceMs);
+        document.querySelectorAll("div").forEach(el => {
+          if (el.children.length === 0 && (el.innerText || "").trim() === "Sin activar") {
+            el.innerText = txtVence;
+          }
+        });
+      }
+
+      // 2. Detectar activación inicial o extensión de días y avisar por banner + ntfy
+      const keyPrev = "musa_vence_confirmado_" + u;
+      const prevMs = Number(localStorage.getItem(keyPrev) || 0);
+
+      if (venceMs > prevMs + 60000) {
+        localStorage.setItem(keyPrev, String(venceMs));
+        const fechaTxt = new Date(venceMs).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+        const tituloAviso = prevMs === 0 ? "🎉 ¡TU ANUNCIO YA ESTÁ ACTIVO Y PUBLICADO!" : "🎉 ¡RENTA EXTENDIDA CON ÉXITO!";
+        const cuerpoAviso = prevMs === 0
+          ? "Tu conteo VIP ha comenzado. Vence: " + fechaTxt
+          : "Se sumó tiempo extra a tu cuenta VIP. Nuevo vencimiento: " + fechaTxt;
+
+        // Mostrar banner flotante en el panel
+        document.getElementById("toastRentaActualizadaVIP")?.remove();
+        const t = document.createElement("div");
+        t.id = "toastRentaActualizadaVIP";
+        t.style.cssText = "position:fixed;top:16px;left:50%;transform:translateX(-50%);width:92%;max-width:420px;background:linear-gradient(135deg,#065f46,#022c22);border:2px solid #fde047;color:#fff;padding:14px 36px 14px 16px;border-radius:14px;box-shadow:0 10px 28px rgba(0,0,0,0.85);z-index:999999;font-family:'Segoe UI',Arial,sans-serif;text-align:left;";
+        t.innerHTML = `<div style="color:#fde047;font-weight:900;font-size:13px;margin-bottom:3px;">${tituloAviso}</div><div style="color:#e2e8f0;font-size:12px;">${cuerpoAviso}</div><button type="button" onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:8px;background:none;border:1px solid #fde047;color:#fde047;border-radius:50%;width:22px;height:22px;cursor:pointer;">✕</button>`;
+        document.body.appendChild(t);
+        setTimeout(() => document.getElementById("toastRentaActualizadaVIP")?.remove(), 12000);
+
+        // Enviar notificación push ntfy al teléfono de la clienta
+        const uClean = u.replace(/[^a-z0-9]/g, "");
+        if (uClean) {
+          fetch("https://ntfy.sh" + uClean, {
+            method: "POST",
+            headers: { Title: prevMs === 0 ? "ANUNCIO ACTIVO - PRIMERA MUSA VIP" : "RENTA EXTENDIDA - PRIMERA MUSA VIP", Priority: "high", Tags: "crown,white_check_mark" },
+            body: "Hola @" + c.usuario + ", " + cuerpoAviso
+          }).catch(() => {});
+        }
+
+        // Si estaba en la pantalla de espera, recargar para mostrar su panel activo completo
+        const enEspera = Array.from(document.querySelectorAll("div,h2,h3,h4")).some(el => el.offsetParent !== null && /en cola|esperando activaci[oó]n|revisando tu solicitud/i.test(el.innerText || ""));
+        if (enEspera) setTimeout(() => location.reload(), 1500);
+      }
+    } catch {}
+  }
+
+  sincronizarCuentaUsuario();
+  setInterval(sincronizarCuentaUsuario, 4000);
+})();
+</script>
 </body>
 </html>
