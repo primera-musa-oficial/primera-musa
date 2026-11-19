@@ -2,7 +2,7 @@
   const U="https://supabase.co", K="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
   const usr=()=>String(window.usuarioLogueadoVIP||localStorage.getItem("musa_cli_u")||localStorage.getItem("usuario_musa_logueado")||"").trim();
   const leerCola=async()=>{const r=await fetch(U+"?clave=eq.cola_turnos_local&select=datos",{headers:{apikey:K,Authorization:"Bearer "+K},cache:"no-store"});const f=await r.json();const d=Array.isArray(f)&&f.length?f.at(0).datos:[];return Array.isArray(d)?d:(typeof d==="string"?JSON.parse(d):[]);};
-  const guardarCola=async(a)=>{const r=await fetch(U+"?on_conflict=clave",{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({clave:"cola_turnos_local",datos:a})});if(r.ok)localStorage.setItem("cola_turnos_local",JSON.stringify(a));return r.ok;};
+  const guardarCola=async(a)=>{const r=await fetch(U+"?clave=eq.cola_turnos_local",{method:"PATCH",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({datos:a})});if(r.ok)localStorage.setItem("cola_turnos_local",JSON.stringify(a));return r.ok;};
   const comp=(f,cb)=>{const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement("canvas"),s=i.width>500?500/i.width:1;c.width=i.width*s;c.height=i.height*s;c.getContext("2d").drawImage(i,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",0.7));};i.src=e.target.result;};r.readAsDataURL(f);};
   window.abrirChatPagoEnVivo=function(usuario){
     const u=usuario||usr(); if(!u) return alert("Inicia sesion primero");
