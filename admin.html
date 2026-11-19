@@ -239,6 +239,32 @@ function cargarColaTurnos() {
   document.getElementById("statActivos").innerText = activosList.length;
   document.getElementById("statTotal").innerText = lista.length;
   if (document.getElementById("statReportes")) document.getElementById("statReportes").innerText = repsPend.length;
+  const _tabTodasActiva = Array.from(document.querySelectorAll("button")).some(b => /todas las clientas/i.test(b.innerText || "") && ((b.style.background || "").includes("eab308") || (b.style.background || "").includes("234") || b.className.includes("active")));
+  if (_tabTodasActiva && cont) {
+    const soloActivas = lista.filter(c => Boolean(c.activo) || (Number(c.vence_ms || 0) > Date.now() && !c.bloqueada));
+    if (soloActivas.length === 0) {
+      cont.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:24px;">No hay clientas activas todavía.</div>`;
+      return;
+    }
+    const qPrev = (document.getElementById("inpBuscadorDirVIP")?.value || "").trim().toLowerCase();
+    cont.innerHTML = `<div style="margin-bottom:12px;"><input type="text" id="inpBuscadorDirVIP" value="${qPrev}" oninput="document.querySelectorAll('.fila-directorio-musa').forEach(el=>el.style.display=(!this.value||el.innerText.toLowerCase().includes(this.value.toLowerCase()))?'':'none')" placeholder="🔍 Buscar clienta por usuario, alias o bot..." style="width:100%;background:#050807;border:1.5px solid #eab308;color:#fff;padding:10px 14px;border-radius:12px;font-size:13px;box-sizing:border-box;"></div>` +
+      soloActivas.map((c, idx) => {
+        const bot = c.bot_asignado ? String(c.bot_asignado).toUpperCase() : "SIN BOT";
+        const venceMs = Number(c.vence_ms || 0);
+        const visible = (!qPrev || JSON.stringify(c).toLowerCase().includes(qPrev)) ? "" : "display:none;";
+        return `<div class="fila-directorio-musa" style="${visible}background:#0a120f;border:1.5px solid #334155;border-radius:14px;padding:12px 14px;margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;font-family:Arial,sans-serif;">
+          <div style="text-align:left;">
+            <div style="color:#fde047;font-weight:900;font-size:14px;">#${idx + 1} • Usuario: <span style="color:#fff;">${c.usuario || "—"}</span> <span style="color:#94a3b8;font-size:12px;font-weight:normal;">(Clave: ${c.clave || "—"})</span></div>
+            <div style="color:#cbd5e1;font-size:12px;margin-top:3px;">Anuncio: <b>${c.alias || "—"}</b> • ${c.city || "—"} • Plan: ${c.plan || "—"}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
+            <span style="background:#1e293b;color:#fde047;border:1px solid #eab308;padding:4px 10px;border-radius:10px;font-size:11.5px;font-weight:900;">🤖 ${bot}</span>
+            <span style="background:#065f46;color:#6ee7b7;border:1px solid #34d399;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:bold;">🟢 ACTIVA • Vence: ${new Date(venceMs).toLocaleDateString()}</span>
+          </div>
+        </div>`;
+      }).join("");
+    return;
+  }
 
     if (window.vistaAdminActual === "bots") {
     const chips = Array.from(document.querySelectorAll("#listaChipsBots span")).map(s => s.innerText.trim());
@@ -1047,68 +1073,7 @@ window.addEventListener("load", () => {
 
 
 
-<script id="directorioTodasLasClientasVIP">
-(function() {
-  window.filtrarDirectorioClientas = function(q) {
-    const filtro = String(q || "").trim().toLowerCase();
-    document.querySelectorAll(".fila-directorio-musa").forEach(el => {
-      el.style.display = (!filtro || (el.innerText || "").toLowerCase().includes(filtro)) ? "" : "none";
-    });
-  };
 
-  function renderizarDirectorioLimpio() { const _soloActivasDir = true; const cont = document.getElementById("listaTarjetasAdmin");
-    if (!cont) return;
-
-    // Detectar si está activa la pestaña "Todas las Clientas y Cuentas"
-    const tabTodas = Array.from(document.querySelectorAll("button")).find(b => /todas las clientas/i.test(b.innerText || ""));
-    const esPestanaTodas = tabTodas && (
-      (tabTodas.style.background || "").includes("eab308") ||
-      (tabTodas.style.background || "").includes("234") ||
-      tabTodas.className.includes("active") ||
-      window.vistaAdminActual === "todas"
-    );
-    if (!esPestanaTodas) return; const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]").filter(c => Boolean(c.activo) || Boolean(c.aprobada) || Boolean(c.pagado) || Number(c.vence_ms || 0) > 0);
-    if (cont.dataset.directorioRendered === String(lista.length) + "_" + JSON.stringify(lista.map(x => [x.id, x.activo, x.bot_asignado, x.vence_ms]))) return;
-    cont.dataset.directorioRendered = String(lista.length) + "_" + JSON.stringify(lista.map(x => [x.id, x.activo, x.bot_asignado, x.vence_ms]));
-
-    if (lista.length === 0) {
-      cont.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:24px;">No hay clientas registradas todavía.</div>`;
-      return;
-    }
-
-    const filasHtml = lista.map((c, idx) => {
-      const bot = c.bot_asignado ? String(c.bot_asignado).toUpperCase() : "SIN BOT ASIGNADO";
-      const venceMs = Number(c.vence_ms || 0);
-      const activa = Boolean(c.activo) && !c.detenido && !c.bloqueada && venceMs > Date.now();
-      const estadoHtml = activa
-        ? `<span style="background:#065f46;color:#6ee7b7;border:1px solid #34d399;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:bold;">🟢 ACTIVA • Vence: ${new Date(venceMs).toLocaleDateString()}</span>`
-        : `<span style="background:#450a0a;color:#fca5a5;border:1px solid #f87171;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:bold;">⏸️ ${c.bloqueada ? "BLOQUEADA" : "DETENIDA / SIN RENTA"}</span>`;
-
-      return `
-        <div class="fila-directorio-musa" style="background:#0a120f;border:1.5px solid #334155;border-radius:14px;padding:12px 14px;margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;font-family:Arial,sans-serif;">
-          <div style="text-align:left;min-width:200px;">
-            <div style="color:#fde047;font-weight:900;font-size:14px;">#${idx + 1} • Usuario: <span style="color:#fff;">${c.usuario || "Sin usuario"}</span> <span style="color:#94a3b8;font-size:12px;font-weight:normal;">(Clave: ${c.clave || "—"})</span></div>
-            <div style="color:#cbd5e1;font-size:12px;margin-top:3px;">Anuncio: <b>${c.alias || "—"}</b> • ${c.city || "—"} • Plan: ${c.plan || "—"}</div>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
-            <span style="background:#1e293b;color:#fde047;border:1px solid #eab308;padding:4px 10px;border-radius:10px;font-size:11.5px;font-weight:900;">🤖 ${bot}</span>
-            ${estadoHtml}
-          </div>
-        </div>
-      `;
-    }).join("");
-
-    cont.innerHTML = `
-      <div style="margin-bottom:12px;">
-        <input type="text" oninput="filtrarDirectorioClientas(this.value)" placeholder="🔍 Buscar clienta por usuario, alias o bot (ej: MUSA-09)..." style="width:100%;background:#050807;border:1.5px solid #eab308;color:#fff;padding:10px 14px;border-radius:12px;font-size:13px;box-sizing:border-box;">
-      </div>
-      ${filasHtml}
-    `;
-  }
-
-  setInterval(renderizarDirectorioLimpio, 500);
-})();
-</script>
 
 <script id="fixBotonesTiempoAdmin">
 document.addEventListener("click", async (e) => {
