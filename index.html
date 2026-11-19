@@ -2368,19 +2368,37 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
 
 
 
+
 <script id="escudoEstrictoBotVivo">
 (function() {
   const URL_SB = "https://supabase.co";
   const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
   let _yaNotificoPausaAnuncio = "";
 
+  function detectarUsuarioUniversal() {
+    let u = window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "";
+    if (!u) {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i) || "";
+        const v = localStorage.getItem(k) || "";
+        if ((k.includes("usr") || k.includes("user") || k.includes("cli") || k.includes("sesion")) && v.length >= 3 && v.length <= 30 && !v.startsWith("{") && !v.startsWith("[")) {
+          u = v; break;
+        }
+      }
+    }
+    if (!u) {
+      const inp = document.querySelector("input[type='text']");
+      if (inp && inp.value && inp.value.length >= 3) u = inp.value;
+    }
+    return String(u).trim().toLowerCase();
+  }
+
   function obtenerNumeroAnuncio() {
     const tabActiva = Array.from(document.querySelectorAll("button, div, span")).find(el => {
       const t = (el.innerText || "").trim();
       return /^#\d+$/.test(t) && (el.style.background || el.className.includes("activ"));
     });
-    if (tabActiva) return tabActiva.innerText.trim();
-    return "#1";
+    return tabActiva ? tabActiva.innerText.trim() : "#1";
   }
 
   function mostrarNotificacionFlotante(titulo, detalle) {
@@ -2396,7 +2414,6 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
     document.body.appendChild(toast);
   }
 
-  // Congelar el reloj cada 400ms si está pausado para que el temporizador original nunca lo reviva
   setInterval(() => {
     if (window._musaPausadoAhora === true) {
       document.querySelectorAll("*").forEach(el => {
@@ -2405,13 +2422,10 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
         }
       });
     }
-  }, 400);
+  }, 300);
 
   async function verificarBotRealmenteVivo() {
     try {
-      const u = String(window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "").trim().toLowerCase();
-      if (!u) return;
-
       const r = await fetch(URL_SB + "?clave=in.(cola_turnos_local,mapa_bots_musa_activos)&select=clave,datos", {
         headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
       });
@@ -2425,11 +2439,12 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
         if (f.clave === "mapa_bots_musa_activos" && d && typeof d === "object") mapaBots = d;
       });
 
-      const cuenta = cola.find(c => String(c.usuario || "").trim().toLowerCase() === u);
+      const u = detectarUsuarioUniversal();
+      const cuenta = u ? cola.find(c => String(c.usuario || "").trim().toLowerCase() === u) : cola;
       const codBot = cuenta ? String(cuenta.bot_asignado || "").trim().toUpperCase() : "";
-      const infoBot = codBot ? mapaBots[codBot] : null;
+      const infoBot = codBot ? mapaBots[codBot] : Object.values(mapaBots);
       const sinLatido = !infoBot || (Date.now() - Number(infoBot.ts || 0)) > 65000 || Boolean(infoBot.alerta);
-      const pausada = !cuenta || !cuenta.activo || Boolean(cuenta.pausado) || sinLatido;
+      const pausada = (cuenta && (!cuenta.activo || Boolean(cuenta.pausado))) || sinLatido;
 
       window._musaPausadoAhora = pausada;
 
@@ -2439,7 +2454,7 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
           _yaNotificoPausaAnuncio = numAnuncio;
           const msg = "Tu Anuncio " + numAnuncio + " está pausado por chequeo técnico. Te avisaremos en cuanto vuelva a subir.";
           mostrarNotificacionFlotante("⏸️ ANUNCIO " + numAnuncio + " EN CHEQUEO", msg);
-          const usrLimpio = u.replace(/[^a-z0-9]/g, "");
+          const usrLimpio = (cuenta?.usuario || u || "").toLowerCase().replace(/[^a-z0-9]/g, "");
           if (usrLimpio) {
             fetch("https://ntfy.sh" + usrLimpio, {
               method: "POST",
@@ -2455,7 +2470,7 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   }
 
   verificarBotRealmenteVivo();
-  setInterval(verificarBotRealmenteVivo, 4000);
+  setInterval(verificarBotRealmenteVivo, 3500);
 })();
 </script>
 </body>
