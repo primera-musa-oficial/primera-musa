@@ -2760,35 +2760,90 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
 </script>
 
 
+
 <script id="escudoGeneradorVIP">
 (function() {
-  const nombres = ["Camila","Valeria","Sofia","Isabella","Valentina","Natalia","Gabriela","Elena","Victoria","Lucia","Daniela","Antonella","Mariana","Renata","Catalina"];
-  const heads = [
-    "✨ Sweet & Classy Latina Ready to Spoil You 💋🌹",
-    "👑 Exclusive VIP Latina • Real & Unforgettable ✨💖",
-    "🌸 Charming & Friendly Latina • Great Vibes Only 💕✨",
-    "💎 Upscale & Discreet Latina • Pure Elegance ✨🥂",
-    "🔥 Attractive & Playful Latina • 100% Real Photos 💋✨"
+  const poolNombres = [
+    "Camila","Valeria","Sofia","Isabella","Valentina","Natalia","Gabriela","Elena","Victoria","Lucia",
+    "Daniela","Antonella","Mariana","Renata","Catalina","Paula","Alejandra","Juliana","Adriana","Andrea",
+    "Bianca","Carolina","Celeste","Clara","Dafne","Diana","Emilia","Esmeralda","Estefania","Fabiana",
+    "Fernanda","Fiorella","Florencia","Giselle","Gloria","Helena","Ines","Irene","Jimena","Julieta",
+    "Karla","Kiara","Laura","Leticia","Liliana","Lorena","Luciana","Luna","Manuela","Marcela",
+    "Margarita","Maria","Marina","Martina","Melany","Melissa","Mia","Micaela","Miranda","Monica",
+    "Nadia","Nicole","Noelia","Olivia","Oriana","Paloma","Pamela","Patricia","Rafaela","Rebeca",
+    "Regina","Rocio","Romina","Rosa","Salome","Samantha","Sara","Selena","Silvana","Solange",
+    "Tamara","Tatiana","Teresa","Thalia","Valerie","Vanessa","Veronica","Viviana","Ximena","Yadira",
+    "Yasmin","Zoe","Alondra","Ambar","Ariadna","Astrid","Aurora","Belen","Brenda","Cinthia",
+    "Constanza","Cristina","Damaris","Delia","Elisa","Erika","Evelyn","Fabiola","Frida","Genesis",
+    "Grecia","Ingrid","Ivanna","Jazmin","Jennifer","Jessica","Katherin","Larissa","Leila","Lizeth"
   ];
-  const bodies = [
-    "Hey handsome! I am sweet, upscale, and 100% real. Looking for a respectful gentleman to share unforgettable quality time together. Very clean, discreet, and always punctual. Text me now! 💕✨",
-    "Hello love! Treat yourself to great company with a charming, warm, and classy Latina. Always fresh, friendly, and ready to make your day special in a private and comfortable setting. Reach out today! 🌹💋",
-    "Hi there! I love meeting kind and respectful gentlemen for fun, relaxed, and memorable moments. Soft skin, warm smile, and 100% genuine photos. Send a quick text to say hi! 🥰🌹",
-    "Step away from stress and enjoy relaxing, upscale company. 100% authentic photos, great conversation, and unforgettable chemistry. Serious and respectful inquiries only please! ✨💎"
+
+  const hAperturas = ["✨ Sweet & Classy","👑 Exclusive VIP","🌸 Charming & Warm","💎 Upscale & Discreet","🔥 Attractive & Playful","🌹 Sensual & Elegant","💖 Lovely & Attentive","🥂 Sophisticated & Fun","💋 Irresistible & Sweet","⭐ Genuine & Radiant"];
+  const hCentro = ["Latina Ready to Spoil You","Latina • 100% Real Photos","Latina • Great Vibes Only","Latina • Pure Elegance","Latina Waiting For You","Latina • Unforgettable Moments","Latina • Private & Cozy","Latina • Warm & Friendly"];
+  const hCierres = ["💋🌹","✨💖","💕✨","🥂✨","🌹💋","👑✨","💖🌹","✨🔥","🥰💕","💎✨"];
+
+  const bSaludos = [
+    "Hey handsome!", "Hello love!", "Hi there sweetie!", "Greetings gentleman!", "Hey baby!", "Hello darling!", "Hi handsome!"
   ];
+  const bIntro = [
+    "I am a sweet, upscale, and 100% real Latina looking to share unforgettable quality time.",
+    "Treat yourself to amazing company with a warm, charming, and naturally classy Latina.",
+    "Step away from your busy day and enjoy relaxing, fun, and genuine company with me.",
+    "I love meeting kind and respectful gentlemen for memorable, stress-free, and sweet moments.",
+    "Looking for a distinguished gentleman who appreciates beauty, warmth, and great energy."
+  ];
+  const bCuerpo = [
+    "Always fresh, very clean, discreet, and punctual with a warm smile and soft skin.",
+    "100% authentic recent photos, great conversation, and an unforgettable private atmosphere.",
+    "Super friendly, attentive, and easygoing so you feel completely comfortable from the first minute.",
+    "My priority is making sure our time together feels natural, exciting, and truly special.",
+    "Private, safe, and cozy setting where you can unwind and enjoy pure positive vibes."
+  ];
+  const bCierre = [
+    "Text me now so we can plan a wonderful moment together! 💕✨",
+    "Send a quick message to say hi and let us make today unforgettable! 🌹💋",
+    "Reach out directly and treat yourself to the VIP company you deserve! 👑✨",
+    "Message me anytime for serious and respectful inquiries! 💖🥂",
+    "Drop me a text and let us share a great time soon! 🥰🌹"
+  ];
+
   const riesgos = ["cashapp","zelle","venmo","paypal","deposit","onlyfans","snapchat","telegram","whatsapp","bareback","bb","full service","fs","qv","hh","roses","donations","price","rates","$"];
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 
   window.generarAliasForm = function() {
     const el = document.getElementById("inAlias");
-    if (el) { el.value = nombres[Math.floor(Math.random() * nombres.length)]; validarEscudoIDs(); }
+    if (!el) return;
+    const usados = new Set(JSON.parse(localStorage.getItem("cola_turnos_local") || "[]").map(c => String(c.alias || "").trim().toLowerCase()));
+    const disponibles = poolNombres.filter(n => !usados.has(n.toLowerCase()));
+    const lista = disponibles.length > 0 ? disponibles : poolNombres;
+    el.value = pick(lista);
+    validarEscudoIDs();
   };
+
   window.generarHeadlineForm = function() {
     const el = document.getElementById("inHead");
-    if (el) { el.value = heads[Math.floor(Math.random() * heads.length)]; validarEscudoIDs(); }
+    if (!el) return;
+    const usados = new Set(JSON.parse(localStorage.getItem("cola_turnos_local") || "[]").map(c => String(c.headline || "").trim().toLowerCase()));
+    let gen = "";
+    for (let i = 0; i < 15; i++) {
+      gen = `${pick(hAperturas)} ${pick(hCentro)} ${pick(hCierres)}`;
+      if (!usados.has(gen.toLowerCase())) break;
+    }
+    el.value = gen;
+    validarEscudoIDs();
   };
+
   window.generarBodyForm = function() {
     const el = document.getElementById("inBody");
-    if (el) { el.value = bodies[Math.floor(Math.random() * bodies.length)]; validarEscudoIDs(); }
+    if (!el) return;
+    const usados = new Set(JSON.parse(localStorage.getItem("cola_turnos_local") || "[]").map(c => String(c.body || "").trim().toLowerCase()));
+    let gen = "";
+    for (let i = 0; i < 15; i++) {
+      gen = `${pick(bSaludos)} ${pick(bIntro)} ${pick(bCuerpo)} ${pick(bCierre)}`;
+      if (!usados.has(gen.toLowerCase())) break;
+    }
+    el.value = gen;
+    validarEscudoIDs();
   };
 
   window.limpiarTextoEscudoVIP = function() {
@@ -2827,7 +2882,7 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
       barra.style.background = "rgba(6,78,59,0.55)";
       barra.style.border = "1px solid #34d399";
       barra.style.color = "#a7f3d0";
-      barra.innerHTML = "🛡️ <b>Escudo Anti-Baneo IA:</b> Activo (Alias sin emojis y texto 100% seguro).";
+      barra.innerHTML = "🛡️ <b>Escudo Anti-Baneo IA:</b> Activo (Alias sin emojis y texto único 100% seguro).";
     }
   }
 
