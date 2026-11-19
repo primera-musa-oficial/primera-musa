@@ -2982,7 +2982,7 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
       const ahora = new Date();
       const hoyKey = ahora.getFullYear() + "-" + (ahora.getMonth() + 1) + "-" + ahora.getDate();
       const uClean = u.toLowerCase().replace(/[^a-z0-9]/g, "");
-      const fraseHoy = frasesSemana[ahora.getDay()];
+      const diaNY = new Date(ahora.toLocaleString("en-US", { timeZone: "America/New_York" })).getDay(); const fraseHoy = frasesSemana[diaNY];
 
       // 1. Mostrar banner motivacional diario en el panel web (se puede cerrar con la X)
       const cierreKey = "musa_saludo_cerrado_" + uClean + "_" + hoyKey;
