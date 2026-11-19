@@ -586,7 +586,7 @@ setInterval(() => {
   async function bajarTodoDeNube() {
     if (bloqueandoBajada) return;
     try {
-      const r = await fetch(SB_URL + "?select=clave,datos", { headers: { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY } });
+      const r = await fetch(SB_URL + "?select=clave,datos", { headers: { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY }, cache: "no-store" });
       if (!r.ok) return;
       const filas = await r.json();
       let huboCambio = false;
@@ -1501,6 +1501,65 @@ window.addEventListener("DOMContentLoaded", () => {
   b.onclick = window.vaciarTodoSistemaVIP;
   document.body.appendChild(b);
 });
+</script>
+<script id="filtroDefinitivoBorradosVIP">
+(function() {
+  const _setOrig = localStorage.setItem.bind(localStorage);
+
+  function filtrarEliminados(arr) {
+    if (!Array.isArray(arr)) return arr;
+    const corteMs = Number(localStorage.getItem("musa_corte_limpieza_ms") || 0);
+    const delSet = new Set(JSON.parse(localStorage.getItem("musa_ids_eliminados") || "[]").map(String));
+    return arr.filter(x => {
+      if (!x) return false;
+      if (delSet.has(String(x.id))) return false;
+      if (corteMs > 0 && Number(x.id || 0) < corteMs) return false;
+      return true;
+    });
+  }
+
+  // Interceptar cualquier escritura en cola_turnos_local para purgar registros ya eliminados
+  localStorage.setItem = function(k, v) {
+    if (k === "cola_turnos_local") {
+      try {
+        const limpia = filtrarEliminados(JSON.parse(v || "[]"));
+        v = JSON.stringify(limpia);
+      } catch {}
+    }
+    _setOrig(k, v);
+  };
+
+  // Registrar ID eliminado al pulsar Rechazar o Liberar Bot
+  document.addEventListener("click", function(e) {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const t = (btn.innerText || "").trim();
+    if (!/liberar\s*bot|rechazar/i.test(t)) return;
+    const card = btn.closest(".turno-card");
+    if (!card) return;
+    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const txt = (card.innerText || "").toLowerCase();
+    const cta = l.find(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
+    if (cta && cta.id) {
+      const del = JSON.parse(localStorage.getItem("musa_ids_eliminados") || "[]");
+      if (!del.includes(String(cta.id))) del.push(String(cta.id));
+      _setOrig("musa_ids_eliminados", JSON.stringify(del));
+    }
+  }, true);
+
+  // Actualizar vaciarTodoSistemaVIP para fijar marca de corte de tiempo
+  window.vaciarTodoSistemaVIP = async function() {
+    if (!confirm("⚠️ ¿Borrar TODAS las solicitudes y registros anteriores para dejar todo en 0?")) return;
+    _setOrig("musa_corte_limpieza_ms", String(Date.now()));
+    localStorage.setItem("cola_turnos_local", "[]");
+    localStorage.setItem("reportes_clientes_local", "[]");
+    const U = "https://supabase.co";
+    const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+    await fetch(U, { method: "POST", headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" }, body: JSON.stringify([{ clave: "cola_turnos_local", datos: [], actualizado_en: new Date().toISOString() }]) }).catch(() => {});
+    if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
+    alert("✅ ¡Todo limpiado a 0 de forma permanente!");
+  };
+})();
 </script>
 </body>
 </html>
