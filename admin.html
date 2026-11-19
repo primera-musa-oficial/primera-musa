@@ -3,33 +3,36 @@
 <head>
 <script id="escudoAntiBorradoNubeAdmin">
 (function() {
+  const URL_SB = "https://supabase.co";
+  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
   window._adminNubeDescargada = false;
-  const _origFetch = window.fetch;
-  window.fetch = async function(url, opts) {
-    const uStr = String(url || "");
-    const mtd = String(opts?.method || "GET").toUpperCase();
-    if (uStr.includes("musa_estado") && mtd === "GET") {
-      const r = await _origFetch.apply(this, arguments);
-      window._adminNubeDescargada = true;
-      return r;
-    }
-    if (uStr.includes("musa_estado") && (mtd === "POST" || mtd === "PATCH") && opts?.body) {
-      if (!window._adminNubeDescargada && !window._adminPermiteGuardarVacio) {
-        return new Response("[]", { status: 200 });
+
+  async function descargarTodoDeNubeAdmin() {
+    try {
+      const r = await fetch(URL_SB + "?select=clave,datos", {
+        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
+      });
+      const filas = await r.json();
+      if (Array.isArray(filas)) {
+        filas.forEach(f => {
+          if (!f || !f.clave) return;
+          const valStr = typeof f.datos === "string" ? f.datos : JSON.stringify(f.datos);
+          if (valStr && valStr !== "null") {
+            localStorage.setItem(f.clave, valStr);
+          }
+        });
+        window._adminNubeDescargada = true;
+        if (typeof window.renderizarTodoAdmin === "function") window.renderizarTodoAdmin();
+        if (typeof window.cargarColaAdmin === "function") window.cargarColaAdmin();
       }
-      try {
-        const bodyObj = JSON.parse(opts.body);
-        const items = Array.isArray(bodyObj) ? bodyObj : [bodyObj];
-        const colaItem = items.find(x => x && x.clave === "cola_turnos_local");
-        if (colaItem && Array.isArray(colaItem.datos) && colaItem.datos.length === 0 && !window._adminPermiteGuardarVacio) {
-          return new Response("[]", { status: 200 });
-        }
-      } catch {}
-    }
-    return _origFetch.apply(this, arguments);
-  };
+    } catch {}
+  }
+
+  descargarTodoDeNubeAdmin();
+  setInterval(descargarTodoDeNubeAdmin, 5000);
 })();
 </script>
+
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
