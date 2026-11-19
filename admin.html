@@ -151,7 +151,7 @@ function responderTicketDirectoAdmin(idRep) {
   localStorage.setItem("reportes_clientes_local", JSON.stringify(reps));
   const buz = JSON.parse(localStorage.getItem("mensajes_admin_para_cliente") || "[]");
   buz.push({ id: Date.now(), usuario: it.usuario, texto: txt.trim(), leido: false });
-  localStorage.setItem("mensajes_admin_para_cliente", JSON.stringify(buz));
+  localStorage.setItem("mensajes_admin_para_cliente", JSON.stringify(buz)); try { const _uP = String(it.usuario||"").trim().toLowerCase().replace(/[^a-z0-9]/g,""); if (_uP) fetch("https://ntfy.sh", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ topic: "musa-vip-" + _uP, title: "RESPUESTA DE SOPORTE VIP", message: txt.trim(), priority: 4, tags: ["speech_balloon","crown"] }) }); } catch {}
   alert("✅ Mensaje enviado al panel de " + it.alias);
   cargarColaTurnos();
 }
@@ -209,7 +209,7 @@ function cargarColaTurnos() {
         ${(Array.isArray(r.fotos_nuevas) && r.fotos_nuevas.length > 0) ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${r.fotos_nuevas.map((src, idx) => `<a href="${src}" download="NuevaFoto_${idx+1}_${r.usuario}.jpg" title="Clic para descargar"><img src="${src}" style="width:62px;height:78px;object-fit:cover;border-radius:8px;border:2px solid #fde047;"></a>`).join("")}</div>` : ""}
         ${r.respuesta_admin ? `<div style="background:rgba(16,185,129,0.16);border:1px solid #34d399;border-radius:9px;padding:8px 10px;font-size:11.5px;color:#a7f3d0;margin-bottom:10px;"><b>💬 Tu respuesta enviada:</b> ${r.respuesta_admin}</div>` : ""}
         <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          <button type="button" class="btn-gold" onclick="const reps=JSON.parse(localStorage.getItem(\x27reportes_clientes_local\x27)||\x27[]\x27);const it=reps.find(x=>x.id===${r.id});if(!it)return;const txt=prompt(\x27Respuesta para \x27+it.alias+\x27:\x27,\x27Listo mami, revisa ya está subiendo 💋\x27);if(txt&&txt.trim()){it.respuesta_admin=txt.trim();localStorage.setItem(\x27reportes_clientes_local\x27,JSON.stringify(reps));const buz=JSON.parse(localStorage.getItem(\x27mensajes_admin_para_cliente\x27)||\x27[]\x27);buz.push({id:Date.now(),usuario:it.usuario,texto:txt.trim(),leido:false});localStorage.setItem(\x27mensajes_admin_para_cliente\x27,JSON.stringify(buz));cargarColaTurnos();}">💬 Responder a la Clienta</button>
+          <button type="button" class="btn-gold" onclick="const reps=JSON.parse(localStorage.getItem(\x27reportes_clientes_local\x27)||\x27[]\x27);const it=reps.find(x=>x.id===${r.id});if(!it)return;const txt=prompt(\x27Respuesta para \x27+it.alias+\x27:\x27,\x27Listo mami, revisa ya está subiendo 💋\x27);if(txt&&txt.trim()){it.respuesta_admin=txt.trim();localStorage.setItem(\x27reportes_clientes_local\x27,JSON.stringify(reps));const buz=JSON.parse(localStorage.getItem(\x27mensajes_admin_para_cliente\x27)||\x27[]\x27);buz.push({id:Date.now(),usuario:it.usuario,texto:txt.trim(),leido:false});localStorage.setItem(\x27mensajes_admin_para_cliente\x27,JSON.stringify(buz));try{const _uP=String(it.usuario||\x27\x27).trim().toLowerCase().replace(/[^a-z0-9]/g,\x27\x27);if(_uP)fetch(\x27https://ntfy.sh\x27,{method:\x27POST\x27,headers:{\x27Content-Type\x27:\x27application/json\x27},body:JSON.stringify({topic:\x27musa-vip-\x27+_uP,title:\x27RESPUESTA DE SOPORTE VIP\x27,message:txt.trim(),priority:4,tags:[\x27speech_balloon\x27,\x27crown\x27]})});}catch{}cargarColaTurnos();}">💬 Responder a la Clienta</button>
           <button type="button" class="btn-green" onclick="const reps=JSON.parse(localStorage.getItem('reportes_clientes_local')||'[]').filter(x=>x.id!==${r.id});localStorage.setItem('reportes_clientes_local',JSON.stringify(reps));cargarColaTurnos();">✅ Marcar Resuelto</button>
         </div>
       </div>
@@ -1016,7 +1016,7 @@ window.addEventListener("load", () => {
           _idsNotificados.add(idStr);
           huboNuevo = true;
           if (!_primeraCarga && !m.leido) {
-            enviarPushNtfy(m.usuario, m.mensaje);
+            enviarPushNtfy(m.usuario, m.texto || m.mensaje);
           }
         }
       });
