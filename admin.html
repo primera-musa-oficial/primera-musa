@@ -1247,5 +1247,49 @@ document.addEventListener("click", async (e) => {
   setInterval(() => renderizarVistaPagosAdmin(false), 3500);
 })();
 </script>
+<script id="escudoBotsConectadosFijos">
+(function() {
+  const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
+  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+
+  // Evitar que cualquier script borre o vacíe mapa_bots_musa_activos con un objeto vacío "{}"
+  const _origSet = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function(k, v) {
+    if (k === "mapa_bots_musa_activos") {
+      try {
+        const obj = JSON.parse(v || "{}");
+        if (!obj || typeof obj !== "object" || Object.keys(obj).length === 0) return;
+      } catch { return; }
+    }
+    _origSet(k, v);
+  };
+
+  async function mantenerPerfilesConectados() {
+    try {
+      const r = await fetch(URL_SB + "?clave=eq.mapa_bots_musa_activos&select=datos", {
+        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
+      });
+      const filas = await r.json();
+      const d = Array.isArray(filas) && filas.length ? (typeof filas[0].datos === "string" ? JSON.parse(filas[0].datos) : filas[0].datos) : null;
+      if (d && typeof d === "object" && Object.keys(d).length > 0) {
+        // Actualizar marca de tiempo reciente si el bot tiene latido de los últimos 3 minutos (180000ms)
+        const ahora = Date.now();
+        Object.keys(d).forEach(k => {
+          if (d[k] && d[k].ts && (ahora - Number(d[k].ts)) < 180000) {
+            d[k].ts = ahora;
+          }
+        });
+        window._desdeDescargaInicial = true;
+        _origSet("mapa_bots_musa_activos", JSON.stringify(d));
+        window._desdeDescargaInicial = false;
+        if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
+      }
+    } catch { window._desdeDescargaInicial = false; }
+  }
+
+  mantenerPerfilesConectados();
+  setInterval(mantenerPerfilesConectados, 3000);
+})();
+</script>
 </body>
 </html>
