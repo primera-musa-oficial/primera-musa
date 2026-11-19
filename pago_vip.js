@@ -18,9 +18,13 @@
 
   async function guardarCola(a){
     localStorage.setItem("cola_turnos_local",JSON.stringify(a));
-    const r=await fetch(U+"?clave=eq.cola_turnos_local",{
-      method:"PATCH",
-      headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"return=minimal"},
+    const r=await fetch(U+"?on_conflict=clave",{
+      method:"POST",
+      headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},
+      body:JSON.stringify({clave:"cola_turnos_local",datos:a})
+    });
+    return r.ok;
+  },
       body:JSON.stringify({datos:a})
     });
     return r.ok;
