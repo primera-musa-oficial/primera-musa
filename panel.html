@@ -2758,5 +2758,121 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   }, 4000);
 })();
 </script>
+<script id="escudoGeneradorVIP">
+(function() {
+  const nombres = ["Camila","Valeria","Sofia","Isabella","Valentina","Natalia","Gabriela","Elena","Victoria","Lucia","Daniela","Antonella","Mariana","Renata","Catalina"];
+  const heads = [
+    "✨ Sweet & Classy Latina Ready to Spoil You 💋🌹",
+    "👑 Exclusive VIP Latina • Real & Unforgettable ✨💖",
+    "🌸 Charming & Friendly Latina • Great Vibes Only 💕✨",
+    "💎 Upscale & Discreet Latina • Pure Elegance ✨🥂",
+    "🔥 Attractive & Playful Latina • 100% Real Photos 💋✨"
+  ];
+  const bodies = [
+    "Hey handsome! I am sweet, upscale, and 100% real. Looking for a respectful gentleman to share unforgettable quality time together. Very clean, discreet, and always punctual. Text me now! 💕✨",
+    "Hello love! Treat yourself to great company with a charming, warm, and classy Latina. Always fresh, friendly, and ready to make your day special in a private and comfortable setting. Reach out today! 🌹💋",
+    "Hi there! I love meeting kind and respectful gentlemen for fun, relaxed, and memorable moments. Soft skin, warm smile, and 100% genuine photos. Send a quick text to say hi! 🥰🌹",
+    "Step away from stress and enjoy relaxing, upscale company. 100% authentic photos, great conversation, and unforgettable chemistry. Serious and respectful inquiries only please! ✨💎"
+  ];
+  const riesgos = ["cashapp","zelle","venmo","paypal","deposit","onlyfans","snapchat","telegram","whatsapp","bareback","bb","full service","fs","qv","hh","roses","donations","price","rates","$"];
+
+  function getCampos() {
+    const inps = Array.from(document.querySelectorAll("input, textarea")).filter(el => el.offsetParent !== null);
+    let aliasInp = null, headInp = null, bodyInp = null;
+    inps.forEach(el => {
+      const ph = (el.placeholder || "").toLowerCase();
+      const lbl = (el.parentElement?.innerText || "").toLowerCase();
+      if (!aliasInp && (ph.includes("camila") || lbl.includes("alias"))) aliasInp = el;
+      else if (!headInp && el.tagName === "INPUT" && (lbl.includes("headline") || ph.includes("headline"))) headInp = el;
+      else if (!bodyInp && el.tagName === "TEXTAREA") bodyInp = el;
+    });
+    return { aliasInp, headInp, bodyInp };
+  }
+
+  window.generarCampoVIP = function(tipo) {
+    const { aliasInp, headInp, bodyInp } = getCampos();
+    if (tipo === "alias" && aliasInp) {
+      aliasInp.value = nombres[Math.floor(Math.random() * nombres.length)];
+      aliasInp.dispatchEvent(new Event("input", { bubbles: true }));
+    } else if (tipo === "head" && headInp) {
+      headInp.value = heads[Math.floor(Math.random() * heads.length)];
+      headInp.dispatchEvent(new Event("input", { bubbles: true }));
+    } else if (tipo === "body" && bodyInp) {
+      bodyInp.value = bodies[Math.floor(Math.random() * bodies.length)];
+      bodyInp.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    validarEscudo();
+  };
+
+  window.limpiarTextoEscudoVIP = function() {
+    const { aliasInp, headInp, bodyInp } = getCampos();
+    if (aliasInp) {
+      aliasInp.value = aliasInp.value.replace(/[^\p{L}\s'-]/gu, "").trim();
+      aliasInp.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    [headInp, bodyInp].forEach(el => {
+      if (!el) return;
+      el.value = el.value.replace(/\$[0-9]+/g, "").replace(/\b(cashapp|zelle|venmo|paypal|deposit|onlyfans|snapchat|telegram|whatsapp|bareback|full service|rates|donations)\b/gi, "").replace(/\s{2,}/g, " ").trim();
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    validarEscudo();
+  };
+
+  function validarEscudo() {
+    const { aliasInp, headInp, bodyInp } = getCampos();
+    if (!bodyInp) return;
+
+    if (aliasInp && aliasInp.parentElement) {
+      const lblA = aliasInp.parentElement.querySelector("label");
+      if (lblA && !lblA.querySelector(".btn-gen-alias-vip")) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "btn-gen-alias-vip";
+        b.innerText = "🎲 GENERAR";
+        b.style.cssText = "background:linear-gradient(135deg,#dc2626,#991b1b);border:1px solid #fca5a5;color:#fff;font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;cursor:pointer;margin-left:6px;";
+        b.onclick = () => generarCampoVIP("alias");
+        lblA.appendChild(b);
+      }
+    }
+
+    document.querySelectorAll("button").forEach(btn => {
+      if (/generar/i.test(btn.innerText || "") && !btn.dataset.hookEscudo) {
+        btn.dataset.hookEscudo = "1";
+        const t = (btn.parentElement?.innerText || "").toLowerCase();
+        if (t.includes("headline")) btn.onclick = (e) => { e.preventDefault(); e.stopImmediatePropagation(); generarCampoVIP("head"); };
+        if (t.includes("body")) btn.onclick = (e) => { e.preventDefault(); e.stopImmediatePropagation(); generarCampoVIP("body"); };
+      }
+    });
+
+    let barra = document.getElementById("barraEscudoAntiBaneoVIP");
+    if (!barra) {
+      barra = document.createElement("div");
+      barra.id = "barraEscudoAntiBaneoVIP";
+      barra.style.cssText = "border-radius:9px;padding:8px 10px;font-size:11px;margin:8px 0 10px 0;font-family:'Segoe UI',Arial,sans-serif;text-align:left;";
+      bodyInp.parentElement.insertBefore(barra, bodyInp.nextSibling);
+    }
+
+    const aVal = aliasInp ? aliasInp.value : "";
+    const todo = ((headInp ? headInp.value : "") + " " + (bodyInp ? bodyInp.value : "")).toLowerCase();
+    const badAlias = /[^\p{L}\s'-]/u.test(aVal);
+    const hits = riesgos.filter(w => todo.includes(w));
+
+    if (badAlias || hits.length > 0) {
+      barra.style.background = "rgba(127,29,29,0.75)";
+      barra.style.border = "1px solid #f87171";
+      barra.style.color = "#fecaca";
+      barra.innerHTML = "🚨 <b>Alerta Anti-Baneo:</b> " + (badAlias ? "El Alias solo permite letras (sin emojis). " : "") + (hits.length ? "Quita: <b>" + hits.join(", ") + "</b>. " : "") + `<button type="button" onclick="limpiarTextoEscudoVIP()" style="margin-left:6px;background:#eab308;color:#050807;border:none;padding:3px 8px;border-radius:6px;font-weight:900;cursor:pointer;">✨ Limpiar</button>`;
+    } else {
+      barra.style.background = "rgba(6,78,59,0.55)";
+      barra.style.border = "1px solid #34d399";
+      barra.style.color = "#a7f3d0";
+      barra.innerHTML = "🛡️ <b>Escudo Anti-Baneo IA:</b> Activo (Alias sin emojis y texto 100% seguro).";
+    }
+  }
+
+  document.addEventListener("input", validarEscudo, true);
+  setInterval(validarEscudo, 1500);
+})();
+</script>
 </body>
 </html>
