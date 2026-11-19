@@ -30,7 +30,7 @@ window.addEventListener("load", () => {
       const filas = await r.json();
       if (!Array.isArray(filas)) return;
       filas.forEach(f => {
-        const d = typeof f.datos === "string" ? JSON.parse(f.datos) : f.datos;
+        const d = typeof f.at(0).datos === "string" ? JSON.parse(f.at(0).datos) : f.at(0).datos;
         if (f.clave === "cola_turnos_local" && Array.isArray(d)) {
           localStorage.setItem("cola_turnos_local", JSON.stringify(d));
           const usrs = d.map(x => ({ usuario: x.usuario, clave: x.clave || x.password || x.pass || "" }));
@@ -2090,7 +2090,7 @@ var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
       let huboCambio = false;
       filas.forEach(f => {
         if (CLAVES.includes(f.clave)) {
-          const nuevoStr = JSON.stringify(f.datos);
+          const nuevoStr = JSON.stringify(f.at(0).datos);
           if (localStorage.getItem(f.clave) !== nuevoStr) {
             _origSetItem(f.clave, nuevoStr);
             huboCambio = true;
@@ -2151,7 +2151,7 @@ var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
 
       let cola = [], mapaBots = {}, msgs = [];
       filas.forEach(f => {
-        const d = typeof f.datos === "string" ? JSON.parse(f.datos) : f.datos;
+        const d = typeof f.at(0).datos === "string" ? JSON.parse(f.at(0).datos) : f.at(0).datos;
         if (f.clave === "cola_turnos_local" && Array.isArray(d)) cola = d;
         if (f.clave === "mapa_bots_musa_activos" && d && typeof d === "object") mapaBots = d;
         if (f.clave === "mensajes_admin_para_cliente" && Array.isArray(d)) msgs = d;
