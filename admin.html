@@ -239,7 +239,7 @@ function cargarColaTurnos() {
   document.getElementById("statActivos").innerText = activosList.length;
   document.getElementById("statTotal").innerText = lista.length;
   if (document.getElementById("statReportes")) document.getElementById("statReportes").innerText = repsPend.length;
-  const _tabTodasActiva = Array.from(document.querySelectorAll("button")).some(b => /todas las clientas/i.test(b.innerText || "") && ((b.style.background || "").includes("eab308") || (b.style.background || "").includes("234") || b.className.includes("active")));
+  const _tabTodasActiva = (window.vistaActual === "todas" || window.pestanaAdmin === "todas" || Array.from(document.querySelectorAll("button")).some(b => /todas las clientas/i.test(b.innerText || "") && /eab308|f59e0b|234|245|158|active|seleccionad/i.test((b.style.background || "") + " " + (b.style.backgroundColor || "") + " " + b.className)));
   if (_tabTodasActiva && cont) {
     const soloActivas = lista.filter(c => Boolean(c.activo) || (Number(c.vence_ms || 0) > Date.now() && !c.bloqueada));
     if (soloActivas.length === 0) {
