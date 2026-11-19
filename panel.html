@@ -2957,7 +2957,7 @@ setInterval(() => {
 
   async function sincronizarCuentaUsuario() {
     try {
-      const r = await fetch(U + "&_t=" + Date.now(), {
+      const r = await fetch(U, {
         headers: { apikey: K, Authorization: "Bearer " + K },
         cache: "no-store"
       });
