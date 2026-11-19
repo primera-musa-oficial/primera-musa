@@ -231,8 +231,8 @@ function responderTicketDirectoAdmin(idRep) {
 function cargarColaTurnos() {
   const cont = document.getElementById("listaTarjetasAdmin");
   const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-  const enCola = lista.filter(c => !c.activo);
-  const activosList = lista.filter(c => Boolean(c.activo));
+  const enCola = lista.filter(c => !c.activo && !(Number(c.vence_ms || 0) > Date.now() && !c.bloqueada));
+  const activosList = lista.filter(c => Boolean(c.activo) || (Number(c.vence_ms || 0) > Date.now() && !c.bloqueada));
   const repsPend = JSON.parse(localStorage.getItem("reportes_clientes_local") || "[]").filter(r => !r.resuelto);
 
   document.getElementById("statCola").innerText = enCola.length;
