@@ -11,18 +11,28 @@
       (txt && localStorage.getItem("musa_soporte_cerrado_txt_" + txt) === "1");
   }
 
-  // Interceptar respuestas de Supabase antes de que el panel las dibuje
+  // Filtrar en CUALQUIER consulta GET de Supabase donde venga la fila mensajes_admin_para_cliente
   const _origFetch = window.fetch;
   window.fetch = async function(url, opts) {
     const res = await _origFetch.apply(this, arguments);
     try {
-      if (String(url || "").includes("mensajes_admin_para_cliente") && (!opts || !opts.method || opts.method === "GET")) {
+      const mtd = String(opts?.method || "GET").toUpperCase();
+      if (String(url || "").includes("musa_estado") && mtd === "GET") {
         const clon = res.clone();
         const filas = await clon.json();
-        if (Array.isArray(filas) && filas[0]) {
-          let lista = typeof filas[0].datos === "string" ? JSON.parse(filas[0].datos) : filas[0].datos;
-          if (Array.isArray(lista)) {
-            filas[0].datos = lista.filter(m => !estaCerrado(m));
+        if (Array.isArray(filas)) {
+          let huboCambio = false;
+          filas.forEach(f => {
+            if (f && f.clave === "mensajes_admin_para_cliente" && f.datos) {
+              const lista = typeof f.datos === "string" ? JSON.parse(f.datos) : f.datos;
+              if (Array.isArray(lista)) {
+                const filtrada = lista.filter(m => !estaCerrado(m));
+                f.datos = typeof f.datos === "string" ? JSON.stringify(filtrada) : filtrada;
+                huboCambio = true;
+              }
+            }
+          });
+          if (huboCambio) {
             return new Response(JSON.stringify(filas), { status: 200, headers: { "Content-Type": "application/json" } });
           }
         }
@@ -31,7 +41,7 @@
     return res;
   };
 
-  // Al tocar la X, guardar marca local permanente y borrar el cartel al instante
+  // Al pulsar la X, guardar marca local permanente y eliminar la caja al instante
   document.addEventListener("click", (e) => {
     const el = e.target.closest("button, span, div");
     if (!el) return;
@@ -56,6 +66,7 @@
   }, true);
 })();
 </script>
+
 <script id="escudoInicioSinFalsaSubida">
 window._musaInicioSesionMs = Date.now();
 window.addEventListener("load", () => {
