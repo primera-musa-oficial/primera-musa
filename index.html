@@ -366,6 +366,45 @@ document.addEventListener("click", (e) => {
   } catch {}
 })();
 </script>
+<script id="compresorFotosRegistroVIP">
+(function() {
+  const U = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado?on_conflict=clave";
+  const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+
+  // Interceptar fetch hacia musa_estado cuando sube cola_turnos_local para achicar fotos gigantes > 150KB
+  const _origFetch = window.fetch.bind(window);
+  window.fetch = async function(url, opts) {
+    try {
+      if (typeof url === "string" && url.includes("musa_estado") && opts && opts.body && typeof opts.body === "string" && opts.body.includes("cola_turnos_local")) {
+        const parsed = JSON.parse(opts.body);
+        const row = Array.isArray(parsed) ? parsed.at(0) : parsed;
+        if (row && Array.isArray(row.datos)) {
+          for (const item of row.datos) {
+            for (const key of ["foto1", "foto2", "foto3"]) {
+              if (item[key] && typeof item[key] === "string" && item[key].length > 180000) {
+                item[key] = await new Promise(res => {
+                  const img = new Image();
+                  img.onload = () => {
+                    const c = document.createElement("canvas");
+                    const s = img.width > 600 ? (600 / img.width) : 1;
+                    c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+                    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+                    res(c.toDataURL("image/jpeg", 0.72));
+                  };
+                  img.onerror = () => res(item[key]);
+                  img.src = item[key];
+                });
+              }
+            }
+          }
+          opts.body = JSON.stringify(parsed);
+        }
+      }
+    } catch {}
+    return _origFetch(url, opts);
+  };
+})();
+</script>
 </head>
 <body>
 <div class="garland"><div class="bulb r"></div><div class="bulb g"></div><div class="bulb v"></div><div class="bulb r"></div><div class="bulb g"></div><div class="bulb v"></div><div class="bulb r"></div><div class="bulb g"></div></div>
