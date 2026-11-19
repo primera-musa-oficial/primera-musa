@@ -1159,11 +1159,7 @@ document.addEventListener("click", async (e) => {
   }
 
   async function guardarPagos(arr) {
-    await fetch(URL_SB + "?on_conflict=clave", {
-      method: "POST",
-      headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
-      body: JSON.stringify({ clave: "solicitudes_pago_vivo_musa", datos: arr })
-    });
+    await fetch(URL_SB + "?clave=eq.solicitudes_pago_vivo_musa", { method: "PATCH", headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json", "Prefer": "return=minimal" }, body: JSON.stringify({ datos: arr.slice(-5), actualizado_en: new Date().toISOString() }) });
   }
 
   window.enviarMetodoPagoVIP = async function(idSol, usr) {
