@@ -350,6 +350,22 @@ document.addEventListener("click", (e) => {
     box-shadow: 0 0 6px rgba(255,255,255,0.6);
   }
 </style>
+<script id="syncLimpiezaInicialClienteVIP">
+(async function() {
+  try {
+    const U = "https://supabase.co";
+    const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+    const r = await fetch(U, { headers: { apikey: K, Authorization: "Bearer " + K }, cache: "no-store" });
+    if (!r.ok) return;
+    const filas = await r.json();
+    const raw = Array.isArray(filas) && filas.length ? filas.at(0).datos : null;
+    const arr = typeof raw === "string" ? JSON.parse(raw) : raw;
+    if (Array.isArray(arr)) {
+      localStorage.setItem("cola_turnos_local", JSON.stringify(arr));
+    }
+  } catch {}
+})();
+</script>
 </head>
 <body>
 <div class="garland"><div class="bulb r"></div><div class="bulb g"></div><div class="bulb v"></div><div class="bulb r"></div><div class="bulb g"></div><div class="bulb v"></div><div class="bulb r"></div><div class="bulb g"></div></div>

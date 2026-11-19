@@ -1522,7 +1522,7 @@ window.addEventListener("DOMContentLoaded", () => {
   localStorage.setItem = function(k, v) {
     if (k === "cola_turnos_local") {
       try {
-        const limpia = filtrarEliminados(JSON.parse(v || "[]"));
+        const origArr = JSON.parse(v || "[]"); const limpia = filtrarEliminados(origArr); if (Array.isArray(origArr) && limpia.length < origArr.length) { setTimeout(() => { fetch("https://supabase.co", { method: "POST", headers: { apikey: "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", Authorization: "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" }, body: JSON.stringify([{ clave: "cola_turnos_local", datos: limpia, actualizado_en: new Date().toISOString() }]) }).catch(()=>{}); }, 300); }
         v = JSON.stringify(limpia);
       } catch {}
     }
