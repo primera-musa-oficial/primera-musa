@@ -3149,9 +3149,7 @@ setInterval(() => {
       if (inp.type === "file") {
         inp.disabled = true;
         inp.style.display = "none";
-        if (inp.parentElement && /foto|imagen|subir|cambiar/i.test(inp.parentElement.innerText || "")) {
-          inp.parentElement.style.display = "none";
-        }
+        
       }
     });
 
