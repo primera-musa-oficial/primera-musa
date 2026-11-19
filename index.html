@@ -2370,43 +2370,39 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
 
 
 
+
 <script id="escudoEstrictoBotVivo">
 (function() {
-  const URL_SB = "https://supabase.co";
-  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
-  let _yaNotificoPausaAnuncio = "";
+  let _ultimoAnuncioNotificado = "";
+  let _pushEnviadoEsteSesion = false;
 
-  function detectarUsuarioUniversal() {
+  function obtenerNumeroAnuncio() {
+    const activo = Array.from(document.querySelectorAll("button, div, span")).find(el => {
+      const t = (el.innerText || "").trim();
+      return /^#\d+$/.test(t) && (el.style.background || el.className.includes("activ"));
+    });
+    return activo ? activo.innerText.trim() : "#1";
+  }
+
+  function obtenerUsuarioLimpio() {
     let u = window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "";
     if (!u) {
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i) || "";
         const v = localStorage.getItem(k) || "";
-        if ((k.includes("usr") || k.includes("user") || k.includes("cli") || k.includes("sesion")) && v.length >= 3 && v.length <= 30 && !v.startsWith("{") && !v.startsWith("[")) {
+        if ((k.includes("usr") || k.includes("user") || k.includes("cli")) && v.length >= 3 && v.length <= 30 && !v.startsWith("{") && !v.startsWith("[")) {
           u = v; break;
         }
       }
     }
-    if (!u) {
-      const inp = document.querySelector("input[type='text']");
-      if (inp && inp.value && inp.value.length >= 3) u = inp.value;
-    }
-    return String(u).trim().toLowerCase();
-  }
-
-  function obtenerNumeroAnuncio() {
-    const tabActiva = Array.from(document.querySelectorAll("button, div, span")).find(el => {
-      const t = (el.innerText || "").trim();
-      return /^#\d+$/.test(t) && (el.style.background || el.className.includes("activ"));
-    });
-    return tabActiva ? tabActiva.innerText.trim() : "#1";
+    return String(u).trim().toLowerCase().replace(/[^a-z0-9]/g, "");
   }
 
   function mostrarNotificacionFlotante(titulo, detalle) {
     document.getElementById("toastNotifAnuncioVIP")?.remove();
     const toast = document.createElement("div");
     toast.id = "toastNotifAnuncioVIP";
-    toast.style.cssText = "position:fixed;top:16px;left:50%;transform:translateX(-50%);width:92%;max-width:440px;background:linear-gradient(135deg,#064e3b,#022c22);border:2px solid #fde047;color:#fff;padding:13px 38px 13px 15px;border-radius:14px;box-shadow:0 10px 28px rgba(0,0,0,0.75);z-index:999999;font-family:Arial,sans-serif;text-align:left;";
+    toast.style.cssText = "position:fixed;top:16px;left:50%;transform:translateX(-50%);width:92%;max-width:440px;background:linear-gradient(135deg,#064e3b,#022c22);border:2px solid #fde047;color:#fff;padding:13px 38px 13px 15px;border-radius:14px;box-shadow:0 10px 28px rgba(0,0,0,0.8);z-index:999999;font-family:Arial,sans-serif;text-align:left;";
     toast.innerHTML = `
       <div style="color:#fde047;font-weight:900;font-size:13px;margin-bottom:3px;">${titulo}</div>
       <div style="color:#e2e8f0;font-size:12.5px;line-height:1.35;">${detalle}</div>
@@ -2416,62 +2412,29 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   }
 
   setInterval(() => {
-    if (window._musaPausadoAhora === true) {
-      document.querySelectorAll("*").forEach(el => {
-        if (el.children.length === 0 && /^\d{1,2}:\d{2}(:\d{2})?$/.test((el.innerText || "").trim())) {
-          el.innerText = "00:00";
+    const btnGuardar = Array.from(document.querySelectorAll("button")).find(b => b.offsetParent !== null && /edit post|manage posts|activar alertas/i.test(b.innerText));
+    if (!btnGuardar) return;
+
+    const hayCeroCero = Array.from(document.querySelectorAll("*")).some(el => el.children.length === 0 && (el.innerText || "").trim() === "00:00");
+    if (hayCeroCero || window._musaPausadoAhora) {
+      const num = obtenerNumeroAnuncio();
+      if (_ultimoAnuncioNotificado !== num) {
+        _ultimoAnuncioNotificado = num;
+        const msg = "Tu Anuncio " + num + " está pausado por chequeo técnico. Te avisaremos en cuanto vuelva a subir.";
+        mostrarNotificacionFlotante("⏸️ ANUNCIO " + num + " EN CHEQUEO", msg);
+
+        const usr = obtenerUsuarioLimpio();
+        if (usr && !_pushEnviadoEsteSesion) {
+          _pushEnviadoEsteSesion = true;
+          fetch("https://ntfy.sh" + usr, {
+            method: "POST",
+            headers: { "Title": "ANUNCIO " + num + " PAUSADO POR CHEQUEO", "Priority": "high", "Tags": "pause_button,warning" },
+            body: msg
+          }).catch(() => {});
         }
-      });
-    }
-  }, 300);
-
-  async function verificarBotRealmenteVivo() {
-    try {
-      const r = await fetch(URL_SB + "?clave=in.(cola_turnos_local,mapa_bots_musa_activos)&select=clave,datos", {
-        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
-      });
-      const filas = await r.json();
-      if (!Array.isArray(filas)) return;
-
-      let cola = [], mapaBots = {};
-      filas.forEach(f => {
-        const d = typeof f.datos === "string" ? JSON.parse(f.datos) : f.datos;
-        if (f.clave === "cola_turnos_local" && Array.isArray(d)) cola = d;
-        if (f.clave === "mapa_bots_musa_activos" && d && typeof d === "object") mapaBots = d;
-      });
-
-      const u = detectarUsuarioUniversal();
-      const cuenta = u ? cola.find(c => String(c.usuario || "").trim().toLowerCase() === u) : cola;
-      const codBot = cuenta ? String(cuenta.bot_asignado || "").trim().toUpperCase() : "";
-      const infoBot = codBot ? mapaBots[codBot] : Object.values(mapaBots);
-      const sinLatido = !infoBot || (Date.now() - Number(infoBot.ts || 0)) > 65000 || Boolean(infoBot.alerta);
-      const pausada = (cuenta && (!cuenta.activo || Boolean(cuenta.pausado))) || sinLatido;
-
-      window._musaPausadoAhora = pausada;
-
-      if (pausada) {
-        const numAnuncio = obtenerNumeroAnuncio();
-        if (_yaNotificoPausaAnuncio !== numAnuncio) {
-          _yaNotificoPausaAnuncio = numAnuncio;
-          const msg = "Tu Anuncio " + numAnuncio + " está pausado por chequeo técnico. Te avisaremos en cuanto vuelva a subir.";
-          mostrarNotificacionFlotante("⏸️ ANUNCIO " + numAnuncio + " EN CHEQUEO", msg);
-          const usrLimpio = (cuenta?.usuario || u || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-          if (usrLimpio) {
-            fetch("https://ntfy.sh" + usrLimpio, {
-              method: "POST",
-              headers: { "Title": "ANUNCIO " + numAnuncio + " PAUSADO POR CHEQUEO", "Priority": "high", "Tags": "pause_button,warning" },
-              body: msg
-            }).catch(() => {});
-          }
-        }
-      } else {
-        _yaNotificoPausaAnuncio = "";
       }
-    } catch {}
-  }
-
-  verificarBotRealmenteVivo();
-  setInterval(verificarBotRealmenteVivo, 3500);
+    }
+  }, 1500);
 })();
 </script>
 </body>
