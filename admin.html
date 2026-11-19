@@ -228,7 +228,7 @@ function responderTicketDirectoAdmin(idRep) {
   cargarColaTurnos();
 }
 
-function cargarColaTurnos() {
+function cargarColaTurnos() { if (window._viendoTabPagosAdmin) return;
   const cont = document.getElementById("listaTarjetasAdmin");
   const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
   const enCola = lista.filter(c => !c.activo && !(Number(c.vence_ms || 0) > Date.now() && !c.bloqueada));
@@ -1140,7 +1140,7 @@ document.addEventListener("click", async (e) => {
 (function() {
   const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
   const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
-  window._viendoTabPagosAdmin = false;
+  window._viendoTabPagosAdmin = false; if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
 
   async function leerPagosNube() {
     const r = await fetch(URL_SB + "?clave=eq.solicitudes_pago_vivo_musa&select=datos", {
@@ -1204,7 +1204,7 @@ document.addEventListener("click", async (e) => {
       tabRef.parentElement.addEventListener("click", (e) => {
         const b = e.target.closest("button");
         if (b && b.id !== "btnTabSolicitudesPagoVIP") {
-          window._viendoTabPagosAdmin = false;
+          window._viendoTabPagosAdmin = false; if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
           const bp = document.getElementById("btnTabSolicitudesPagoVIP");
           if (bp) { bp.style.background = ""; bp.style.color = ""; }
         }
