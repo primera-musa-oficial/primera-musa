@@ -1,6 +1,61 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script id="cierreTotalCartelSoporte">
+(function() {
+  function estaCerrado(m) {
+    const id = String(m?.id || "");
+    const txt = String(m?.texto || m?.mensaje || "").trim();
+    return Boolean(m?.leido) ||
+      (id && localStorage.getItem("musa_msg_cerrado_" + id) === "1") ||
+      (txt && localStorage.getItem("musa_soporte_cerrado_txt_" + txt) === "1");
+  }
+
+  // Interceptar respuestas de Supabase antes de que el panel las dibuje
+  const _origFetch = window.fetch;
+  window.fetch = async function(url, opts) {
+    const res = await _origFetch.apply(this, arguments);
+    try {
+      if (String(url || "").includes("mensajes_admin_para_cliente") && (!opts || !opts.method || opts.method === "GET")) {
+        const clon = res.clone();
+        const filas = await clon.json();
+        if (Array.isArray(filas) && filas[0]) {
+          let lista = typeof filas[0].datos === "string" ? JSON.parse(filas[0].datos) : filas[0].datos;
+          if (Array.isArray(lista)) {
+            filas[0].datos = lista.filter(m => !estaCerrado(m));
+            return new Response(JSON.stringify(filas), { status: 200, headers: { "Content-Type": "application/json" } });
+          }
+        }
+      }
+    } catch {}
+    return res;
+  };
+
+  // Al tocar la X, guardar marca local permanente y borrar el cartel al instante
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest("button, span, div");
+    if (!el) return;
+    const caja = el.closest("div[style*='border']");
+    const txtBtn = (el.innerText || "").trim();
+    if (caja && (caja.innerText || "").includes("RESPUESTA DE SOPORTE VIP") && (txtBtn === "✕" || txtBtn === "X" || txtBtn === "×" || el.tagName === "BUTTON")) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const textoMsg = (caja.innerText || "").replace("RESPUESTA DE SOPORTE VIP:", "").replace(/[✕×X]/g, "").trim();
+      if (textoMsg) localStorage.setItem("musa_soporte_cerrado_txt_" + textoMsg, "1");
+      try {
+        const loc = JSON.parse(localStorage.getItem("mensajes_admin_para_cliente") || "[]");
+        loc.forEach(m => {
+          if ((m.texto || m.mensaje || "").trim() === textoMsg && m.id) {
+            localStorage.setItem("musa_msg_cerrado_" + m.id, "1");
+          }
+        });
+        localStorage.setItem("mensajes_admin_para_cliente", JSON.stringify(loc.filter(m => !estaCerrado(m))));
+      } catch {}
+      caja.remove();
+    }
+  }, true);
+})();
+</script>
 <script id="escudoInicioSinFalsaSubida">
 window._musaInicioSesionMs = Date.now();
 window.addEventListener("load", () => {
@@ -2363,52 +2418,6 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   };
 })();
 </script>
-<script id="cierreTotalCartelSoporte">
-document.addEventListener("click", async (e) => {
-  const el = e.target.closest("button, span, div");
-  if (!el) return;
-  const txtBtn = (el.innerText || "").trim();
-  const caja = el.closest("div[style*='border']");
-  if (caja && (caja.innerText || "").includes("RESPUESTA DE SOPORTE VIP") && (txtBtn === "✕" || txtBtn === "X" || txtBtn === "×" || el.tagName === "BUTTON")) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    const textoMsg = (caja.innerText || "").replace("RESPUESTA DE SOPORTE VIP:", "").replace(/[✕×X]/g, "").trim();
-    caja.remove();
-    localStorage.setItem("musa_soporte_cerrado_txt_" + textoMsg, "1"); try { const loc = JSON.parse(localStorage.getItem("mensajes_admin_para_cliente") || "[]").map(m => ((m.texto||m.mensaje||"").trim() === textoMsg) ? {...m, leido:true} : m); localStorage.setItem("mensajes_admin_para_cliente", JSON.stringify(loc)); } catch {}
 
-    try {
-      const URL_SB = "https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado";
-      const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
-      const r = await fetch(URL_SB + "?clave=eq.mensajes_admin_para_cliente&select=datos", {
-        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
-      });
-      const filas = await r.json();
-      let lista = Array.isArray(filas) && filas[0] ? (typeof filas[0].datos === "string" ? JSON.parse(filas[0].datos) : filas[0].datos) : [];
-      if (Array.isArray(lista)) {
-        lista = lista.map(m => ((m.texto || m.mensaje || "").trim() === textoMsg) ? { ...m, leido: true } : m);
-        localStorage.setItem("mensajes_admin_para_cliente", JSON.stringify(lista));
-        await fetch(URL_SB + "?clave=eq.mensajes_admin_para_cliente", {
-          method: "PATCH",
-          headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json" },
-          body: JSON.stringify({ datos: lista })
-        });
-      }
-    } catch {}
-  }
-}, true);
-
-// Ocultar también si ese texto ya fue cerrado antes en este teléfono
-setInterval(() => {
-  document.querySelectorAll("div").forEach(d => {
-    if ((d.innerText || "").includes("RESPUESTA DE SOPORTE VIP")) {
-      const textoMsg = (d.innerText || "").replace("RESPUESTA DE SOPORTE VIP:", "").replace(/[✕×X]/g, "").trim();
-      if (textoMsg && localStorage.getItem("musa_soporte_cerrado_txt_" + textoMsg) === "1") {
-        const caja = d.closest("div[style*='border']") || d;
-        caja.remove();
-      }
-    }
-  });
-}, 1000);
-</script>
 </body>
 </html>
