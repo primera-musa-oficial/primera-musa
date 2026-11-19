@@ -726,7 +726,7 @@ setInterval(() => {
     ordenados.forEach(({ cod, online }) => {
       const selAttr = (cod === valActual) ? " selected" : "";
       const etiqueta = (cod === valActual)
-        ? `⭐ ${cod} — ASIGNADO Y TRABAJANDO`
+        ? `⭐ ${cod} — ASIGNADO (Listo para activar)`
         : (online ? `🟢 ${cod} — CONECTADO EN CHROME (ONLINE)` : `⚪ ${cod} — Disponible`);
       html += `<option value="${cod}"${selAttr}>${etiqueta}</option>`;
     });
@@ -792,7 +792,7 @@ setInterval(() => {
       ordenados.forEach(({ cod, online }) => {
         const selAttr = (cod === valActual) ? " selected" : "";
         const etiqueta = (cod === valActual)
-          ? `⭐ ${cod} — ASIGNADO Y TRABAJANDO`
+          ? `⭐ ${cod} — ASIGNADO (Listo para activar)`
           : (online ? `🟢 ${cod} — CONECTADO EN CHROME (ONLINE)` : `⚪ ${cod} — Disponible`);
         html += `<option value="${cod}"${selAttr}>${etiqueta}</option>`;
       });
