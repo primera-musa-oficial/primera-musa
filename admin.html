@@ -399,7 +399,7 @@ ${c.es_adicional ? `<span style="background:linear-gradient(90deg,#1d4ed8,#3b82f
     <div class="dato-pill" style="margin-bottom:6px;"><div><b>Headline:</b> ${c.headline || "—"}</div><button type="button" class="btn-step" onclick="copiarTextoAdmin(\`${(c.headline||"").replace(/`/g,"")}\`,this)">📋 Copiar</button></div>
     <div class="dato-pill" style="margin-bottom:8px;"><div><b>Body:</b> ${c.body || "—"}</div><button type="button" class="btn-step" onclick="copiarTextoAdmin(\`${(c.body||"").replace(/`/g,"")}\`,this)">📋 Copiar</button></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">${fotosHtml}</div>
-    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px;"><select id="pagInp_${c.id}"><option value="">— Selecciona Bot (${pag}) —</option>${obtenerCuentasBot().map(b=>`<option value="${b.codigo} • ${b.nombre}">${b.codigo} • ${b.nombre}</option>`).join("")}</select><button type="button" class="btn-gold" onclick="guardarCambioLocal(${c.id},null,document.getElementById('pagInp_${c.id}').value)">Asignar Bot ✅</button></div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px;"><select id="pagInp_${c.id}"><option value="">— Selecciona Bot (${pag}) —</option>${obtenerCuentasBot().filter(b => !lista.some(x => x.id !== c.id && (x.activo || Number(x.vence_ms || 0) > Date.now()) && !x.bloqueada && String(x.bot_asignado || "").toUpperCase().includes(b.codigo.toUpperCase()))).map(b=>`<option value="${b.codigo} • ${b.nombre}">${b.codigo} • ${b.nombre}</option>`).join("")}</select><button type="button" class="btn-gold" onclick="guardarCambioLocal(${c.id},null,document.getElementById('pagInp_${c.id}').value)">Asignar Bot ✅</button></div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;">
       <button type="button" class="btn-step ${paso===1?'activo':''}" onclick="guardarCambioLocal(${c.id},1,null)">1. Revisando</button>
       <button type="button" class="btn-step ${paso===2?'activo':''}" onclick="guardarCambioLocal(${c.id},2,null)">2. Subiendo fotos</button>
@@ -747,7 +747,6 @@ setInterval(() => {
         const it = arr.find(x => x.usuario === clienta.usuario);
         if (it) {
           it.bot_asignado = elegido;
-          it.activo = true;
           it.proximo_bump_ms = Date.now() + 5000;
           const base = String(it.ultimo_anuncio || "").replace(/\|?PAGINA:[^|]*/g, "");
           it.ultimo_anuncio = base + "|PAGINA:" + elegido + "|PASO:4";
@@ -814,7 +813,6 @@ setInterval(() => {
           const it = arr.find(x => x.usuario === clienta.usuario);
           if (it) {
             it.bot_asignado = elegido;
-            it.activo = true;
             it.proximo_bump_ms = Date.now() + 5000;
             const base = String(it.ultimo_anuncio || "").replace(/\|?PAGINA:[^|]*/g, "");
             it.ultimo_anuncio = base + "|PAGINA:" + elegido + "|PASO:4";
@@ -842,7 +840,6 @@ document.addEventListener("click", async (e) => {
   if (!it) return;
 
   it.bot_asignado = elegido;
-  it.activo = true;
   it.proximo_bump_ms = Date.now() + 3000;
   const base = String(it.ultimo_anuncio || "").replace(/\|?PAGINA:[^|]*/g, "");
   it.ultimo_anuncio = base + "|PAGINA:" + elegido + "|PASO:4";
@@ -880,7 +877,6 @@ document.addEventListener("click", async (e) => {
   const it = arr.find(x => x.usuario && txtCard.includes(x.usuario));
   if (it) {
     it.bot_asignado = elegido;
-    it.activo = true;
     it.proximo_bump_ms = Date.now() + 2000;
     const base = String(it.ultimo_anuncio || "").replace(/\|?PAGINA:[^|]*/g, "");
     it.ultimo_anuncio = base + "|PAGINA:" + elegido + "|PASO:4";
@@ -1193,43 +1189,78 @@ document.addEventListener("click", async (e) => {
 
 
 
+
+
 <script id="botonEmpezarConteoRentaVIP">
 (function(){
+  const U="https://supabase.co";
+  const K="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+
+  window.activarRentaYMoverAActivos = async function(idCta) {
+    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const c = l.find(x => String(x.id) === String(idCta));
+    if (!c) return;
+
+    const pLow = String(c.plan || "").toLowerCase();
+    const dias = pLow.includes("mes") ? 30 : (pLow.includes("semana") ? 7 : 1);
+    const ahora = Date.now();
+    const vence = ahora + dias * 86400000;
+
+    c.inicio_renta_ms = ahora;
+    c.vence_ms = vence;
+    c.fin_renta_ms = vence;
+    c.expira_ms = vence;
+    c.activo = true;
+    c.pagado = true;
+    c.aprobada = true;
+    c.detenido = false;
+    c.bloqueada = false;
+    c.pausado = false;
+    c.estado = "activa";
+    c.proximo_bump_ms = ahora + 3000;
+
+    window._bloqueoNubeAdminHasta = Date.now() + 15000;
+    localStorage.setItem("cola_turnos_local", JSON.stringify(l));
+
+    await fetch(U, {
+      method: "POST",
+      headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+      body: JSON.stringify({ clave: "cola_turnos_local", datos: l })
+    }).catch(()=>{});
+
+    if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
+    alert("✅ ¡Renta iniciada (" + dias + " días)! El anuncio pasó a Activos y comenzó su conteo.");
+  };
+
   setInterval(() => {
+    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
     document.querySelectorAll(".turno-card").forEach(card => {
       const btnDia = Array.from(card.querySelectorAll("button")).find(b => /^\+1\s*d[ií]a$/i.test((b.innerText || "").trim()));
       if (!btnDia || !btnDia.parentElement) return;
 
       const txt = (card.innerText || "").toLowerCase();
-      // Si la tarjeta ya muestra "vence:" o "quedan", significa que ya tiene su conteo activo
-      const yaTieneConteo = /\brenta\s*restante\s*:|\bvence\s*:|\bquedan\s+/i.test(txt);
-      const btnExistente = card.querySelector(".btn-empezar-conteo-vip");
+      const cta = l.find(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
+      if (!cta) return;
 
-      if (yaTieneConteo) {
-        if (btnExistente) btnExistente.remove();
+      const yaActivaConConteo = Boolean(cta.activo) && Number(cta.vence_ms || 0) > Date.now();
+      const btnExist = card.querySelector(".btn-empezar-conteo-vip");
+
+      if (yaActivaConConteo) {
+        if (btnExist) btnExist.remove();
         return;
       }
 
-      if (btnExistente) return;
-
+      if (btnExist) return;
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "btn-empezar-conteo-vip";
-      btn.innerText = "▶️ Empezar Conteo de Renta";
-      btn.style.cssText = "background:linear-gradient(135deg,#059669,#047857);border:1.5px solid #34d399;color:#fff;font-weight:900;padding:6px 11px;border-radius:8px;cursor:pointer;font-size:11.5px;margin-right:4px;";
-      btn.onclick = () => {
-        const targetRegex = txt.includes("1 mes") ? /^\+1\s*mes$/i : (txt.includes("1 semana") ? /^\+1\s*semana$/i : /^\+1\s*d[ií]a$/i);
-        const botonReal = Array.from(card.querySelectorAll("button")).find(b => targetRegex.test((b.innerText || "").trim()));
-        if (botonReal) {
-          botonReal.click();
-          btn.remove();
-        }
-      };
+      btn.innerText = "▶️ Empezar Renta y Conteo";
+      btn.style.cssText = "background:linear-gradient(135deg,#059669,#047857);border:1.5px solid #34d399;color:#fff;font-weight:900;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:11.5px;margin-right:5px;";
+      btn.onclick = () => activarRentaYMoverAActivos(cta.id);
       btnDia.parentElement.insertBefore(btn, btnDia);
     });
-  }, 1500);
+  }, 1200);
 })();
 </script>
-
 </body>
 </html>
