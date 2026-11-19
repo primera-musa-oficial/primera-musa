@@ -401,13 +401,13 @@ ${c.es_adicional ? `<span style="background:linear-gradient(90deg,#1d4ed8,#3b82f
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">${fotosHtml}</div>
     <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px;"><select id="pagInp_${c.id}"><option value="">— Selecciona Bot (${pag}) —</option>${obtenerCuentasBot().filter(b => !lista.some(x => x.id !== c.id && (x.activo || Number(x.vence_ms || 0) > Date.now()) && !x.bloqueada && String(x.bot_asignado || "").toUpperCase().includes(b.codigo.toUpperCase()))).map(b=>`<option value="${b.codigo} • ${b.nombre}">${b.codigo} • ${b.nombre}</option>`).join("")}</select><button type="button" class="btn-gold" onclick="guardarCambioLocal(${c.id},null,document.getElementById('pagInp_${c.id}').value)">Asignar Bot ✅</button></div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;">
-      <button type="button" class="btn-step ${paso===1?'activo':''}" onclick="guardarCambioLocal(${c.id},1,null)">1. Revisando</button>
-      <button type="button" class="btn-step ${paso===2?'activo':''}" onclick="guardarCambioLocal(${c.id},2,null)">2. Subiendo fotos</button>
-      <button type="button" class="btn-step ${paso===3?'activo':''}" onclick="guardarCambioLocal(${c.id},3,null)">3. Verificando SMS</button>
+      
+      
+      
       ${c.activo
   ? `<span style="background:rgba(16,185,129,0.2);border:1px solid #34d399;color:#6ee7b7;font-size:11px;font-weight:900;padding:6px 12px;border-radius:8px;">✅ Activada</span>
      <button type="button" class="btn-gold" style="padding:5px 10px;font-size:11px;" onclick="abrirMensajeBienvenidaAdmin(${c.id})">📲 Copiar Mensaje + Foto</button>`
-  : `<button type="button" class="btn-green" onclick="guardarCambioLocal(${c.id},4,null);abrirMensajeBienvenidaAdmin(${c.id});">✅ Activada</button>`
+  : ``
 }
       ${c.activo ? (c.detenido ? `<button type="button" class="btn-gold" style="padding:5px 9px;font-size:11px;" onclick="toggleDetenerLocal(${c.id},false)">▶️ Reanudar</button>` : `<button type="button" class="btn-step" style="border-color:#f97316;color:#fdba74;" onclick="toggleDetenerLocal(${c.id},true)">⏸️ Detener (Sin Pago)</button>`) : ""}
       <button type="button" class="btn-red" style="margin-left:auto;" onclick="rechazarSolicitudAdmin(${c.id})">🚫 Rechazar</button>
