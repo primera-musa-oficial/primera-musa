@@ -1240,5 +1240,22 @@ document.addEventListener("click", async (e) => {
 })();
 </script>
 
+<script id="botonMenuPagosFijo">
+setInterval(() => {
+  const ref = Array.from(document.querySelectorAll("button")).find(b => /reportes y fallas/i.test(b.innerText || ""));
+  if (!ref || !ref.parentElement || document.getElementById("btnIrPagosVIP")) return;
+  const b = document.createElement("button");
+  b.id = "btnIrPagosVIP";
+  b.type = "button";
+  b.className = ref.className;
+  b.innerText = "💰 Solicitudes de Pago";
+  b.onclick = () => {
+    const z = document.getElementById("zonaPagosEnVivoAdmin");
+    if (z) { z.scrollIntoView({ behavior: "smooth" }); }
+    else { alert("✅ No hay solicitudes de pago pendientes en este momento."); }
+  };
+  ref.parentElement.appendChild(b);
+}, 2000);
+</script>
 </body>
 </html>
