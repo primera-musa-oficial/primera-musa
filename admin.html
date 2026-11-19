@@ -138,7 +138,7 @@
     <div style="display:flex;gap:8px;margin-bottom:14px;">
             <button type="button" id="btnFiltroCola" class="btn-gold" onclick="cambiarVistaAdmin('cola')">🎫 Cola por Turno de Llegada</button>
       <button type="button" id="btnFiltroActivos" class="btn-step" onclick="cambiarVistaAdmin('activos')">🟢 Anuncios Activos (Reloj en Vivo)</button>
-            <button type="button" id="btnFiltroTodas" class="btn-step" onclick="cambiarVistaAdmin('todas')">👑 Todas las Clientas y Cuentas</button>
+            <button type="button" id="btnFiltroTodas" class="btn-step" onclick="cambiarVistaAdmin('todas')">👤 Usuarios</button>
             <button type="button" id="btnFiltroReportes" class="btn-step" onclick="cambiarVistaAdmin('reportes')">🚨 Reportes y Fallas (Orden de Llegada)</button>
       <button type="button" id="btnFiltroBots" class="btn-step" onclick="cambiarVistaAdmin('bots')">🔌 Cuentas y Bots (MUSA-01)</button>
     </div>
@@ -239,13 +239,36 @@ function cargarColaTurnos() {
   document.getElementById("statActivos").innerText = activosList.length;
   document.getElementById("statTotal").innerText = lista.length;
   if (document.getElementById("statReportes")) document.getElementById("statReportes").innerText = repsPend.length;
-  const _tabTodasActiva = (window.vistaActual === "todas" || window.pestanaAdmin === "todas" || Array.from(document.querySelectorAll("button")).some(b => /todas las clientas/i.test(b.innerText || "") && /eab308|f59e0b|234|245|158|active|seleccionad/i.test((b.style.background || "") + " " + (b.style.backgroundColor || "") + " " + b.className)));
-  if (_tabTodasActiva && cont) {
-    const soloActivas = lista.filter(c => Boolean(c.activo) || (Number(c.vence_ms || 0) > Date.now() && !c.bloqueada));
-    if (soloActivas.length === 0) {
-      cont.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:24px;">No hay clientas activas todavía.</div>`;
+  const _tabUsuariosActiva = (window.vistaActual === "todas" || window.pestanaAdmin === "todas" || Array.from(document.querySelectorAll("button")).some(b => /usuarios/i.test(b.innerText || "") && !/solicitudes/i.test(b.innerText || "") && /eab308|f59e0b|234|245|158|active|seleccionad/i.test((b.style.background || "") + " " + (b.style.backgroundColor || "") + " " + b.className)));
+  if (_tabUsuariosActiva && cont) {
+    const activos = lista.filter(c => Boolean(c.activo) || (Number(c.vence_ms || 0) > Date.now() && !c.bloqueada));
+    if (activos.length === 0) {
+      cont.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:24px;background:#0a120f;border:1.5px solid #334155;border-radius:14px;">No hay usuarios activos en este momento.</div>`;
       return;
     }
+    const qPrev = (document.getElementById("inpBuscarUsrVIP")?.value || "").trim().toLowerCase();
+    cont.innerHTML = `<div style="margin-bottom:12px;"><input type="text" id="inpBuscarUsrVIP" value="${qPrev}" oninput="document.querySelectorAll('.fila-usr-activo').forEach(el=>el.style.display=(!this.value||el.innerText.toLowerCase().includes(this.value.toLowerCase()))?'':'none')" placeholder="🔍 Buscar por usuario, bot o alias..." style="width:100%;background:#050807;border:1.5px solid #eab308;color:#fff;padding:10px 14px;border-radius:12px;font-size:13px;box-sizing:border-box;"></div>` +
+      activos.map((c, idx) => {
+        const bot = c.bot_asignado ? String(c.bot_asignado).toUpperCase() : "SIN BOT";
+        const venceMs = Number(c.vence_ms || 0);
+        const restMs = Math.max(0, venceMs - Date.now());
+        const d = Math.floor(restMs / 86400000);
+        const h = Math.floor((restMs % 86400000) / 3600000);
+        const tiempoTxt = restMs > 0 ? `${d}d ${h}h (${new Date(venceMs).toLocaleDateString()})` : "Vencido";
+        const vis = (!qPrev || JSON.stringify(c).toLowerCase().includes(qPrev)) ? "" : "display:none;";
+        return `<div class="fila-usr-activo" style="${vis}background:#0a120f;border:1.5px solid #334155;border-radius:14px;padding:12px 14px;margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;font-family:Arial,sans-serif;">
+          <div style="text-align:left;">
+            <div style="color:#fde047;font-weight:900;font-size:14px;">#${idx + 1} • Usuario: <span style="color:#fff;">${c.usuario || "—"}</span> &nbsp;|&nbsp; Clave: <span style="color:#34d399;">${c.clave || "—"}</span></div>
+            <div style="color:#94a3b8;font-size:12px;margin-top:3px;">Anuncio: <b style="color:#e2e8f0;">${c.alias || "—"}</b> • ${c.city || "—"}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
+            <span style="background:#1e293b;color:#fde047;border:1px solid #eab308;padding:4px 10px;border-radius:10px;font-size:11.5px;font-weight:900;">🤖 ${bot}</span>
+            <span style="background:#065f46;color:#6ee7b7;border:1px solid #34d399;padding:4px 10px;border-radius:10px;font-size:11.5px;font-weight:bold;">⏳ ${tiempoTxt}</span>
+          </div>
+        </div>`;
+      }).join("");
+    return;
+  }
     const qPrev = (document.getElementById("inpBuscadorDirVIP")?.value || "").trim().toLowerCase();
     cont.innerHTML = `<div style="margin-bottom:12px;"><input type="text" id="inpBuscadorDirVIP" value="${qPrev}" oninput="document.querySelectorAll('.fila-directorio-musa').forEach(el=>el.style.display=(!this.value||el.innerText.toLowerCase().includes(this.value.toLowerCase()))?'':'none')" placeholder="🔍 Buscar clienta por usuario, alias o bot..." style="width:100%;background:#050807;border:1.5px solid #eab308;color:#fff;padding:10px 14px;border-radius:12px;font-size:13px;box-sizing:border-box;"></div>` +
       soloActivas.map((c, idx) => {
