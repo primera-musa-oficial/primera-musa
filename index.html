@@ -2437,5 +2437,49 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   }, 1500);
 })();
 </script>
+<script id="validacionEdadMinima21">
+(function() {
+  function obtenerInputsEdad() {
+    return Array.from(document.querySelectorAll("input")).filter(inp => {
+      const idn = (inp.id + " " + inp.name + " " + inp.placeholder).toLowerCase();
+      const lbl = inp.previousElementSibling ? (inp.previousElementSibling.innerText || "").toLowerCase() : "";
+      return idn.includes("edad") || idn.includes("age") || lbl.includes("edad") || lbl.includes("age");
+    });
+  }
+
+  setInterval(() => {
+    obtenerInputsEdad().forEach(inp => {
+      inp.setAttribute("min", "21");
+    });
+  }, 1500);
+
+  document.addEventListener("change", (e) => {
+    const inp = e.target;
+    if (obtenerInputsEdad().includes(inp) && inp.value !== "") {
+      const val = parseInt(inp.value, 10);
+      if (isNaN(val) || val < 21) {
+        alert("⚠️ La edad mínima permitida es 21 años.");
+        inp.value = "21";
+      }
+    }
+  }, true);
+
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    const t = (b.innerText || "").toLowerCase();
+    if (t.includes("publicar") || t.includes("guardar") || t.includes("enviar") || t.includes("crear") || t.includes("post") || t.includes("save")) {
+      const invalido = obtenerInputsEdad().find(inp => inp.offsetParent !== null && inp.value !== "" && parseInt(inp.value, 10) < 21);
+      if (invalido) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        alert("⚠️ La edad mínima permitida es 21 años.");
+        invalido.value = "21";
+        invalido.focus();
+      }
+    }
+  }, true);
+})();
+</script>
 </body>
 </html>
