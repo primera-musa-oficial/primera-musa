@@ -240,27 +240,38 @@ function cargarColaTurnos() {
   document.getElementById("statTotal").innerText = lista.length;
   if (document.getElementById("statReportes")) document.getElementById("statReportes").innerText = repsPend.length;
   
-    const qPrev = (document.getElementById("inpBuscadorDirVIP")?.value || "").trim().toLowerCase();
-    cont.innerHTML = `<div style="margin-bottom:12px;"><input type="text" id="inpBuscadorDirVIP" value="${qPrev}" oninput="document.querySelectorAll('.fila-directorio-musa').forEach(el=>el.style.display=(!this.value||el.innerText.toLowerCase().includes(this.value.toLowerCase()))?'':'none')" placeholder="🔍 Buscar clienta por usuario, alias o bot..." style="width:100%;background:#050807;border:1.5px solid #eab308;color:#fff;padding:10px 14px;border-radius:12px;font-size:13px;box-sizing:border-box;"></div>` +
-      soloActivas.map((c, idx) => {
+    
+
+    if (window.vistaAdminActual === "todas" && cont) {
+    const activos = lista.filter(c => Boolean(c.activo) || (Number(c.vence_ms || 0) > Date.now() && !c.bloqueada));
+    if (activos.length === 0) {
+      cont.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:24px;background:#0a120f;border:1.5px solid #334155;border-radius:14px;">No hay usuarios activos en este momento.</div>`;
+      return;
+    }
+    const qPrev = (document.getElementById("inpBuscarUsrVIP")?.value || "").trim().toLowerCase();
+    cont.innerHTML = `<div style="margin-bottom:12px;"><input type="text" id="inpBuscarUsrVIP" value="${qPrev}" oninput="document.querySelectorAll('.fila-usr-activo').forEach(el=>el.style.display=(!this.value||el.innerText.toLowerCase().includes(this.value.toLowerCase()))?'':'none')" placeholder="🔍 Buscar por usuario, clave, bot o alias..." style="width:100%;background:#050807;border:1.5px solid #eab308;color:#fff;padding:10px 14px;border-radius:12px;font-size:13px;box-sizing:border-box;"></div>` +
+      activos.map((c, idx) => {
         const bot = c.bot_asignado ? String(c.bot_asignado).toUpperCase() : "SIN BOT";
         const venceMs = Number(c.vence_ms || 0);
-        const visible = (!qPrev || JSON.stringify(c).toLowerCase().includes(qPrev)) ? "" : "display:none;";
-        return `<div class="fila-directorio-musa" style="${visible}background:#0a120f;border:1.5px solid #334155;border-radius:14px;padding:12px 14px;margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;font-family:Arial,sans-serif;">
+        const restMs = Math.max(0, venceMs - Date.now());
+        const d = Math.floor(restMs / 86400000);
+        const h = Math.floor((restMs % 86400000) / 3600000);
+        const tiempoTxt = restMs > 0 ? `${d}d ${h}h (${new Date(venceMs).toLocaleDateString()})` : "Vencido";
+        const vis = (!qPrev || JSON.stringify(c).toLowerCase().includes(qPrev)) ? "" : "display:none;";
+        return `<div class="fila-usr-activo" style="${vis}background:#0a120f;border:1.5px solid #334155;border-radius:14px;padding:12px 14px;margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;font-family:Arial,sans-serif;">
           <div style="text-align:left;">
-            <div style="color:#fde047;font-weight:900;font-size:14px;">#${idx + 1} • Usuario: <span style="color:#fff;">${c.usuario || "—"}</span> <span style="color:#94a3b8;font-size:12px;font-weight:normal;">(Clave: ${c.clave || "—"})</span></div>
-            <div style="color:#cbd5e1;font-size:12px;margin-top:3px;">Anuncio: <b>${c.alias || "—"}</b> • ${c.city || "—"} • Plan: ${c.plan || "—"}</div>
+            <div style="color:#fde047;font-weight:900;font-size:14px;">#${idx + 1} • Usuario: <span style="color:#fff;">${c.usuario || "—"}</span> &nbsp;|&nbsp; Clave: <span style="color:#34d399;">${c.clave || "—"}</span></div>
+            <div style="color:#94a3b8;font-size:12px;margin-top:3px;">Anuncio: <b style="color:#e2e8f0;">${c.alias || "—"}</b> • ${c.city || "—"}</div>
           </div>
           <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
             <span style="background:#1e293b;color:#fde047;border:1px solid #eab308;padding:4px 10px;border-radius:10px;font-size:11.5px;font-weight:900;">🤖 ${bot}</span>
-            <span style="background:#065f46;color:#6ee7b7;border:1px solid #34d399;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:bold;">🟢 ACTIVA • Vence: ${new Date(venceMs).toLocaleDateString()}</span>
+            <span style="background:#065f46;color:#6ee7b7;border:1px solid #34d399;padding:4px 10px;border-radius:10px;font-size:11.5px;font-weight:bold;">⏳ ${tiempoTxt}</span>
           </div>
         </div>`;
       }).join("");
     return;
   }
-
-    if (window.vistaAdminActual === "bots") {
+  if (window.vistaAdminActual === "bots") {
     const chips = Array.from(document.querySelectorAll("#listaChipsBots span")).map(s => s.innerText.trim());
     const conectados = [];
     chips.forEach(t => {
@@ -1123,31 +1134,8 @@ document.addEventListener("click", async (e) => {
   } catch {}
 }, true);
 </script>
-<script id="escudoBotsConectadosFijos">
-(function() {
-  const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
-  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
 
-  async function sincronizarBotsEnVivo() {
-    try {
-      const r = await fetch(URL_SB + "?clave=eq.mapa_bots_musa_activos&select=datos", {
-        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
-      });
-      const filas = await r.json();
-      const d = Array.isArray(filas) && filas ? (typeof filas.datos === "string" ? JSON.parse(filas.datos) : filas.datos) : null;
-      if (d && typeof d === "object" && Object.keys(d).length > 0) {
-        window._desdeDescargaInicial = true;
-        localStorage.setItem("mapa_bots_musa_activos", JSON.stringify(d));
-        window._desdeDescargaInicial = false;
-        if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
-      }
-    } catch { window._desdeDescargaInicial = false; }
-  }
 
-  sincronizarBotsEnVivo();
-  setInterval(sincronizarBotsEnVivo, 3000);
-})();
-</script>
 <script id="gestorPagosAdminVIP">
 (function() {
   const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
@@ -1159,7 +1147,7 @@ document.addEventListener("click", async (e) => {
       headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
     });
     const filas = await r.json();
-    const arr = Array.isArray(filas) && filas.length ? (typeof filas[0].datos === "string" ? JSON.parse(filas[0].datos) : filas[0].datos) : [];
+    const arr = Array.isArray(filas) && filas.length ? (typeof filas.datos === "string" ? JSON.parse(filas.datos) : filas.datos) : [];
     return Array.isArray(arr) ? arr : [];
   }
 
@@ -1174,7 +1162,7 @@ document.addEventListener("click", async (e) => {
   window.enviarMetodoPagoAClientaVivo = async function(idSol, usuario) {
     const inp = document.getElementById("inpMetodoPago_" + idSol);
     const metodo = inp ? inp.value.trim() : "";
-    if (!metodo) { alert("⚠️ Escribe primero el método de pago."); return; }
+    if (!metodo) { alert("Escribe primero el metodo de pago."); return; }
     const arr = await leerPagosNube();
     const it = arr.find(x => String(x.id) === String(idSol));
     if (it) {
@@ -1183,10 +1171,11 @@ document.addEventListener("click", async (e) => {
       await guardarPagosNube(arr);
       const uL = String(usuario || "").toLowerCase().replace(/[^a-z0-9]/g, "");
       if (uL) fetch("https://ntfy.sh" + uL, { method: "POST", headers: { "Title": "METODO DE PAGO LISTO", "Priority": "high" }, body: "Ya tienes listo el metodo de pago en tu panel." }).catch(() => {});
-      alert("✅ Método enviado a @" + usuario);
+      alert("Metodo enviado a @" + usuario);
       renderizarVistaPagosAdmin(true);
     }
   };
+
   window.acreditarPagoYArchivar = async function(idSol, usuario, dias) {
     const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
     const c = l.find(x => String(x.usuario || "").trim().toLowerCase() === String(usuario || "").trim().toLowerCase());
@@ -1203,7 +1192,7 @@ document.addEventListener("click", async (e) => {
     const arr = await leerPagosNube();
     const it = arr.find(x => String(x.id) === String(idSol));
     if (it) { it.estado = "completado"; it.dias_sumados = Number(dias); await guardarPagosNube(arr); }
-    alert("✅ Acreditados +" + dias + " días a @" + usuario);
+    alert("Acreditados +" + dias + " dias a @" + usuario);
     renderizarVistaPagosAdmin(true);
   };
 
@@ -1226,7 +1215,7 @@ document.addEventListener("click", async (e) => {
       btn.id = "btnTabSolicitudesPagoVIP";
       btn.type = "button";
       btn.className = tabRef.className;
-      btn.innerHTML = '💰 Solicitudes de Pago (<span id="badgeCountPagosVIP">0</span>)';
+      btn.innerHTML = 'Solicitudes de Pago (<span id="badgeCountPagosVIP">0</span>)';
       btn.onclick = () => {
         window._viendoTabPagosAdmin = true;
         Array.from(tabRef.parentElement.querySelectorAll("button")).forEach(x => { x.style.background = "#0a120f"; x.style.color = "#cbd5e1"; });
@@ -1252,26 +1241,10 @@ document.addEventListener("click", async (e) => {
         cont.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:28px;background:#0a120f;border:1.5px solid #334155;border-radius:14px;">No hay solicitudes de pago pendientes.</div>';
         return;
       }
-      cont.innerHTML = pend.map((p, idx) => `
-        <div class="turno-card" style="background:#0a120f;border:2px solid #eab308;border-radius:16px;padding:14px;margin-bottom:12px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-            <div><span style="background:#dc2626;color:#fff;font-weight:900;font-size:11px;padding:4px 9px;border-radius:6px;">💳 PAGO #${idx + 1}</span> <b style="color:#fff;font-size:16px;">${p.usuario}</b> <span style="background:#065f46;color:#6ee7b7;padding:3px 9px;border-radius:12px;font-size:11px;">Plan: ${p.plan}</span></div>
-            <span style="color:#fde047;font-size:11.5px;font-weight:bold;">${p.estado === "esperando_metodo" ? "⏳ Esperando método" : p.estado === "metodo_enviado" ? "💳 Esperando captura" : "🧾 ¡Captura lista!"}</span>
-          </div>
-          <div style="background:#050807;border:1px solid #1e293b;border-radius:10px;padding:10px;margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;">
-            <input type="text" id="inpMetodoPago_${p.id}" value="${p.metodo || ""}" placeholder="Escribe Zelle, CashApp o Crypto..." style="flex:1;min-width:200px;background:#0a120f;color:#fef08a;border:1px solid #eab308;border-radius:8px;padding:8px;font-size:12.5px;">
-            <button type="button" onclick="enviarMetodoPagoAClientaVivo('${p.id}','${p.usuario}')" style="background:linear-gradient(135deg,#eab308,#ca8a04);border:none;color:#050807;font-weight:900;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;">📤 Enviar Método</button>
-          </div>
-          ${p.foto ? `<div style="margin-bottom:10px;"><img src="${p.foto}" style="max-width:210px;max-height:250px;border-radius:8px;border:1.5px solid #eab308;"></div>` : ""}
-          <div style="display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;">
-            <button type="button" onclick="acreditarPagoYArchivar('${p.id}','${p.usuario}',1)" style="background:#1e293b;border:1px solid #475569;color:#fde047;font-weight:bold;padding:6px 11px;border-radius:8px;cursor:pointer;font-size:11.5px;">+1 Día</button>
-            <button type="button" onclick="acreditarPagoYArchivar('${p.id}','${p.usuario}',7)" style="background:#1e293b;border:1px solid #475569;color:#fde047;font-weight:bold;padding:6px 11px;border-radius:8px;cursor:pointer;font-size:11.5px;">+1 Semana</button>
-            <button type="button" onclick="acreditarPagoYArchivar('${p.id}','${p.usuario}',30)" style="background:linear-gradient(135deg,#eab308,#ca8a04);border:none;color:#050807;font-weight:900;padding:6px 11px;border-radius:8px;cursor:pointer;font-size:11.5px;">+1 Mes</button>
-          </div>
-        </div>`).join("");
+      cont.innerHTML = pend.map((p, idx) => '<div class="turno-card" style="background:#0a120f;border:2px solid #eab308;border-radius:16px;padding:14px;margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div><b style="color:#fde047;">PAGO #' + (idx + 1) + ' - ' + p.usuario + '</b> (' + p.plan + ')</div></div><div style="display:flex;gap:8px;margin-bottom:10px;"><input type="text" id="inpMetodoPago_' + p.id + '" value="' + (p.metodo || "") + '" placeholder="Zelle, CashApp o Crypto..." style="flex:1;background:#050807;color:#fef08a;border:1px solid #eab308;border-radius:8px;padding:8px;"><button type="button" onclick="enviarMetodoPagoAClientaVivo(\'' + p.id + '\',\'' + p.usuario + '\')" style="background:#eab308;color:#050807;font-weight:900;padding:8px 14px;border-radius:8px;border:none;cursor:pointer;">Enviar Metodo</button></div>' + (p.foto ? '<div style="margin-bottom:10px;"><img src="' + p.foto + '" style="max-width:210px;border-radius:8px;"></div>' : '') + '<div style="display:flex;justify-content:flex-end;gap:6px;"><button type="button" onclick="acreditarPagoYArchivar(\'' + p.id + '\',\'' + p.usuario + '\',1)" style="padding:6px 10px;">+1 Dia</button><button type="button" onclick="acreditarPagoYArchivar(\'' + p.id + '\',\'' + p.usuario + '\',7)" style="padding:6px 10px;">+1 Semana</button><button type="button" onclick="acreditarPagoYArchivar(\'' + p.id + '\',\'' + p.usuario + '\',30)" style="padding:6px 10px;">+1 Mes</button></div></div>').join("");
     } catch {}
   }
-  setInterval(() => renderizarVistaPagosAdmin(false), 3000);
+  setInterval(() => renderizarVistaPagosAdmin(false), 3500);
 })();
 </script>
 </body>
