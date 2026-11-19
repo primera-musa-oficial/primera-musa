@@ -113,10 +113,11 @@
     };
   };
 })();
+
 setInterval(()=>{
   const b=document.getElementById("btnPagarRentaVivoVIP");
   if(!b) return;
-  const vEl=Array.from(document.querySelectorAll("div,span")).find(el=>/sin activar|vencid/i.test(el.innerText||"") && el.innerText.length<35);
-  const nuevo=vEl?"💳 Activar Renta Ahora":"💳 Pagar / Adelantar Renta Ahora";
-  if(b.innerText!==nuevo) b.innerText=nuevo;
+  const sinActivar=Array.from(document.querySelectorAll("div,span")).some(el=>/sin activar/i.test(el.innerText||"") && el.innerText.length<30);
+  b.style.display=sinActivar?"none":"block";
+  b.innerText="💳 Pagar / Adelantar Renta Ahora";
 },2000);
