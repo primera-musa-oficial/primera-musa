@@ -443,7 +443,7 @@ function calcularSiguienteTiempoUnico(idCuenta, esPrimeraVez) {
     .map(x => Number(x.proximo_bump_ms));
 
   let intentos = 0;
-  while (otrosTiempos.some(t => Math.abs(t - candidatoMs) < 90000) && intentos < 25) {
+  while (otrosTiempos.some(t => Math.abs(t - candidatoMs) < 120000) && intentos < 25) {
     candidatoMs += 120000 + Math.floor(Math.random() * 45000);
     intentos++;
   }
@@ -620,7 +620,7 @@ async function refrescarBotsFijos() {
       box.innerHTML = '<span style="color:#94a3b8;">🚨 Ningún perfil de MegaPersonals activo (si cerraste la pestaña o sesión, ábrela).</span>';
       return;
     }
-    box.innerHTML = activos.sort().map(([cod, info]) => { const caido = !info || info.alerta || (Date.now() - Number(info.ts || 0)) > 45000; const msgR = (info && info.alerta) ? info.alerta : "Sin señal / Pestaña o proxy caído"; return caido ? `<span style="background:#991b1b;color:#fef08a;border:2px solid #f87171;padding:6px 14px;border-radius:20px;font-weight:900;">🚨 ${cod} • ${msgR}</span>` : `<span style="background:#065f46;color:#6ee7b7;border:1.5px solid #34d399;padding:6px 14px;border-radius:20px;font-weight:900;">🟢 ${cod} ONLINE</span>`; }).join("");
+    box.innerHTML = activos.sort().map(([cod, info]) => { const caido = !info || info.alerta || (Date.now() - Number(info.ts || 0)) > 120000; const msgR = (info && info.alerta) ? info.alerta : "Sin señal / Pestaña o proxy caído"; return caido ? `<span style="background:#991b1b;color:#fef08a;border:2px solid #f87171;padding:6px 14px;border-radius:20px;font-weight:900;">🚨 ${cod} • ${msgR}</span>` : `<span style="background:#065f46;color:#6ee7b7;border:1.5px solid #34d399;padding:6px 14px;border-radius:20px;font-weight:900;">🟢 ${cod} ONLINE</span>`; }).join("");
   } catch (e) {}
 }
 refrescarBotsFijos().then(() => { if (typeof cargarColaTurnos === "function") cargarColaTurnos(); });
@@ -882,7 +882,7 @@ setInterval(() => {
       const mm = String(Math.floor(segs / 60)).padStart(2, "0");
       const ss = String(segs % 60).padStart(2, "0");
       const sufijo = badge.innerText.includes("•") ? " •" + badge.innerText.split("•").slice(1).join("•") : "";
-      const codB2 = String(c.bot_asignado || "").toUpperCase(); const infoB2 = window._mapaBotsLiveAdmin?.[codB2]; const caido2 = codB2 && (!infoB2 || (Date.now() - Number(infoB2.ts || 0)) > 45000 || infoB2.alerta); if (!caido2 && !c.error_publicacion) badge.innerText = `🚀 Bump: ${mm}:${ss}${sufijo}`;
+      const codB2 = String(c.bot_asignado || "").toUpperCase(); const infoB2 = window._mapaBotsLiveAdmin?.[codB2]; const caido2 = codB2 && (!infoB2 || (Date.now() - Number(infoB2.ts || 0)) > 120000 || infoB2.alerta); if (!caido2 && !c.error_publicacion) badge.innerText = `🚀 Bump: ${mm}:${ss}${sufijo}`;
     });
   } catch (e) {}
 }, 1000);
@@ -1163,6 +1163,31 @@ document.addEventListener("click", async (e) => {
     });
   } catch {}
 }, true);
+</script>
+<script id="escudoBotsConectadosFijos">
+(function() {
+  const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
+  const KEY_SB = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+
+  async function sincronizarBotsEnVivo() {
+    try {
+      const r = await fetch(URL_SB + "?clave=eq.mapa_bots_musa_activos&select=datos", {
+        headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store"
+      });
+      const filas = await r.json();
+      const d = Array.isArray(filas) && filas ? (typeof filas.datos === "string" ? JSON.parse(filas.datos) : filas.datos) : null;
+      if (d && typeof d === "object" && Object.keys(d).length > 0) {
+        window._desdeDescargaInicial = true;
+        localStorage.setItem("mapa_bots_musa_activos", JSON.stringify(d));
+        window._desdeDescargaInicial = false;
+        if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
+      }
+    } catch { window._desdeDescargaInicial = false; }
+  }
+
+  sincronizarBotsEnVivo();
+  setInterval(sincronizarBotsEnVivo, 3000);
+})();
 </script>
 </body>
 </html>
