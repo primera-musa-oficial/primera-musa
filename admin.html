@@ -1391,37 +1391,7 @@ setInterval(() => {
   }, 800);
 })();
 </script>
-<script id="notificarExtensionDesdeAdminVIP">
-document.addEventListener("click", function(e) {
-  const btn = e.target.closest("button");
-  if (!btn) return;
-  const txtBtn = (btn.innerText || "").trim();
-  const esActivar = /activar\s*conteo\s*y\s*renta/i.test(txtBtn);
-  const esSumar = /^\+1\s*(d[ií]a|semana|mes)$/i.test(txtBtn);
-  if (!esActivar && !esSumar) return;
 
-  const card = btn.closest(".turno-card");
-  if (!card) return;
-  const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-  const txtCard = (card.innerText || "").toLowerCase();
-  const c = l.find(x => (x.usuario && txtCard.includes(String(x.usuario).toLowerCase())) || (x.alias && txtCard.includes(String(x.alias).toLowerCase())));
-  if (!c || !c.usuario) return;
-
-  const uClean = String(c.usuario).toLowerCase().replace(/[^a-z0-9]/g, "");
-  if (!uClean) return;
-
-  const titulo = esActivar ? "ANUNCIO PUBLICADO - PRIMERA MUSA VIP" : "RENTA EXTENDIDA - PRIMERA MUSA VIP";
-  const msg = esActivar
-    ? "Hola @" + c.usuario + ", tu anuncio ya esta publicado y activo! Tu conteo VIP ha comenzado."
-    : "Hola @" + c.usuario + ", se ha acreditado (" + txtBtn + ") a tu cuenta VIP. Gracias por renovar!";
-
-  fetch("https://ntfy.sh" + uClean, {
-    method: "POST",
-    headers: { Title: titulo, Priority: "high", Tags: "crown,white_check_mark" },
-    body: msg
-  }).catch(() => {});
-}, true);
-</script>
 <script id="liberarBotFinRentaTotalVIP">
 document.addEventListener("click", async function(e) {
   const btn = e.target.closest("button");
@@ -1560,6 +1530,39 @@ window.addEventListener("DOMContentLoaded", () => {
     alert("✅ ¡Todo limpiado a 0 de forma permanente!");
   };
 })();
+</script>
+<script id="notificarExtensionDesdeAdminVIP">
+document.addEventListener("click", function(e) {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  const txtBtn = (btn.innerText || "").replace(/\s+/g, " ").trim();
+
+  const esActivar = /activar\s*conteo/i.test(txtBtn);
+  const esSumar = /\+1\s*(d[ií]a|semana|mes)/i.test(txtBtn);
+  if (!esActivar && !esSumar) return;
+
+  const card = btn.closest(".turno-card");
+  if (!card) return;
+
+  const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const txtCard = (card.innerText || "").toLowerCase();
+  const c = l.find(x => (x.usuario && txtCard.includes(String(x.usuario).trim().toLowerCase())) || (x.alias && txtCard.includes(String(x.alias).trim().toLowerCase())));
+  if (!c || !c.usuario) return;
+
+  const uClean = String(c.usuario).toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (!uClean) return;
+
+  const titulo = esActivar ? "ANUNCIO PUBLICADO - PRIMERA MUSA VIP" : "RENTA EXTENDIDA - PRIMERA MUSA VIP";
+  const msg = esActivar
+    ? "Hola @" + c.usuario + ", tu anuncio ya esta publicado y activo! Tu conteo VIP ha comenzado."
+    : "Hola @" + c.usuario + ", se ha acreditado (" + txtBtn + ") a tu cuenta VIP. Gracias por renovar!";
+
+  fetch("https://ntfy.sh" + uClean, {
+    method: "POST",
+    headers: { "Title": titulo, "Priority": "high", "Tags": "crown,white_check_mark" },
+    body: msg
+  }).catch(() => {});
+}, true);
 </script>
 </body>
 </html>
