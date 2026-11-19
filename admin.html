@@ -1163,13 +1163,9 @@ document.addEventListener("click", async (e) => {
     const r = await fetch(URL_SB + "?on_conflict=clave", {
       method: "POST",
       headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
-      body: JSON.stringify({ clave: "solicitudes_pago_vivo_musa", datos: arr.slice(-5) })
+      body: JSON.stringify({ clave: "solicitudes_pago_vivo_musa", datos: arr.slice(-6) })
     });
-    if (!r.ok) {
-      const err = await r.text();
-      alert("⚠️ Error guardando en Supabase (" + r.status + "): " + err);
-      return false;
-    }
+    if (!r.ok) { alert("Error Supabase: " + r.status); return false; }
     return true;
   }
 
