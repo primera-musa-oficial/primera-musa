@@ -3080,12 +3080,13 @@ setInterval(() => {
 })();
 </script>
 
+
 <script id="loginDirectoNubeVIP">
 (function() {
-  const U = "https://supabase.co";
+  const U = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado?clave=eq.cola_turnos_local&select=datos";
   const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
 
-  async function refrescarListaDesdeNube() {
+  async function sincronizarAntesDeEntrar() {
     try {
       const r = await fetch(U, { headers: { apikey: K, Authorization: "Bearer " + K }, cache: "no-store" });
       if (!r.ok) return;
@@ -3098,10 +3099,31 @@ setInterval(() => {
     } catch {}
   }
 
-  refrescarListaDesdeNube();
-  document.addEventListener("focusin", (e) => {
-    if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "BUTTON")) {
-      refrescarListaDesdeNube();
+  // Descargar de inmediato al abrir la página
+  sincronizarAntesDeEntrar();
+
+  // Interceptar el clic en el botón de iniciar sesión para asegurar que la lista de Supabase ya esté descargada y normalizar espacios
+  let _reintentandoLogin = false;
+  document.addEventListener("click", async function(e) {
+    if (_reintentandoLogin) return;
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const t = (btn.innerText || "").trim().toLowerCase();
+    if (!/(entrar|iniciar\s*sesi[oó]n|acceder|ver\s*mi\s*panel)/i.test(t)) return;
+
+    const listaActual = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    if (listaActual.length === 0) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const txtOrig = btn.innerText;
+      btn.innerText = "⏳ Conectando...";
+      btn.disabled = true;
+      await sincronizarAntesDeEntrar();
+      btn.innerText = txtOrig;
+      btn.disabled = false;
+      _reintentandoLogin = true;
+      btn.click();
+      setTimeout(() => { _reintentandoLogin = false; }, 500);
     }
   }, true);
 })();
