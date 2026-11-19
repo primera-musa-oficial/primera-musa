@@ -1278,7 +1278,7 @@ setInterval(() => {
       try {
         const nueva = JSON.parse(v || "[]");
         const vieja = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-        if (Array.isArray(nueva) && Array.isArray(vieja) && vieja.length > 0 && nueva.length < vieja.length) return;
+        
       } catch {}
     }
     _origSet(k, v);
@@ -1486,8 +1486,7 @@ document.addEventListener("click", async function(e) {
 window.vaciarTodoSistemaVIP = async function() {
   if (!confirm("⚠️ ¿Borrar TODAS las solicitudes y registros de prueba para dejar todo en 0?")) return;
   window._bloqueoNubeAdminHasta = Date.now() + 60000;
-  localStorage.setItem("cola_turnos_local", "[]");
-  localStorage.setItem("reportes_clientes_local", "[]");
+  localStorage.removeItem("cola_turnos_local"); localStorage.removeItem("reportes_clientes_local");
   const U = "https://supabase.co";
   const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
   await fetch(U, { method: "POST", headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" }, body: JSON.stringify({ clave: "cola_turnos_local", datos: [] }) }).catch(() => {});
