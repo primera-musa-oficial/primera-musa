@@ -114,10 +114,15 @@
   };
 })();
 
+
 setInterval(()=>{
   const b=document.getElementById("btnPagarRentaVivoVIP");
   if(!b) return;
-  const sinActivar=Array.from(document.querySelectorAll("div,span")).some(el=>/sin activar/i.test(el.innerText||"") && el.innerText.length<30);
-  b.style.display=sinActivar?"none":"block";
-  b.innerText="💳 Pagar / Adelantar Renta Ahora";
-},2000);
+  b.style.display="block";
+  b.disabled=false;
+  b.onclick=(e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    if(typeof window.abrirChatPagoEnVivo==="function") window.abrirChatPagoEnVivo();
+  };
+},1500);
