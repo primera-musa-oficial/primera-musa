@@ -12,7 +12,7 @@
     const r=await fetch(U+"?clave=eq.cola_turnos_local&select=datos",{headers:{apikey:K,Authorization:"Bearer "+K},cache:"no-store"});
     const f=await r.json();
     if(!Array.isArray(f)||!f.length) return JSON.parse(localStorage.getItem("cola_turnos_local")||"[]");
-    const d=f[0].datos;
+    const d=f.at(0).datos;
     return Array.isArray(d)?d:(typeof d==="string"?JSON.parse(d):[]);
   }
 
@@ -22,10 +22,6 @@
       method:"POST",
       headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},
       body:JSON.stringify({clave:"cola_turnos_local",datos:a})
-    });
-    return r.ok;
-  },
-      body:JSON.stringify({datos:a})
     });
     return r.ok;
   }
@@ -51,7 +47,7 @@
     document.getElementById("modalChatPagoVivoVIP")?.remove();
     const m=document.createElement("div"); m.id="modalChatPagoVivoVIP";
     m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;padding:14px;z-index:999999;font-family:Arial,sans-serif;";
-    m.innerHTML='<div class="card" style="max-width:390px;width:100%;padding:20px;text-align:center;position:relative;background:#07130e;border:2px solid #eab308;color:#fff;"><button id="bClP" style="position:absolute;top:10px;right:10px;background:none;border:1px solid #fde047;color:#fde047;border-radius:50%;width:26px;height:26px;cursor:pointer;">✕</button><div id="zP1"><h4 style="color:#fde047;margin:0 0 8px;">🎄 ACTIVAR / RENOVAR RENTA VIP</h4><select id="sPl" style="width:100%;padding:9px;margin-bottom:12px;background:#000;color:#fde047;border:1px solid #fde047;border-radius:8px;"><option value="1 Día">1 Día</option><option value="1 Semana" selected>1 Semana</option><option value="1 Mes">1 Mes</option></select><button id="bPd" class="btn-xmas" style="width:100%;padding:10px;">📩 Pedir dónde enviar el dinero</button></div><div id="zP2" style="display:none;"><h4 style="color:#fde047;margin:0 0 8px;">🎄 MÉTODO LISTO</h4><div id="tMet" style="background:#000;border:1px solid #fde047;padding:10px;border-radius:8px;color:#fef08a;font-weight:bold;margin-bottom:10px;"></div><input type="file" id="iFt" accept="image/*" style="width:100%;margin-bottom:10px;"><button id="bSb" class="btn-xmas" style="width:100%;padding:10px;">✅ Enviar Captura</button></div></div>';
+    m.innerHTML='<div class="card" style="max-width:390px;width:100%;padding:20px;text-align:center;position:relative;background:#07130e;border:2px solid #eab308;color:#fff;"><button id="bClP" style="position:absolute;top:10px;right:10px;background:none;border:1px solid #fde047;color:#fde047;border-radius:50%;width:26px;height:26px;cursor:pointer;">✕</button><div id="zP1"><h4 style="color:#fde047;margin:0 0 8px;">🎄 RENOVAR RENTA VIP</h4><select id="sPl" style="width:100%;padding:9px;margin-bottom:12px;background:#000;color:#fde047;border:1px solid #fde047;border-radius:8px;"><option value="1 Día">1 Día</option><option value="1 Semana" selected>1 Semana</option><option value="1 Mes">1 Mes</option></select><button id="bPd" class="btn-xmas" style="width:100%;padding:10px;">📩 Pedir dónde enviar el dinero</button></div><div id="zP2" style="display:none;"><h4 style="color:#fde047;margin:0 0 8px;">🎄 MÉTODO LISTO</h4><div id="tMet" style="background:#000;border:1px solid #fde047;padding:10px;border-radius:8px;color:#fef08a;font-weight:bold;margin-bottom:10px;"></div><input type="file" id="iFt" accept="image/*" style="width:100%;margin-bottom:10px;"><button id="bSb" class="btn-xmas" style="width:100%;padding:10px;">✅ Enviar Captura</button></div></div>';
     document.body.appendChild(m);
 
     let p=null;
@@ -104,7 +100,7 @@
       const f=document.getElementById("iFt").files;
       if(!f||!f.length) return alert("Sube la foto");
       const b=document.getElementById("bSb"); b.disabled=true; b.innerText="⏳ Subiendo...";
-      comp(f[0],async img=>{
+      comp(f,async img=>{
         const a=await leerCola(),x=a.find(matchU);
         if(x){x.pago_foto=img;x.pago_estado="comprobante_enviado";await guardarCola(a);}
         fetch("https://ntfy.sh",{method:"POST",headers:{Title:"CAPTURA PAGO",Priority:"urgent"},body:"@"+u+" envio comprobante"}).catch(()=>{});
@@ -112,17 +108,13 @@
       });
     };
   };
+
+  document.addEventListener("click", function(e){
+    const btn = e.target.closest("#btnPagarRentaVivoVIP, button");
+    if(btn && (btn.id === "btnPagarRentaVivoVIP" || /pagar\s*\/\s*adelantar\s*renta/i.test(btn.innerText || ""))){
+      e.preventDefault();
+      e.stopPropagation();
+      window.abrirChatPagoEnVivo();
+    }
+  }, true);
 })();
-
-
-setInterval(()=>{
-  const b=document.getElementById("btnPagarRentaVivoVIP");
-  if(!b) return;
-  b.style.display="block";
-  b.disabled=false;
-  b.onclick=(e)=>{
-    e.preventDefault();
-    e.stopPropagation();
-    if(typeof window.abrirChatPagoEnVivo==="function") window.abrirChatPagoEnVivo();
-  };
-},1500);
