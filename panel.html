@@ -2967,23 +2967,13 @@ setInterval(() => {
 }, 3000);
 </script>
 
+
 <script id="syncRelojUsuarioNubeVIP">
 (function() {
   const U = "https://supabase.co";
   const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
 
-  function detectarUsuarioActivoPanel() {
-    const directo = window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || localStorage.getItem("cliente_usuario") || "";
-    if (String(directo).trim()) return String(directo).trim().toLowerCase();
-
-    // Buscar cualquier @usuario visible en la tarjeta principal del panel
-    const bodyTxt = document.body ? document.body.innerText : "";
-    const m = bodyTxt.match(/@([a-zA-Z0-9_-]{3,25})/);
-    if (m && m.at(1)) return m.at(1).toLowerCase();
-    return "";
-  }
-
-  async function sincronizarCuentaUsuario() {
+  async function actualizarRelojVenceUsuario() {
     try {
       const r = await fetch(U, { headers: { apikey: K, Authorization: "Bearer " + K }, cache: "no-store" });
       if (!r.ok) return;
@@ -2994,51 +2984,52 @@ setInterval(() => {
 
       localStorage.setItem("cola_turnos_local", JSON.stringify(lista));
 
-      const u = detectarUsuarioActivoPanel();
-      if (!u) return;
+      // Buscar la cuenta del usuario logueado por cualquier variable o texto en pantalla
+      const rawU = String(window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "").trim().toLowerCase();
+      const bodyTxt = (document.body ? document.body.innerText : "").toLowerCase();
 
-      const c = lista.find(x =>
-        String(x.usuario || "").trim().toLowerCase() === u ||
-        String(x.alias || "").trim().toLowerCase() === u
-      );
+      let c = lista.find(x => rawU && (String(x.usuario || "").trim().toLowerCase() === rawU || String(x.alias || "").trim().toLowerCase() === rawU));
+      if (!c) {
+        c = lista.find(x => (x.usuario && bodyTxt.includes(String(x.usuario).trim().toLowerCase())) || (x.alias && bodyTxt.includes(String(x.alias).trim().toLowerCase())));
+      }
       if (!c) return;
 
       const venceMs = Math.max(Number(c.vence_ms || 0), Number(c.fin_renta_ms || 0), Number(c.expira_ms || 0));
       if (venceMs <= Date.now()) return;
 
-      // Actualizar cualquier etiqueta que diga "Sin activar" por la fecha real
       const txtVence = (typeof window.formatearVenceCortoMP === "function")
         ? window.formatearVenceCortoMP(venceMs)
         : new Date(venceMs).toLocaleDateString([], { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
+      // Reemplazar "Sin activar" por la fecha de vencimiento real en pantalla
       document.querySelectorAll("div,span").forEach(el => {
-        if (el.children.length === 0 && /^sin activar$/i.test((el.innerText || "").trim())) {
+        if (el.children.length === 0 && /sin activar/i.test((el.innerText || "").trim())) {
           el.innerText = txtVence;
         }
       });
 
-      const keyPrev = "musa_vence_confirmado_" + String(c.usuario || u).toLowerCase();
+      // Mostrar banner verde al activarse o extenderse la renta
+      const keyPrev = "musa_vence_confirmado_" + String(c.usuario || c.id).toLowerCase();
       const prevMs = Number(localStorage.getItem(keyPrev) || 0);
-
       if (venceMs > prevMs + 60000) {
         localStorage.setItem(keyPrev, String(venceMs));
         const fechaTxt = new Date(venceMs).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-        const tituloAviso = prevMs === 0 ? "🎉 ¡TU ANUNCIO YA ESTÁ ACTIVO!" : "🎉 ¡RENTA EXTENDIDA CON ÉXITO!";
-        const cuerpoAviso = prevMs === 0 ? "Tu conteo VIP ha comenzado. Vence: " + fechaTxt : "Se sumó tiempo extra a tu cuenta VIP. Nuevo vencimiento: " + fechaTxt;
+        const tit = prevMs === 0 ? "🎉 ¡TU ANUNCIO YA ESTÁ ACTIVO!" : "🎉 ¡RENTA EXTENDIDA CON ÉXITO!";
+        const msg = prevMs === 0 ? "Tu conteo VIP ha comenzado. Vence: " + fechaTxt : "Se sumó tiempo extra a tu cuenta. Nuevo vencimiento: " + fechaTxt;
 
         document.getElementById("toastRentaActualizadaVIP")?.remove();
         const t = document.createElement("div");
         t.id = "toastRentaActualizadaVIP";
         t.style.cssText = "position:fixed;top:16px;left:50%;transform:translateX(-50%);width:92%;max-width:420px;background:linear-gradient(135deg,#065f46,#022c22);border:2px solid #fde047;color:#fff;padding:14px 36px 14px 16px;border-radius:14px;box-shadow:0 10px 28px rgba(0,0,0,0.85);z-index:999999;font-family:'Segoe UI',Arial,sans-serif;text-align:left;";
-        t.innerHTML = `<div style="color:#fde047;font-weight:900;font-size:13px;margin-bottom:3px;">${tituloAviso}</div><div style="color:#e2e8f0;font-size:12px;">${cuerpoAviso}</div><button type="button" onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:8px;background:none;border:1px solid #fde047;color:#fde047;border-radius:50%;width:22px;height:22px;cursor:pointer;">✕</button>`;
+        t.innerHTML = `<div style="color:#fde047;font-weight:900;font-size:13px;margin-bottom:3px;">${tit}</div><div style="color:#e2e8f0;font-size:12px;">${msg}</div><button type="button" onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:8px;background:none;border:1px solid #fde047;color:#fde047;border-radius:50%;width:22px;height:22px;cursor:pointer;">✕</button>`;
         document.body.appendChild(t);
         setTimeout(() => document.getElementById("toastRentaActualizadaVIP")?.remove(), 12000);
       }
     } catch {}
   }
 
-  sincronizarCuentaUsuario();
-  setInterval(sincronizarCuentaUsuario, 3500);
+  actualizarRelojVenceUsuario();
+  setInterval(actualizarRelojVenceUsuario, 3000);
 })();
 </script>
 </body>
