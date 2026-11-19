@@ -1297,5 +1297,36 @@ document.addEventListener("click", async function(e) {
   alert("✅ Renta finalizada. Bot liberado y acceso eliminado por completo.");
 }, true);
 </script>
+<script id="filtroBotsOcupadosDOM">
+setInterval(() => {
+  try {
+    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    document.querySelectorAll(".turno-card").forEach(card => {
+      const sel = card.querySelector("select");
+      if (!sel || document.activeElement === sel) return;
+
+      const txt = (card.innerText || "").toLowerCase();
+      const ctaActual = lista.find(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
+
+      // Obtener códigos de bots asignados a OTROS anuncios (en cola o activos)
+      const botsOcupados = new Set();
+      lista.forEach(x => {
+        if (ctaActual && String(x.id) === String(ctaActual.id)) return;
+        const rawBot = String(x.bot_asignado || "").toUpperCase();
+        const m = rawBot.match(/MUSA-\d+/);
+        if (m) botsOcupados.add(m[0]);
+      });
+
+      Array.from(sel.options).forEach(opt => {
+        const mOpt = String(opt.value || opt.text || "").toUpperCase().match(/MUSA-\d+/);
+        if (!mOpt) return;
+        const ocupado = botsOcupados.has(mOpt[0]);
+        opt.hidden = ocupado;
+        opt.disabled = ocupado;
+      });
+    });
+  } catch {}
+}, 1000);
+</script>
 </body>
 </html>
