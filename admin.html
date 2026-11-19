@@ -1191,74 +1191,7 @@ document.addEventListener("click", async (e) => {
 
 
 
-<script id="botonEmpezarConteoRentaVIP">
-(function(){
-  const U="https://supabase.co";
-  const K="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
 
-  window.activarRentaYMoverAActivos = async function(idCta) { const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]"); const c = l.find(x => String(x.id) === String(idCta)); if (!c) return; const botActual = String(c.bot_asignado || "").trim(); if (!botActual || /sin asignar/i.test(botActual)) { alert("⚠️ Primero selecciona un bot libre y toca Asignar Bot ✅."); return; }
-
-    const pLow = String(c.plan || "").toLowerCase();
-    const dias = pLow.includes("mes") ? 30 : (pLow.includes("semana") ? 7 : 1);
-    const ahora = Date.now();
-    const vence = ahora + dias * 86400000;
-
-    c.inicio_renta_ms = ahora;
-    c.vence_ms = vence;
-    c.fin_renta_ms = vence;
-    c.expira_ms = vence;
-    c.activo = true;
-    c.pagado = true;
-    c.aprobada = true;
-    c.detenido = false;
-    c.bloqueada = false;
-    c.pausado = false;
-    c.estado = "activa";
-    c.proximo_bump_ms = ahora + 3000;
-
-    window._bloqueoNubeAdminHasta = Date.now() + 15000;
-    localStorage.setItem("cola_turnos_local", JSON.stringify(l));
-
-    await fetch(U, {
-      method: "POST",
-      headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
-      body: JSON.stringify({ clave: "cola_turnos_local", datos: l })
-    }).catch(()=>{});
-
-    if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
-    alert("✅ ¡Renta iniciada (" + dias + " días)! El anuncio pasó a Activos y comenzó su conteo.");
-  };
-
-  setInterval(() => {
-    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-    document.querySelectorAll(".turno-card").forEach(card => {
-      const btnDia = Array.from(card.querySelectorAll("button")).find(b => /^\+1\s*d[ií]a$/i.test((b.innerText || "").trim()));
-      if (!btnDia || !btnDia.parentElement) return;
-
-      const txt = (card.innerText || "").toLowerCase();
-      const cta = l.find(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
-      if (!cta) return;
-
-      const yaActivaConConteo = Boolean(cta.activo) && Number(cta.vence_ms || 0) > Date.now();
-      const btnExist = card.querySelector(".btn-empezar-conteo-vip");
-
-      if (yaActivaConConteo) {
-        if (btnExist) btnExist.remove();
-        return;
-      }
-
-      if (btnExist) return;
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "btn-empezar-conteo-vip";
-      btn.innerText = "▶️ Empezar Renta y Conteo";
-      btn.style.cssText = "background:linear-gradient(135deg,#059669,#047857);border:1.5px solid #34d399;color:#fff;font-weight:900;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:11.5px;margin-right:5px;";
-      btn.onclick = () => activarRentaYMoverAActivos(cta.id);
-      btnDia.parentElement.insertBefore(btn, btnDia);
-    });
-  }, 1200);
-})();
-</script>
 <script id="liberarBotFinRentaTotalVIP">
 document.addEventListener("click", async function(e) {
   const btn = e.target.closest("button");
@@ -1351,6 +1284,106 @@ setInterval(() => {
     });
   } catch {}
 }, 900);
+</script>
+<script id="botonEmpezarConteoRentaVIP">
+(function(){
+  const U="https://supabase.co";
+  const K="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+
+  async function guardarNubeBlindado(l) {
+    window._bloqueoNubeAdminHasta = Date.now() + 25000;
+    localStorage.setItem("cola_turnos_local", JSON.stringify(l));
+    await fetch(U, {
+      method: "POST",
+      headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+      body: JSON.stringify({ clave: "cola_turnos_local", datos: l })
+    }).catch(()=>{});
+  }
+
+  // Asegurar que al tocar "Asignar Bot ✅" se guarde de inmediato en Supabase sin activar renta aún
+  document.addEventListener("click", async function(e) {
+    const btn = e.target.closest("button");
+    if (!btn || !/asignar\s*bot/i.test(btn.innerText || "")) return;
+    const card = btn.closest(".turno-card");
+    const sel = card ? card.querySelector("select") : null;
+    const val = sel ? sel.value.trim() : "";
+    if (!val) return;
+
+    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const txt = (card.innerText || "").toLowerCase();
+    const c = l.find(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
+    if (c) {
+      c.bot_asignado = val;
+      c.activo = false;
+      await guardarNubeBlindado(l);
+      if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
+    }
+  }, true);
+
+  window.activarRentaYMoverAActivos = async function(idCta) {
+    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    const c = l.find(x => String(x.id) === String(idCta));
+    if (!c) return;
+
+    const botActual = String(c.bot_asignado || "").trim();
+    if (!botActual || /sin asignar/i.test(botActual)) {
+      alert("⚠️ Primero selecciona un bot libre y toca Asignar Bot ✅.");
+      return;
+    }
+
+    const pLow = String(c.plan || "").toLowerCase();
+    const dias = pLow.includes("mes") ? 30 : (pLow.includes("semana") ? 7 : 1);
+    const ahora = Date.now();
+    const vence = ahora + dias * 86400000;
+
+    c.inicio_renta_ms = ahora;
+    c.vence_ms = vence;
+    c.fin_renta_ms = vence;
+    c.expira_ms = vence;
+    c.activo = true;
+    c.pagado = true;
+    c.aprobada = true;
+    c.detenido = false;
+    c.bloqueada = false;
+    c.pausado = false;
+    c.estado = "activa";
+    c.proximo_bump_ms = ahora + 3000;
+
+    await guardarNubeBlindado(l);
+    if (typeof window.cargarColaTurnos === "function") window.cargarColaTurnos();
+    alert("✅ ¡Renta iniciada (" + dias + " días)! El anuncio pasó a Anuncios Activos.");
+  };
+
+  setInterval(() => {
+    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    document.querySelectorAll(".turno-card").forEach(card => {
+      // Buscar el botón "Activada" o "Rechazar" en la fila de pasos para ubicar el botón verde al lado
+      const btnAct = Array.from(card.querySelectorAll("button")).find(b => /activada/i.test((b.innerText || "").trim()));
+      if (!btnAct || !btnAct.parentElement) return;
+
+      const txt = (card.innerText || "").toLowerCase();
+      const cta = l.find(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
+      if (!cta) return;
+
+      const yaActiva = Boolean(cta.activo) && Number(cta.vence_ms || 0) > Date.now();
+      const btnExist = card.querySelector(".btn-empezar-conteo-vip");
+
+      if (yaActiva) {
+        if (btnExist) btnExist.remove();
+        return;
+      }
+
+      if (btnExist) return;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn-empezar-conteo-vip";
+      btn.innerText = "▶️ Empezar Renta y Conteo";
+      btn.style.cssText = "background:linear-gradient(135deg,#059669,#047857);border:1.5px solid #34d399;color:#fff;font-weight:900;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:11.5px;";
+      btn.onclick = () => activarRentaYMoverAActivos(cta.id);
+      btnAct.parentElement.insertBefore(btn, btnAct.nextSibling);
+    });
+  }, 1000);
+})();
 </script>
 </body>
 </html>
