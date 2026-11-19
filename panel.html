@@ -2624,6 +2624,7 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   setInterval(mantenerFijosEnPanel, 2000);
 })();
 </script>
+
 <script id="botonRenovarRentaVIP">
 (function() {
   const URL_SB = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
@@ -2631,6 +2632,22 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
 
   function getUsr() {
     return String(window.usuarioLogueadoVIP || localStorage.getItem("musa_cli_u") || localStorage.getItem("usuario_musa_logueado") || "").trim();
+  }
+
+  async function leer() {
+    const r = await fetch(URL_SB + "?clave=eq.solicitudes_pago_vivo_musa&select=datos", { headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store" });
+    const f = await r.json();
+    const d = Array.isArray(f) && f.length ? f.at(0).datos : [];
+    const a = typeof d === "string" ? JSON.parse(d) : d;
+    return Array.isArray(a) ? a : [];
+  }
+
+  async function guardar(a) {
+    await fetch(URL_SB + "?on_conflict=clave", {
+      method: "POST",
+      headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+      body: JSON.stringify({ clave: "solicitudes_pago_vivo_musa", datos: a.slice(-5) })
+    });
   }
 
   window.abrirChatPagoEnVivo = function(usuario) {
@@ -2646,16 +2663,6 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
     let _poll = null;
     const cerrar = () => { if (_poll) clearInterval(_poll); modal.remove(); };
     document.getElementById("btnCerrarModalPago").onclick = cerrar;
-
-    async function leer() {
-      const r = await fetch(URL_SB + "?clave=eq.solicitudes_pago_vivo_musa&select=datos", { headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB }, cache: "no-store" });
-      const f = await r.json();
-      const d = Array.isArray(f) && f.length ? f.at(0).datos : [];
-      const a = typeof d === "string" ? JSON.parse(d) : d;
-      return Array.isArray(a) ? a : [];
-    }
-    async function guardar(a) { await fetch(URL_SB + "?on_conflict=clave", { method: "POST", headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" }, body: JSON.stringify({ clave: "solicitudes_pago_vivo_musa", datos: a.slice(-5) }) }); }, body: JSON.stringify({ datos: a.slice(-5), actualizado_en: new Date().toISOString() }) });
-    }
 
     function pintar(lista) {
       const mia = lista.slice().reverse().find(x => String(x.usuario || "").toLowerCase() === u.toLowerCase() && !x.vista_confirmada);
