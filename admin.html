@@ -140,6 +140,7 @@
       <button type="button" id="btnFiltroActivos" class="btn-step" onclick="cambiarVistaAdmin('activos')">🟢 Anuncios Activos (Reloj en Vivo)</button>
             <button type="button" id="btnFiltroTodas" class="btn-step" onclick="cambiarVistaAdmin('todas')">👤 Usuarios</button>
             <button type="button" id="btnFiltroReportes" class="btn-step" onclick="cambiarVistaAdmin('reportes')">🚨 Reportes y Fallas (Orden de Llegada)</button>
+<button id="btnIrPagosVIP" type="button" onclick="const z=document.getElementById('zonaPagosEnVivoAdmin');if(z){z.scrollIntoView({behavior:'smooth'});}else{alert('No hay solicitudes de pago pendientes.');}" style="background:#0a120f;border:1.5px solid #eab308;color:#fde047;padding:9px 14px;border-radius:12px;font-weight:900;font-size:12px;cursor:pointer;">💰 Solicitudes de Pago</button>
       <button type="button" id="btnFiltroBots" class="btn-step" onclick="cambiarVistaAdmin('bots')">🔌 Cuentas y Bots (MUSA-01)</button>
     </div>
 
@@ -1240,22 +1241,6 @@ document.addEventListener("click", async (e) => {
 })();
 </script>
 
-<script id="botonMenuPagosFijo">
-setInterval(() => {
-  const ref = Array.from(document.querySelectorAll("button")).find(b => /reportes y fallas/i.test(b.innerText || ""));
-  if (!ref || !ref.parentElement || document.getElementById("btnIrPagosVIP")) return;
-  const b = document.createElement("button");
-  b.id = "btnIrPagosVIP";
-  b.type = "button";
-  b.className = ref.className;
-  b.innerText = "💰 Solicitudes de Pago";
-  b.onclick = () => {
-    const z = document.getElementById("zonaPagosEnVivoAdmin");
-    if (z) { z.scrollIntoView({ behavior: "smooth" }); }
-    else { alert("✅ No hay solicitudes de pago pendientes en este momento."); }
-  };
-  ref.parentElement.appendChild(b);
-}, 2000);
-</script>
+
 </body>
 </html>
