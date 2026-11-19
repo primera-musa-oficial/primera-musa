@@ -1196,10 +1196,7 @@ document.addEventListener("click", async (e) => {
   const U="https://supabase.co";
   const K="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
 
-  window.activarRentaYMoverAActivos = async function(idCta) {
-    const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-    const c = l.find(x => String(x.id) === String(idCta));
-    if (!c) return;
+  window.activarRentaYMoverAActivos = async function(idCta) { const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]"); const c = l.find(x => String(x.id) === String(idCta)); if (!c) return; const botActual = String(c.bot_asignado || "").trim(); if (!botActual || /sin asignar/i.test(botActual)) { alert("⚠️ Primero selecciona un bot libre y toca Asignar Bot ✅."); return; }
 
     const pLow = String(c.plan || "").toLowerCase();
     const dias = pLow.includes("mes") ? 30 : (pLow.includes("semana") ? 7 : 1);
@@ -1297,6 +1294,7 @@ document.addEventListener("click", async function(e) {
   alert("✅ Renta finalizada. Bot liberado y acceso eliminado por completo.");
 }, true);
 </script>
+
 <script id="filtroBotsOcupadosDOM">
 setInterval(() => {
   try {
@@ -1308,25 +1306,51 @@ setInterval(() => {
       const txt = (card.innerText || "").toLowerCase();
       const ctaActual = lista.find(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
 
-      // Obtener códigos de bots asignados a OTROS anuncios (en cola o activos)
       const botsOcupados = new Set();
       lista.forEach(x => {
         if (ctaActual && String(x.id) === String(ctaActual.id)) return;
-        const rawBot = String(x.bot_asignado || "").toUpperCase();
+        const rawBot = (String(x.bot_asignado || "") + " " + String(x.ultimo_anuncio || "")).toUpperCase();
         const m = rawBot.match(/MUSA-\d+/);
-        if (m) botsOcupados.add(m[0]);
+        if (m && m.at(0)) botsOcupados.add(m.at(0));
       });
 
       Array.from(sel.options).forEach(opt => {
         const mOpt = String(opt.value || opt.text || "").toUpperCase().match(/MUSA-\d+/);
-        if (!mOpt) return;
-        const ocupado = botsOcupados.has(mOpt[0]);
-        opt.hidden = ocupado;
-        opt.disabled = ocupado;
+        if (!mOpt || !mOpt.at(0)) return;
+        if (botsOcupados.has(mOpt.at(0))) {
+          opt.remove();
+        }
       });
     });
   } catch {}
-}, 1000);
+}, 800);
+</script>
+<script id="fijarBotEnActivosVIP">
+setInterval(() => {
+  try {
+    const lista = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    document.querySelectorAll(".turno-card").forEach(card => {
+      const sel = card.querySelector("select");
+      const btnAsig = Array.from(card.querySelectorAll("button")).find(b => /asignar\s*bot/i.test(b.innerText || ""));
+      if (!sel || !btnAsig || !sel.parentElement) return;
+
+      const txt = (card.innerText || "").toLowerCase();
+      const cta = lista.find(x => (x.usuario && txt.includes(String(x.usuario).toLowerCase())) || (x.alias && txt.includes(String(x.alias).toLowerCase())));
+      if (!cta) return;
+
+      const yaActiva = Boolean(cta.activo) && Number(cta.vence_ms || 0) > Date.now();
+      let botCod = String(cta.bot_asignado || "").trim();
+      if (!botCod && String(cta.ultimo_anuncio || "").includes("PAGINA:")) {
+        botCod = String(cta.ultimo_anuncio).split("PAGINA:").at(1).split("|").at(0).trim();
+      }
+
+      if (yaActiva && botCod && !/sin asignar/i.test(botCod)) {
+        const filaBot = sel.parentElement;
+        filaBot.innerHTML = `<div style="grid-column:1/-1;background:rgba(6,78,59,0.55);border:1.5px solid #34d399;color:#a7f3d0;padding:8px 12px;border-radius:10px;font-weight:900;font-size:12px;display:flex;justify-content:space-between;align-items:center;"><span>🤖 BOT ASIGNADO Y BLOQUEADO: <b style="color:#fde047;">${botCod.toUpperCase()}</b></span><span style="font-size:11px;color:#6ee7b7;">🔒 En uso hasta Fin de Renta</span></div>`;
+      }
+    });
+  } catch {}
+}, 900);
 </script>
 </body>
 </html>
