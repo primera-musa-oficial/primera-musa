@@ -2654,8 +2654,7 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
       const a = typeof d === "string" ? JSON.parse(d) : d;
       return Array.isArray(a) ? a : [];
     }
-    async function guardar(a) {
-      await fetch(URL_SB + "?clave=eq.solicitudes_pago_vivo_musa", { method: "PATCH", headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json", "Prefer": "return=minimal" }, body: JSON.stringify({ datos: a.slice(-5), actualizado_en: new Date().toISOString() }) });
+    async function guardar(a) { await fetch(URL_SB + "?on_conflict=clave", { method: "POST", headers: { "apikey": KEY_SB, "Authorization": "Bearer " + KEY_SB, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" }, body: JSON.stringify({ clave: "solicitudes_pago_vivo_musa", datos: a.slice(-5) }) }); }, body: JSON.stringify({ datos: a.slice(-5), actualizado_en: new Date().toISOString() }) });
     }
 
     function pintar(lista) {
