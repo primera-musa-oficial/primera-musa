@@ -1,6 +1,35 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script id="escudoAntiBorradoNubeAdmin">
+(function() {
+  window._adminNubeDescargada = false;
+  const _origFetch = window.fetch;
+  window.fetch = async function(url, opts) {
+    const uStr = String(url || "");
+    const mtd = String(opts?.method || "GET").toUpperCase();
+    if (uStr.includes("musa_estado") && mtd === "GET") {
+      const r = await _origFetch.apply(this, arguments);
+      window._adminNubeDescargada = true;
+      return r;
+    }
+    if (uStr.includes("musa_estado") && (mtd === "POST" || mtd === "PATCH") && opts?.body) {
+      if (!window._adminNubeDescargada && !window._adminPermiteGuardarVacio) {
+        return new Response("[]", { status: 200 });
+      }
+      try {
+        const bodyObj = JSON.parse(opts.body);
+        const items = Array.isArray(bodyObj) ? bodyObj : [bodyObj];
+        const colaItem = items.find(x => x && x.clave === "cola_turnos_local");
+        if (colaItem && Array.isArray(colaItem.datos) && colaItem.datos.length === 0 && !window._adminPermiteGuardarVacio) {
+          return new Response("[]", { status: 200 });
+        }
+      } catch {}
+    }
+    return _origFetch.apply(this, arguments);
+  };
+})();
+</script>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
