@@ -1531,38 +1531,57 @@ window.addEventListener("DOMContentLoaded", () => {
   };
 })();
 </script>
+
 <script id="notificarExtensionDesdeAdminVIP">
-document.addEventListener("click", function(e) {
-  const btn = e.target.closest("button");
-  if (!btn) return;
-  const txtBtn = (btn.innerText || "").replace(/\s+/g, " ").trim();
+(function() {
+  const _setItemOrig = localStorage.setItem.bind(localStorage);
+  let _mapaVencesPrevios = {};
 
-  const esActivar = /activar\s*conteo/i.test(txtBtn);
-  const esSumar = /\+1\s*(d[ií]a|semana|mes)/i.test(txtBtn);
-  if (!esActivar && !esSumar) return;
+  try {
+    const ini = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+    if (Array.isArray(ini)) {
+      ini.forEach(x => { if (x && x.id) _mapaVencesPrevios[String(x.id)] = Number(x.vence_ms || 0); });
+    }
+  } catch {}
 
-  const card = btn.closest(".turno-card");
-  if (!card) return;
+  localStorage.setItem = function(k, v) {
+    if (k === "cola_turnos_local") {
+      try {
+        const nuevaLista = JSON.parse(v || "[]");
+        if (Array.isArray(nuevaLista)) {
+          nuevaLista.forEach(c => {
+            if (!c || !c.id || !c.usuario) return;
+            const idStr = String(c.id);
+            const nuevoVence = Number(c.vence_ms || 0);
+            const viejoVence = Number(_mapaVencesPrevios[idStr] || 0);
 
-  const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-  const txtCard = (card.innerText || "").toLowerCase();
-  const c = l.find(x => (x.usuario && txtCard.includes(String(x.usuario).trim().toLowerCase())) || (x.alias && txtCard.includes(String(x.alias).trim().toLowerCase())));
-  if (!c || !c.usuario) return;
+            if (nuevoVence > Date.now() && nuevoVence > viejoVence + 3600000) {
+              _mapaVencesPrevios[idStr] = nuevoVence;
+              const uClean = String(c.usuario).toLowerCase().replace(/[^a-z0-9]/g, "");
+              if (uClean) {
+                const diasAgregados = Math.max(1, Math.round((nuevoVence - Math.max(viejoVence, Date.now())) / 86400000));
+                const esNueva = viejoVence <= Date.now();
+                const titulo = esNueva ? "ANUNCIO PUBLICADO - PRIMERA MUSA VIP" : "RENTA EXTENDIDA - PRIMERA MUSA VIP";
+                const cuerpo = esNueva
+                  ? "Hola @" + c.usuario + ", tu anuncio ya esta publicado y activo (" + diasAgregados + " dias)! Tu conteo VIP ha comenzado."
+                  : "Hola @" + c.usuario + ", se ha acreditado +" + diasAgregados + " dia(s) extra a tu cuenta VIP. Gracias por renovar!";
 
-  const uClean = String(c.usuario).toLowerCase().replace(/[^a-z0-9]/g, "");
-  if (!uClean) return;
-
-  const titulo = esActivar ? "ANUNCIO PUBLICADO - PRIMERA MUSA VIP" : "RENTA EXTENDIDA - PRIMERA MUSA VIP";
-  const msg = esActivar
-    ? "Hola @" + c.usuario + ", tu anuncio ya esta publicado y activo! Tu conteo VIP ha comenzado."
-    : "Hola @" + c.usuario + ", se ha acreditado (" + txtBtn + ") a tu cuenta VIP. Gracias por renovar!";
-
-  fetch("https://ntfy.sh" + uClean, {
-    method: "POST",
-    headers: { "Title": titulo, "Priority": "high", "Tags": "crown,white_check_mark" },
-    body: msg
-  }).catch(() => {});
-}, true);
+                fetch("https://ntfy.sh" + uClean, {
+                  method: "POST",
+                  headers: { "Title": titulo, "Priority": "high", "Tags": "crown,white_check_mark" },
+                  body: cuerpo
+                }).catch(() => {});
+              }
+            } else {
+              _mapaVencesPrevios[idStr] = nuevoVence;
+            }
+          });
+        }
+      } catch {}
+    }
+    _setItemOrig(k, v);
+  };
+})();
 </script>
 </body>
 </html>
