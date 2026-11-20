@@ -69,11 +69,6 @@
 })();
 </script>
 
-
-
-
-
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PRIMERA MUSA 👑 • Panel de Administración</title>
@@ -149,9 +144,6 @@
   </div>
 </div>
 
-
-
-
 <script>
 window.vistaAdminActual = "cola";
 
@@ -183,8 +175,6 @@ function copiarTextoAdmin(txt, btn) {
   setTimeout(() => btn.innerText = orig, 1400);
 }
 
-
-
 function formatearMs(ms) {
   if (!ms || ms <= 0) return "0d 0h 0m";
   return `${Math.floor(ms/86400000)}d ${Math.floor((ms%86400000)/3600000)}h ${Math.floor((ms%3600000)/60000)}m`;
@@ -215,10 +205,8 @@ function cargarColaTurnos() { if (window._viendoTabPagosAdmin) return;
   document.getElementById("statActivos").innerText = activosList.length;
   document.getElementById("statTotal").innerText = lista.length;
   if (document.getElementById("statReportes")) document.getElementById("statReportes").innerText = repsPend.length;
-  
-    
 
-    if (window.vistaAdminActual === "todas" && cont) {
+if (window.vistaAdminActual === "todas" && cont) {
     const activos = lista.filter(c => Boolean(c.activo) || (Number(c.vence_ms || 0) > Date.now() && !c.bloqueada));
     if (activos.length === 0) {
       cont.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:24px;background:#0a120f;border:1.5px solid #334155;border-radius:14px;">No hay usuarios activos en este momento.</div>`;
@@ -376,10 +364,8 @@ ${c.es_adicional ? `<span style="background:linear-gradient(90deg,#1d4ed8,#3b82f
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">${fotosHtml}</div>
     <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px;"><select id="pagInp_${c.id}"><option value="">— Selecciona Bot (${pag}) —</option>${obtenerCuentasBot().map(b=>`<option value="${b.codigo} • ${b.nombre}">${b.codigo} • ${b.nombre}</option>`).join("")}</select><button type="button" class="btn-gold" onclick="guardarCambioLocal(${c.id},null,document.getElementById('pagInp_${c.id}').value)">Asignar Bot ✅</button></div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;">
-      
-      
-      
-      ${c.activo
+
+${c.activo
   ? `<span style="background:rgba(16,185,129,0.2);border:1px solid #34d399;color:#6ee7b7;font-size:11px;font-weight:900;padding:6px 12px;border-radius:8px;">✅ Activada</span>
      <button type="button" class="btn-gold" style="padding:5px 10px;font-size:11px;" onclick="abrirMensajeBienvenidaAdmin(${c.id})">📲 Copiar Mensaje + Foto</button>`
   : ``
@@ -597,7 +583,6 @@ async function refrescarBotsFijos() {
 refrescarBotsFijos().then(() => { if (typeof cargarColaTurnos === "function") cargarColaTurnos(); });
 setInterval(async () => { await refrescarBotsFijos().then(() => { if (typeof cargarColaTurnos === "function") cargarColaTurnos(); }); if (window.vistaAdminActual === "bots" && typeof cargarColaTurnos === "function") cargarColaTurnos(); }, 4000);
 </script>
-
 
 <script>
 setInterval(() => {
@@ -991,12 +976,6 @@ window.addEventListener("load", () => {
 })();
 </script>
 
-
-
-
-
-
-
 <script id="fixBotonesTiempoAdmin">
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("button");
@@ -1051,25 +1030,6 @@ document.addEventListener("click", async (e) => {
   } catch {}
 }, true);
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 <script id="filtroBotsOcupadosDOM">
 setInterval(() => {
@@ -1452,7 +1412,6 @@ window.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 
-
 <script id="notificarExtensionDesdeAdminVIP">
 window.addEventListener("load", function() {
   const _origSumar = window.sumarDiasRentaVIP;
@@ -1487,14 +1446,14 @@ window.addEventListener("load", function() {
   window.limpiarFantasmasAdminVIP = async function(){
     if(!confirm("¿Limpiar registros vacíos o corruptos en la nube y dejar solo los anuncios válidos?"))return;
     try{
-      const r=await fetch(SB+"?select=id,datos&limit=1",{headers:{apikey:KEY,Authorization:"Bearer "+KEY},cache:"no-store"});
+      const r=await fetch(SB+"?select=*&limit=1",{headers:{apikey:KEY,Authorization:"Bearer "+KEY},cache:"no-store"});
       const rows=await r.json();
       if(!Array.isArray(rows)||!rows)return;
       let arr=typeof rows.datos==="string"?JSON.parse(rows.datos):rows.datos;
       if(!Array.isArray(arr))arr=[];
       const limpios=arr.filter(x=>x && (x.usuario||x.alias) && !x.finalizado);
       localStorage.setItem("cola_turnos_local",JSON.stringify(limpios));
-      await fetch(SB+"?id=eq."+rows.id,{method:"PATCH",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json"},body:JSON.stringify({datos:limpios})});
+      await fetch(SB+"?"+Object.keys(rows).find(k=>k!=='datos')+"=eq."+rows[Object.keys(rows).find(k=>k!=='datos')],{method:"PATCH",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json"},body:JSON.stringify({datos:limpios})});
       alert("✅ Limpieza completada ("+limpios.length+" registros válidos).");
       location.reload();
     }catch(e){alert("⚠️ Error al limpiar: "+e.message);}
@@ -1535,12 +1494,7 @@ window.addEventListener("load", function() {
   cargarColaTurnos();
 }</script>
 
-
-
-
 <script id="blindarSelectBotsRealesVIP">(function(){setInterval(()=>{try{const mapa=JSON.parse(localStorage.getItem("mapa_bots_musa_activos")||"{}");const lista=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]");const ahora=Date.now();const ocupados=new Set(lista.filter(x=>x.activo&&!x.bloqueada&&x.bot_asignado).map(x=>String(x.bot_asignado).split("•")[0].trim().toUpperCase()));const reales=Object.entries(mapa).filter(([k,v])=>v&&(ahora-Number(v.ts||0))<600000&&!ocupados.has(String(k).trim().toUpperCase())).map(([k,v])=>({cod:String(k).trim().toUpperCase(),txt:v.alerta?("⚠️ "+v.alerta):"🟢 ONLINE en Chrome"})).sort((a,b)=>a.cod.localeCompare(b.cod));document.querySelectorAll('select[id^="pagInp_"]').forEach(sel=>{if(document.activeElement===sel)return;const valAct=sel.value;const html='<option value="">— Selecciona Bot Libre —</option>'+reales.map(b=>`<option value="${b.cod} • ${b.txt}">${b.cod} • ${b.txt}</option>`).join("");if(sel.innerHTML!==html){sel.innerHTML=html;if(valAct)sel.value=valAct;}});}catch{}},600);})();</script>
-
-
 
 <script id="limpiezaTotalFinRentaVIP">
 (function(){

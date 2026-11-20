@@ -16,7 +16,6 @@
 </script>
 <script>window._musaPausadoAhora = true;</script>
 
-
 <script id="escudoInicioSinFalsaSubida">
 window._musaInicioSesionMs = Date.now();
 window.addEventListener("load", () => {
@@ -201,7 +200,6 @@ window.addEventListener("load", () => {
   }
 }
 </style>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -472,7 +470,6 @@ document.addEventListener("click", (e) => {
   </div>
 </div>
 
-
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Gadsden","Huntsville","Mobile","Montgomery","Muscle Shoals","Tuscaloosa"],
@@ -619,7 +616,6 @@ async function registrarUsuario() {
   try { await fetch(SUPA_URL, { method: "POST", headers: { apikey: SUPA_KEY, Authorization: "Bearer " + SUPA_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ usuario: u, clave: p, nombre_perfil: u, activo: false, en_pausa: true, intervalo_min: 15, vence_el: new Date().toISOString(), ultimo_anuncio: "Registro nuevo pendiente" }) }); } catch (e) {}
   window.nuevoUsuarioVIP = u; document.getElementById("cajaAcceso").style.display = "none"; document.getElementById("modalFormVIP").style.display = "flex"; mostrarPasoForm(0);
 }
-
 
 function cargarCiudadesForm() { const st = document.getElementById("inState").value, sel = document.getElementById("inCity"); sel.innerHTML = ""; (ciudadesUSA[st] || ["Main City"]).forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`); }
 function generarHeadlineForm() { const h = ["✨ Sweet, Classy & Unforgettable — Private VIP Escape 💋","🔥 Exotic Latina Beauty • Upscale, Warm & Discreet 💎","🌹 New in Town • Sensual, Friendly & 100% Real ✨"]; document.getElementById("inHead").value = h[Math.floor(Math.random()*h.length)]; }
@@ -1003,7 +999,6 @@ function reportarFallaDesdeCliente(id) {
 }
 </script>
 
-
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Gadsden","Huntsville","Mobile","Montgomery","Muscle Shoals","Tuscaloosa"],
@@ -1091,7 +1086,6 @@ function entrarAlPanelClienteDirecto() {
 }
 .particula-toque-nieve { position:fixed; z-index:999999; pointer-events:none; animation:estallidoNieveToque 0.9s ease-out forwards; }
 </style>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -1183,7 +1177,6 @@ function pausarOReanudarTodosCliente(act) {
 }
 </script>
 
-
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Gadsden","Huntsville","Mobile","Montgomery","Muscle Shoals","Tuscaloosa"],
@@ -1242,7 +1235,6 @@ var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
 </script>
 <script>
 
-
 function iniciarColaEdicionVIP(id) {
   const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]"), it = l.find(x => x.id === id);
   if (!it) return;
@@ -1280,7 +1272,6 @@ function abrirEditorAnuncioCliente(id) {
     </div></div>`;
 }
 </script>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -1378,7 +1369,6 @@ function pasarAPaso2FotosYCaptcha(id) {
     </div>`;
 }
 </script>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -1499,7 +1489,6 @@ window.renderizarSuiteInterna = function() {
 };
 </script>
 
-
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Gadsden","Huntsville","Mobile","Montgomery","Muscle Shoals","Tuscaloosa"],
@@ -1593,7 +1582,6 @@ window.abrirFormularioEdicionRealVIP = function(id) {
       <div style="text-align:center;"><button type="button" onclick="window.borradorExtra={age:document.getElementById('edAge').value,area:document.getElementById('edArea').value};pasarAPaso2FotosYCaptcha(${it.id});" style="background:#be123c;color:#fff;border:none;border-radius:20px;padding:9px 36px;font-weight:900;font-size:16px;cursor:pointer;">Next</button></div>
     </div>`;
 };</script>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -1710,7 +1698,6 @@ setInterval(() => {
     <div id="contenidoAyudaDinamico"></div>
   </div>
 </div>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -1836,7 +1823,6 @@ async function enviarCambioManualAdminVIP(id) {
 }
 </script>
 
-
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Gadsden","Huntsville","Mobile","Montgomery","Muscle Shoals","Tuscaloosa"],
@@ -1930,7 +1916,6 @@ function abrirInfoSistemaPrimeraMusa() {
         </div>
       </div>
 
-      
 <div style="background:rgba(255,255,255,0.04);border-left:3px solid #34d399;border-radius:10px;padding:9px 11px;margin-bottom:8px;text-align:left;font-size:11.5px;line-height:1.4;color:#e2e8f0;">
   🚀 <b style="color:#6ee7b7;">Subidas al tope hoy:</b> Mira en vivo cuántas veces ha subido tu anuncio al primer lugar durante el día y hace cuánto fue su última subida.
 </div>
@@ -1945,7 +1930,6 @@ window.abrirSuiteInternaCliente = function(usuario) {
   setTimeout(abrirInfoSistemaPrimeraMusa, 300);
 };
 </script>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -2031,7 +2015,6 @@ setInterval(() => {
 }
 </style>
 
-
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Gadsden","Huntsville","Mobile","Montgomery","Muscle Shoals","Tuscaloosa"],
@@ -2114,7 +2097,6 @@ function celebrarSubidaAnuncioVIP() {
   setTimeout(() => { banner.style.display = "none"; }, 5000);
 }
 </script>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -2314,8 +2296,6 @@ var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
 })();
 </script>
 
-
-
 <script id="scriptFelizNavidadFuegos">
 window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("div, marquee, span").forEach(el => {
@@ -2482,10 +2462,6 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   };
 })();
 </script>
-
-
-
-
 
 <script id="escudoEstrictoBotVivo">
 (function() {
@@ -2657,8 +2633,6 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
 })();
 </script>
 
-
-
 <script id="fijadorElementosPanelVIP">
 (function() {
   function getUsr() {
@@ -2707,9 +2681,7 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
     const btnPausar = Array.from(document.querySelectorAll("button")).find(b => b.offsetParent !== null && /pausar anuncio|reanudar anuncio/i.test(b.innerText || ""));
     if (!btnPausar || !btnPausar.parentElement) return;
 
-    
-
-    // 2. Mantener barra de Subidas al tope hoy fija debajo de Pausar
+// 2. Mantener barra de Subidas al tope hoy fija debajo de Pausar
     let cajaStats = document.getElementById("cajaEstadisticasSubidasVIP");
     if (!cajaStats) {
       cajaStats = document.createElement("div");
@@ -2729,7 +2701,6 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   setInterval(mantenerFijosEnPanel, 2000);
 })();
 </script>
-
 
 <script id="avisoRenovacionDirectaVIP">
 (function() {
@@ -2761,8 +2732,6 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   }, 4000);
 })();
 </script>
-
-
 
 <script id="escudoGeneradorVIP">
 (function() {
@@ -3016,7 +2985,6 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
 })();
 </script>
 
-
 <script id="expulsionFinRentaClienteVIP">
 setInterval(() => {
   try {
@@ -3062,7 +3030,6 @@ setInterval(() => {
   } catch {}
 }, 3000);
 </script>
-
 
 <script id="syncRelojUsuarioNubeVIP">
 (function() {
@@ -3128,7 +3095,6 @@ setInterval(() => {
   setInterval(actualizarRelojVenceUsuario, 3000);
 })();
 </script>
-
 
 <script id="loginDirectoNubeVIP">
 (function() {
@@ -3249,5 +3215,4 @@ window.iniciarSesion = async function(){
   <div style="font-size:11.5px;color:#fecaca;">Contacta a soporte para activar tu tiempo guardado en un anuncio nuevo.</div>
 </div>
 <script id="syncTotalIndexVIP">(function(){window._idsEliminadosCache=JSON.parse(localStorage.getItem("ids_eliminados_musa")||"[]").map(String);const _origSet=localStorage.setItem.bind(localStorage);localStorage.setItem=function(k,v){if(k==="cola_turnos_local"){try{let arr=JSON.parse(v||"[]");if(Array.isArray(arr)&&window._idsEliminadosCache.length>0){arr=arr.filter(a=>!window._idsEliminadosCache.includes(String(a.id)));v=JSON.stringify(arr);}}catch{}}return _origSet(k,v);};async function vigilarSuiteIndex(){try{const U="https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado",K="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";const r=await fetch(U+"?clave=in.(cola_turnos_local,ids_eliminados_musa)&select=clave,datos",{headers:{apikey:K,Authorization:"Bearer "+K},cache:"no-store"});const f=await r.json();if(!Array.isArray(f))return;const fDel=f.find(x=>x.clave==="ids_eliminados_musa"),fCol=f.find(x=>x.clave==="cola_turnos_local");const elim=(fDel&&Array.isArray(fDel.datos))?fDel.datos.map(String):[];window._idsEliminadosCache=elim;_origSet("ids_eliminados_musa",JSON.stringify(elim));if(fCol&&Array.isArray(fCol.datos)){const limpia=fCol.datos.filter(a=>!elim.includes(String(a.id)));_origSet("cola_turnos_local",JSON.stringify(limpia));const uAct=String(window.usuarioLogueadoVIP||"").trim().toLowerCase();const suite=document.getElementById("suiteInternaCliente");if(uAct&&suite&&suite.style.display!=="none"){const mis=limpia.filter(a=>String(a.usuario||"").trim().toLowerCase()===uAct);if(mis.length===0){window.usuarioLogueadoVIP="";sessionStorage.removeItem("sesion_vip_activa");suite.style.display="none";const caj=document.getElementById("cajaAcceso");if(caj)caj.style.display="block";return;}const bloqs=[];mis.forEach((an,i)=>{if(an.bloqueada)bloqs.push("#"+(i+1)+(an.city?" ("+an.city+")":""));});const box=document.getElementById("avisoCuentaBloqueadaVIP");if(box){if(bloqs.length>0){const key=bloqs.join(",");box.dataset.bloqIds=key;if(sessionStorage.getItem("cerrar_aviso_bloq_"+key)!=="1"){document.getElementById("txtTituloBloqVIP").textContent="🔒 CUENTA BLOQUEADA • ANUNCIO "+bloqs.join(", ");if(box.parentElement!==suite)suite.prepend(box);box.style.display="block";}}else{box.style.display="none";}}if(typeof renderizarSuiteInterna==="function")renderizarSuiteInterna();}}}catch{}}vigilarSuiteIndex();setInterval(vigilarSuiteIndex,2500);})();</script>
-
 

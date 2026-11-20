@@ -16,7 +16,6 @@
 </script>
 <script>window._musaPausadoAhora = true;</script>
 
-
 <script id="escudoInicioSinFalsaSubida">
 window._musaInicioSesionMs = Date.now();
 window.addEventListener("load", () => {
@@ -201,7 +200,6 @@ window.addEventListener("load", () => {
   }
 }
 </style>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -419,9 +417,6 @@ document.addEventListener("click", (e) => {
 })();
 </script>
 
-
-
-
 <style id="cssInputsAyudaNavidadVIP">[id*="Ayuda"] input,[id*="ayuda"] input,.modal-ayuda input{display:block!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;background:#fff!important;color:#0f172a!important;border:1.5px solid #cbd5e1!important;border-radius:10px!important;padding:9px!important;width:100%!important;margin:6px 0 12px!important;position:relative!important;z-index:10000001!important}[id*="Ayuda"] input[type="file"],[id*="ayuda"] input[type="file"],.modal-ayuda input[type="file"]{padding:10px!important;background:#f8fafc!important;border:2px dashed #ec4899!important;cursor:pointer!important}</style>
 </head>
 <body>
@@ -475,7 +470,6 @@ document.addEventListener("click", (e) => {
     <div id="bannerRepoTop" style="display:none;background:linear-gradient(90deg,#059669,#10b981);border:1.5px solid #fde047;border-radius:10px;padding:7px 10px;margin-bottom:10px;font-size:11px;font-weight:900;color:#fff;"></div><div id="cuerpoPasosForm"></div>
   </div>
 </div>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -607,7 +601,6 @@ async function registrarUsuario() {
   try { await fetch(SUPA_URL, { method: "POST", headers: { apikey: SUPA_KEY, Authorization: "Bearer " + SUPA_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ usuario: u, clave: p, nombre_perfil: u, activo: false, en_pausa: true, intervalo_min: 15, vence_el: new Date().toISOString(), ultimo_anuncio: "Registro nuevo pendiente" }) }); } catch (e) {}
   window.nuevoUsuarioVIP = u; document.getElementById("cajaAcceso").style.display = "none"; document.getElementById("modalFormVIP").style.display = "flex"; mostrarPasoForm(0);
 }
-
 
 function cargarCiudadesForm() { const st = document.getElementById("inState").value, sel = document.getElementById("inCity"); sel.innerHTML = ""; (ciudadesUSA[st] || ["Main City"]).forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`); }
 function generarHeadlineForm() { const h = ["✨ Sweet, Classy & Unforgettable — Private VIP Escape 💋","🔥 Exotic Latina Beauty • Upscale, Warm & Discreet 💎","🌹 New in Town • Sensual, Friendly & 100% Real ✨"]; document.getElementById("inHead").value = h[Math.floor(Math.random()*h.length)]; }
@@ -970,7 +963,6 @@ function reportarFallaDesdeCliente(id) {
 }
 </script>
 
-
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Gadsden","Huntsville","Mobile","Montgomery","Muscle Shoals","Tuscaloosa"],
@@ -1058,7 +1050,6 @@ function entrarAlPanelClienteDirecto() {
 }
 .particula-toque-nieve { position:fixed; z-index:999999; pointer-events:none; animation:estallidoNieveToque 0.9s ease-out forwards; }
 </style>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -1150,7 +1141,6 @@ function pausarOReanudarTodosCliente(act) {
 }
 </script>
 
-
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Gadsden","Huntsville","Mobile","Montgomery","Muscle Shoals","Tuscaloosa"],
@@ -1209,7 +1199,6 @@ var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
 </script>
 <script>
 
-
 function iniciarColaEdicionVIP(id) {
   const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]"), it = l.find(x => x.id === id);
   if (!it) return;
@@ -1247,7 +1236,6 @@ function abrirEditorAnuncioCliente(id) {
     </div></div>`;
 }
 </script>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -1345,7 +1333,6 @@ function pasarAPaso2FotosYCaptcha(id) {
     </div>`;
 }
 </script>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -1465,7 +1452,6 @@ window.renderizarSuiteInterna = function() {
 };
 </script>
 
-
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Gadsden","Huntsville","Mobile","Montgomery","Muscle Shoals","Tuscaloosa"],
@@ -1559,7 +1545,6 @@ window.abrirFormularioEdicionRealVIP = function(id) {
       <div style="text-align:center;"><button type="button" onclick="window.borradorExtra={age:document.getElementById('edAge').value,area:document.getElementById('edArea').value};pasarAPaso2FotosYCaptcha(${it.id});" style="background:#be123c;color:#fff;border:none;border-radius:20px;padding:9px 36px;font-weight:900;font-size:16px;cursor:pointer;">Next</button></div>
     </div>`;
 };</script>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -1674,7 +1659,6 @@ setInterval(() => {
     <div id="contenidoAyudaDinamico"></div>
   </div>
 </div>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -1800,7 +1784,6 @@ async function enviarCambioManualAdminVIP(id) {
 }
 </script>
 
-
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Gadsden","Huntsville","Mobile","Montgomery","Muscle Shoals","Tuscaloosa"],
@@ -1894,7 +1877,6 @@ function abrirInfoSistemaPrimeraMusa() {
         </div>
       </div>
 
-      
 <div style="background:rgba(255,255,255,0.04);border-left:3px solid #34d399;border-radius:10px;padding:9px 11px;margin-bottom:8px;text-align:left;font-size:11.5px;line-height:1.4;color:#e2e8f0;">
   🚀 <b style="color:#6ee7b7;">Subidas al tope hoy:</b> Mira en vivo cuántas veces ha subido tu anuncio al primer lugar durante el día y hace cuánto fue su última subida.
 </div>
@@ -1909,7 +1891,6 @@ window.abrirSuiteInternaCliente = function(usuario) {
   setTimeout(abrirInfoSistemaPrimeraMusa, 300);
 };
 </script>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -1995,7 +1976,6 @@ setInterval(() => {
 }
 </style>
 
-
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
   "Alabama": ["Auburn","Birmingham","Dothan","Gadsden","Huntsville","Mobile","Montgomery","Muscle Shoals","Tuscaloosa"],
@@ -2078,7 +2058,6 @@ function celebrarSubidaAnuncioVIP() {
   setTimeout(() => { banner.style.display = "none"; }, 5000);
 }
 </script>
-
 
 <script id="catalogoCiudadesMPCompleto">
 window.CIUDADES_MP_OFICIAL = {
@@ -2278,8 +2257,6 @@ var ciudadesUSA = window.CIUDADES_MP_OFICIAL;
 })();
 </script>
 
-
-
 <script id="scriptFelizNavidadFuegos">
 window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("div, marquee, span").forEach(el => {
@@ -2446,10 +2423,6 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   };
 })();
 </script>
-
-
-
-
 
 <script id="escudoEstrictoBotVivo">
 (function() {
@@ -2621,8 +2594,6 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
 })();
 </script>
 
-
-
 <script id="fijadorElementosPanelVIP">
 (function() {
   function getUsr() {
@@ -2671,9 +2642,7 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
     const btnPausar = Array.from(document.querySelectorAll("button")).find(b => b.offsetParent !== null && /pausar anuncio|reanudar anuncio/i.test(b.innerText || ""));
     if (!btnPausar || !btnPausar.parentElement) return;
 
-    
-
-    // 2. Mantener barra de Subidas al tope hoy fija debajo de Pausar
+// 2. Mantener barra de Subidas al tope hoy fija debajo de Pausar
     let cajaStats = document.getElementById("cajaEstadisticasSubidasVIP");
     if (!cajaStats) {
       cajaStats = document.createElement("div");
@@ -2693,7 +2662,6 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   setInterval(mantenerFijosEnPanel, 2000);
 })();
 </script>
-
 
 <script id="avisoRenovacionDirectaVIP">
 (function() {
@@ -2725,8 +2693,6 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
   }, 4000);
 })();
 </script>
-
-
 
 <script id="escudoGeneradorVIP">
 (function() {
@@ -2980,7 +2946,6 @@ window._musaInicioSesionMs = Date.now(); window.addEventListener("DOMContentLoad
 })();
 </script>
 
-
 <script id="expulsionFinRentaClienteVIP">
 setInterval(() => {
   try {
@@ -3026,7 +2991,6 @@ setInterval(() => {
   } catch {}
 }, 3000);
 </script>
-
 
 <script id="syncRelojUsuarioNubeVIP">
 (function() {
@@ -3092,7 +3056,6 @@ setInterval(() => {
   setInterval(actualizarRelojVenceUsuario, 3000);
 })();
 </script>
-
 
 <script id="loginDirectoNubeVIP">
 (function() {
@@ -3217,7 +3180,6 @@ window.iniciarSesion = async function(){
   <div id="txtTituloBloqVIP" style="font-weight:900;font-size:13px;color:#fde047;margin-bottom:3px;">🔒 CUENTA BLOQUEADA</div>
   <div style="font-size:11.5px;color:#fecaca;">Contacta a soporte para activar tu tiempo guardado en un anuncio nuevo.</div>
 </div>
-
 
 <script id="jsAvisoCuentaBloqueadaVIP">(function(){setInterval(()=>{try{const u=String(window.usuarioLogueadoVIP||sessionStorage.getItem("sesion_vip_activa")||localStorage.getItem("usuario_actual_musa")||localStorage.getItem("musa_usuario_actual")||"").trim().toLowerCase();const l=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]");const mis=u?l.filter(x=>String(x.usuario||"").trim().toLowerCase()===u):[];const bloqs=[];mis.forEach((an,i)=>{if(an.bloqueada)bloqs.push("#"+(i+1)+(an.city?" ("+an.city+")":""));});const box=document.getElementById("avisoCuentaBloqueadaVIP");if(!box)return;if(bloqs.length>0){const key=bloqs.join(",");box.dataset.bloqIds=key;if(sessionStorage.getItem("cerrar_aviso_bloq_"+key)==="1"){box.style.display="none";return;}document.getElementById("txtTituloBloqVIP").textContent="🔒 CUENTA BLOQUEADA • ANUNCIO "+bloqs.join(", ");const host=document.getElementById("suiteInternaCliente")||document.body;if(box.parentElement!==host)host.prepend(box);box.style.display="block";}else{box.style.display="none";}}catch{}},700);})();</script>
 
