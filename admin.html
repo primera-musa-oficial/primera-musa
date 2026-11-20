@@ -150,26 +150,7 @@
 
 
 
-<script>
-(function() {
-  try {
-    let bots = JSON.parse(localStorage.getItem("cuentas_bots_local") || "[]");
-    if (!Array.isArray(bots)) bots = [];
-    const existentes = new Set(bots.map(b => String(b.codigo || "").toUpperCase()));
-    let cambio = false;
-    for (let i = 1; i <= 100; i++) {
-      const cod = "MUSA-" + String(i).padStart(2, "0");
-      if (!existentes.has(cod)) {
-        bots.push({ codigo: cod, nombre: "Perfil Chrome #" + i + " (Extensión VIP)" });
-        cambio = true;
-      }
-    }
-    if (cambio) {
-      localStorage.setItem("cuentas_bots_local", JSON.stringify(bots));
-    }
-  } catch (e) {}
-})();
-</script>
+
 <script>
 window.vistaAdminActual = "cola";
 
@@ -201,14 +182,7 @@ function copiarTextoAdmin(txt, btn) {
   setTimeout(() => btn.innerText = orig, 1400);
 }
 
-function obtenerCuentasBot() {
-  let bots = JSON.parse(localStorage.getItem("cuentas_bot_musa") || "[]");
-  if (bots.length === 0) {
-    bots = [{ codigo: "MUSA-01", nombre: "Perfil Chrome #1 - Miami FL" }, { codigo: "MUSA-02", nombre: "Perfil Chrome #2 - Orlando FL" }];
-    localStorage.setItem("cuentas_bot_musa", JSON.stringify(bots));
-  }
-  return bots;
-}
+
 
 function formatearMs(ms) {
   if (!ms || ms <= 0) return "0d 0h 0m";
@@ -540,26 +514,7 @@ setInterval(() => {
   if (huboCambio) localStorage.setItem("cola_turnos_local", JSON.stringify(lista));
 }, 1000);
 </script>
-<script>
-(function() {
-  try {
-    let bots = JSON.parse(localStorage.getItem("cuentas_bots_local") || "[]");
-    if (!Array.isArray(bots)) bots = [];
-    const existentes = new Set(bots.map(b => String(b.codigo || "").toUpperCase()));
-    let cambio = false;
-    for (let i = 1; i <= 100; i++) {
-      const cod = "MUSA-" + String(i).padStart(2, "0");
-      if (!existentes.has(cod)) {
-        bots.push({ codigo: cod, nombre: "Perfil Chrome #" + i + " (Extensión VIP)" });
-        cambio = true;
-      }
-    }
-    if (cambio) {
-      localStorage.setItem("cuentas_bots_local", JSON.stringify(bots));
-    }
-  } catch (e) {}
-})();
-</script>
+
 <script>
 (function(){
   const SB_URL = "https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado";
@@ -613,26 +568,7 @@ setInterval(() => {
   <div style="font-weight:900;font-size:13px;margin-bottom:8px;">🤖 PERFILES DE CHROME CONECTADOS EN VIVO (EXTENSIÓN):</div>
   <div id="listaChipsBots" style="display:flex;flex-wrap:wrap;gap:8px;font-size:12px;">⏳ Conectando con Supabase...</div>
 </div>
-<script>
-(function() {
-  try {
-    let bots = JSON.parse(localStorage.getItem("cuentas_bots_local") || "[]");
-    if (!Array.isArray(bots)) bots = [];
-    const existentes = new Set(bots.map(b => String(b.codigo || "").toUpperCase()));
-    let cambio = false;
-    for (let i = 1; i <= 100; i++) {
-      const cod = "MUSA-" + String(i).padStart(2, "0");
-      if (!existentes.has(cod)) {
-        bots.push({ codigo: cod, nombre: "Perfil Chrome #" + i + " (Extensión VIP)" });
-        cambio = true;
-      }
-    }
-    if (cambio) {
-      localStorage.setItem("cuentas_bots_local", JSON.stringify(bots));
-    }
-  } catch (e) {}
-})();
-</script>
+
 <script>
 const URL_SB_MON = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1/musa_estado";
 const KEY_SB_MON = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
@@ -660,26 +596,7 @@ async function refrescarBotsFijos() {
 refrescarBotsFijos().then(() => { if (typeof cargarColaTurnos === "function") cargarColaTurnos(); });
 setInterval(async () => { await refrescarBotsFijos().then(() => { if (typeof cargarColaTurnos === "function") cargarColaTurnos(); }); if (window.vistaAdminActual === "bots" && typeof cargarColaTurnos === "function") cargarColaTurnos(); }, 4000);
 </script>
-<script>
-(function() {
-  try {
-    let bots = JSON.parse(localStorage.getItem("cuentas_bots_local") || "[]");
-    if (!Array.isArray(bots)) bots = [];
-    const existentes = new Set(bots.map(b => String(b.codigo || "").toUpperCase()));
-    let cambio = false;
-    for (let i = 1; i <= 100; i++) {
-      const cod = "MUSA-" + String(i).padStart(2, "0");
-      if (!existentes.has(cod)) {
-        bots.push({ codigo: cod, nombre: "Perfil Chrome #" + i + " (Extensión VIP)" });
-        cambio = true;
-      }
-    }
-    if (cambio) {
-      localStorage.setItem("cuentas_bots_local", JSON.stringify(bots));
-    }
-  } catch (e) {}
-})();
-</script>
+
 
 <script>
 setInterval(() => {
