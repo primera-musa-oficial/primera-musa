@@ -1584,3 +1584,18 @@ window.addEventListener("load", function() {
   cargarColaTurnos();
 }</script>
 
+
+<script id="overrideBotsRealesVIP">function obtenerCuentasBot() {
+  try {
+    const mapa = JSON.parse(localStorage.getItem("mapa_bots_musa_activos") || "{}");
+    const ahora = Date.now();
+    const reales = Object.entries(mapa)
+      .filter(([k, v]) => v && (ahora - Number(v.ts || 0)) < 600000)
+      .map(([k, v]) => ({
+        codigo: String(k).toUpperCase(),
+        nombre: v.alerta ? "⚠️ " + v.alerta : "Conectado en vivo (Chrome)"
+      }));
+    if (reales.length > 0) return reales.sort((a, b) => a.codigo.localeCompare(b.codigo));
+  } catch (e) {}
+  return [];
+}</script>
