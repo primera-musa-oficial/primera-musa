@@ -353,7 +353,7 @@ document.addEventListener("click", (e) => {
 <script id="syncLimpiezaInicialClienteVIP">
 (async function() {
   try {
-    const U = "https://supabase.co";
+    const U = "https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado";
     const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
     const r = await fetch(U, { headers: { apikey: K, Authorization: "Bearer " + K }, cache: "no-store" });
     if (!r.ok) return;
@@ -547,7 +547,7 @@ async function iniciarSesion() {
 
   msg.innerText = "⏳ Verificando cuenta en vivo...";
   try {
-    const _r = await fetch("https://supabase.co", { headers: { apikey: "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", Authorization: "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0" }, cache: "no-store" });
+    const _r = await fetch("https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado", { headers: { apikey: "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", Authorization: "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0" }, cache: "no-store" });
     const _f = await _r.json();
     if (Array.isArray(_f)) {
       const _fD = _f.find(x => x.clave === "ids_eliminados_musa"), _fC = _f.find(x => x.clave === "cola_turnos_local");
@@ -736,7 +736,7 @@ function guardarStickerNuevo(idx) {
 function abrirSuiteInternaCliente(usuario) {
   (async () => {
     try {
-      const r = await fetch("https://supabase.co", { headers: { apikey: "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", Authorization: "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0" }, cache: "no-store" });
+      const r = await fetch("https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado", { headers: { apikey: "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", Authorization: "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0" }, cache: "no-store" });
       const f = await r.json();
       let arr = (Array.isArray(f) && f[0]) ? f[0].datos : [];
       if (typeof arr === "string") try { arr = JSON.parse(arr); } catch { arr = []; }
@@ -3053,7 +3053,7 @@ setInterval(() => {
 
 <script id="syncRelojUsuarioNubeVIP">
 (function() {
-  const U = "https://supabase.co";
+  const U = "https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado";
   const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
 
   async function actualizarRelojVenceUsuario() {
@@ -3202,7 +3202,7 @@ setInterval(() => {
 </script>
 <script id="ceroRastrosClienteVIP">
 (function(){
-  const U="https://supabase.co";
+  const U="https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado";
   const K="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
   const _origSet=localStorage.setItem.bind(localStorage);
   window._elimVIP=JSON.parse(localStorage.getItem("ids_eliminados_musa")||"[]").map(String);
@@ -3284,6 +3284,6 @@ setInterval(() => {
   <div id="txtTituloBloqVIP" style="font-weight:900;font-size:13px;color:#fde047;margin-bottom:3px;">🔒 CUENTA BLOQUEADA</div>
   <div style="font-size:11.5px;color:#fecaca;">Contacta a soporte para activar tu tiempo guardado en un anuncio nuevo.</div>
 </div>
-<script id="syncTotalIndexVIP">(function(){window._idsEliminadosCache=JSON.parse(localStorage.getItem("ids_eliminados_musa")||"[]").map(String);const _origSet=localStorage.setItem.bind(localStorage);localStorage.setItem=function(k,v){if(k==="cola_turnos_local"){try{let arr=JSON.parse(v||"[]");if(Array.isArray(arr)&&window._idsEliminadosCache.length>0){arr=arr.filter(a=>!window._idsEliminadosCache.includes(String(a.id)));v=JSON.stringify(arr);}}catch{}}return _origSet(k,v);};async function vigilarSuiteIndex(){try{const U="https://supabase.co",K="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";const r=await fetch(U+"?clave=in.(cola_turnos_local,ids_eliminados_musa)&select=clave,datos",{headers:{apikey:K,Authorization:"Bearer "+K},cache:"no-store"});const f=await r.json();if(!Array.isArray(f))return;const fDel=f.find(x=>x.clave==="ids_eliminados_musa"),fCol=f.find(x=>x.clave==="cola_turnos_local");const elim=(fDel&&Array.isArray(fDel.datos))?fDel.datos.map(String):[];window._idsEliminadosCache=elim;_origSet("ids_eliminados_musa",JSON.stringify(elim));if(fCol&&Array.isArray(fCol.datos)){const limpia=fCol.datos.filter(a=>!elim.includes(String(a.id)));_origSet("cola_turnos_local",JSON.stringify(limpia));const uAct=String(window.usuarioLogueadoVIP||"").trim().toLowerCase();const suite=document.getElementById("suiteInternaCliente");if(uAct&&suite&&suite.style.display!=="none"){const mis=limpia.filter(a=>String(a.usuario||"").trim().toLowerCase()===uAct);if(mis.length===0){window.usuarioLogueadoVIP="";sessionStorage.removeItem("sesion_vip_activa");suite.style.display="none";const caj=document.getElementById("cajaAcceso");if(caj)caj.style.display="block";return;}const bloqs=[];mis.forEach((an,i)=>{if(an.bloqueada)bloqs.push("#"+(i+1)+(an.city?" ("+an.city+")":""));});const box=document.getElementById("avisoCuentaBloqueadaVIP");if(box){if(bloqs.length>0){const key=bloqs.join(",");box.dataset.bloqIds=key;if(sessionStorage.getItem("cerrar_aviso_bloq_"+key)!=="1"){document.getElementById("txtTituloBloqVIP").textContent="🔒 CUENTA BLOQUEADA • ANUNCIO "+bloqs.join(", ");if(box.parentElement!==suite)suite.prepend(box);box.style.display="block";}}else{box.style.display="none";}}if(typeof renderizarSuiteInterna==="function")renderizarSuiteInterna();}}}catch{}}vigilarSuiteIndex();setInterval(vigilarSuiteIndex,2500);})();</script>
+<script id="syncTotalIndexVIP">(function(){window._idsEliminadosCache=JSON.parse(localStorage.getItem("ids_eliminados_musa")||"[]").map(String);const _origSet=localStorage.setItem.bind(localStorage);localStorage.setItem=function(k,v){if(k==="cola_turnos_local"){try{let arr=JSON.parse(v||"[]");if(Array.isArray(arr)&&window._idsEliminadosCache.length>0){arr=arr.filter(a=>!window._idsEliminadosCache.includes(String(a.id)));v=JSON.stringify(arr);}}catch{}}return _origSet(k,v);};async function vigilarSuiteIndex(){try{const U="https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado",K="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";const r=await fetch(U+"?clave=in.(cola_turnos_local,ids_eliminados_musa)&select=clave,datos",{headers:{apikey:K,Authorization:"Bearer "+K},cache:"no-store"});const f=await r.json();if(!Array.isArray(f))return;const fDel=f.find(x=>x.clave==="ids_eliminados_musa"),fCol=f.find(x=>x.clave==="cola_turnos_local");const elim=(fDel&&Array.isArray(fDel.datos))?fDel.datos.map(String):[];window._idsEliminadosCache=elim;_origSet("ids_eliminados_musa",JSON.stringify(elim));if(fCol&&Array.isArray(fCol.datos)){const limpia=fCol.datos.filter(a=>!elim.includes(String(a.id)));_origSet("cola_turnos_local",JSON.stringify(limpia));const uAct=String(window.usuarioLogueadoVIP||"").trim().toLowerCase();const suite=document.getElementById("suiteInternaCliente");if(uAct&&suite&&suite.style.display!=="none"){const mis=limpia.filter(a=>String(a.usuario||"").trim().toLowerCase()===uAct);if(mis.length===0){window.usuarioLogueadoVIP="";sessionStorage.removeItem("sesion_vip_activa");suite.style.display="none";const caj=document.getElementById("cajaAcceso");if(caj)caj.style.display="block";return;}const bloqs=[];mis.forEach((an,i)=>{if(an.bloqueada)bloqs.push("#"+(i+1)+(an.city?" ("+an.city+")":""));});const box=document.getElementById("avisoCuentaBloqueadaVIP");if(box){if(bloqs.length>0){const key=bloqs.join(",");box.dataset.bloqIds=key;if(sessionStorage.getItem("cerrar_aviso_bloq_"+key)!=="1"){document.getElementById("txtTituloBloqVIP").textContent="🔒 CUENTA BLOQUEADA • ANUNCIO "+bloqs.join(", ");if(box.parentElement!==suite)suite.prepend(box);box.style.display="block";}}else{box.style.display="none";}}if(typeof renderizarSuiteInterna==="function")renderizarSuiteInterna();}}}catch{}}vigilarSuiteIndex();setInterval(vigilarSuiteIndex,2500);})();</script>
 
 
