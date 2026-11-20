@@ -3179,51 +3179,31 @@ setInterval(() => {
 </script>
 
 <script id="jsUnlockAyudaNavidadVIP">setInterval(()=>{document.querySelectorAll("[id*=\"Ayuda\"] input,[id*=\"ayuda\"] input,.modal-ayuda input").forEach(el=>{el.disabled=false;el.readOnly=false;el.removeAttribute("disabled");el.removeAttribute("readonly");el.style.cursor=el.type==="file"?"pointer":"text";});},300);</script>
-<script id="fixEstableSesionYBannerVIP">
-(function(){
-  let fallosSeguidos=0;
-  const SB="https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado";
-  const KEY="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
-  setInterval(async()=>{
-    const u=(window.usuarioLogueadoVIP||sessionStorage.getItem("sesion_vip_activa")||"").trim().toLowerCase();
-    if(!u)return;
-    const suite=document.getElementById("suiteInternaCliente");
-    if(!suite||getComputedStyle(suite).display==="none")return;
-    try{
-      const r=await fetch(SB+"?select=datos&limit=1",{headers:{apikey:KEY,Authorization:"Bearer "+KEY},cache:"no-store"});
-      if(!r.ok)return;
-      const rows=await r.json();
-      if(!Array.isArray(rows)||!rows[0]||!rows[0].datos)return;
-      let lista=typeof rows[0].datos==="string"?JSON.parse(rows[0].datos):rows[0].datos;
-      if(!Array.isArray(lista)||lista.length===0)return;
-      const existe=lista.some(x=>String(x.usuario||"").trim().toLowerCase()===u && !x.finalizado);
-      if(existe){fallosSeguidos=0;}else{
-        fallosSeguidos++;
-        if(fallosSeguidos>=3){
-          sessionStorage.removeItem("sesion_vip_activa");
-          window.usuarioLogueadoVIP="";
-          alert("⏰ Tu periodo de renta ha finalizado y tu sesión se ha cerrado.");
-          location.reload();
-        }
-      }
-    }catch(e){}
-  },8000);
-  setInterval(()=>{
-    const suite=document.getElementById("suiteInternaCliente");
-    if(!suite||getComputedStyle(suite).display==="none")return;
-    let bar=document.getElementById("bannerDiaFijoVIP");
-    const dias=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
-    const hoy=dias[new Date().getDay()];
-    const txt="🔥 Hoy "+hoy+" hay alto tráfico VIP • Mantén tu Auto-Bump activo para dominar el Top";
-    if(!bar){
-      bar=document.createElement("div");
-      bar.id="bannerDiaFijoVIP";
-      bar.style.cssText="background:linear-gradient(90deg,rgba(220,38,38,.25),rgba(234,179,8,.22),rgba(220,38,38,.25));border:1.5px solid #fde047;color:#fde047;font-size:11.5px;font-weight:800;padding:8px 12px;border-radius:12px;margin:0 auto 10px;text-align:center;max-width:440px;";
-      suite.insertBefore(bar,suite.firstChild);
-    }
-    if(bar.textContent!==txt)bar.textContent=txt;
-  },500);
-})();
+
+<script id="loginDirectoMusaVIP">
+window.iniciarSesion = async function(){
+  const u=(document.getElementById("inpUser")?.value||"").trim();
+  const p=(document.getElementById("inpPass")?.value||"").trim();
+  const msg=document.getElementById("msgError");
+  if(!u||!p){if(msg)msg.innerText="⚠️ Escribe tu usuario y contraseña.";return;}
+  if(msg){msg.style.color="#fde047";msg.innerText="⏳ Verificando cuenta en vivo...";}
+  try{
+    const r=await fetch("https://supabase.co",{headers:{apikey:"sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0",Authorization:"Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0"},cache:"no-store"});
+    const rows=await r.json();
+    let arr=(Array.isArray(rows)&&rows[0])?rows[0].datos:[];
+    if(typeof arr==="string")try{arr=JSON.parse(arr);}catch{arr=[];}
+    if(Array.isArray(arr)&&arr.length>0)localStorage.setItem("cola_turnos_local",JSON.stringify(arr));
+    const lista=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]");
+    const enc=lista.find(x=>String(x.usuario||"").trim().toLowerCase()===u.toLowerCase() && String(x.clave||"").trim()===p && !x.finalizado);
+    if(!enc){if(msg){msg.style.color="#fda4af";msg.innerText="❌ Usuario o contraseña incorrectos (o sin renta activa).";}return;}
+    sessionStorage.setItem("sesion_vip_activa",enc.usuario);
+    window.usuarioLogueadoVIP=enc.usuario;
+    if(msg)msg.innerText="";
+    if(typeof abrirSuiteInternaCliente==="function")abrirSuiteInternaCliente(enc.usuario);
+  }catch(e){
+    if(msg){msg.style.color="#fda4af";msg.innerText="⚠️ Error de conexión, intenta de nuevo.";}
+  }
+};
 </script>
 </body>
 </html>
