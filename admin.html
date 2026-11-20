@@ -350,7 +350,7 @@ function armarTarjetaUnica(c, idx, lista) {
   let txtRenta = `⏳ Plan: ${c.plan || "1 semana"}`, colRenta = "#fde047";
   if (c.renta_finalizada) { txtRenta = "🔓 RENTA FINALIZADA • Bot liberado"; colRenta = "#7dd3fc"; }
   else if (c.detenido && diffMs <= 0) { txtRenta = "⏸️ DETENIDO (Pendiente de pago)"; colRenta = "#fdba74"; }
-  else if (c.bloqueada) { txtRenta = `🔒 BLOQUEADA • Saldo: ${formatearMs(c.tiempo_congelado_ms)}`; colRenta = "#fbbf24"; }
+  else if (c.bloqueada) { txtRenta = `🔒 BLOQUEADA (${c.fecha_bloqueo_txt||"Hoy"}) • Quedaba: ${formatearMs(c.tiempo_congelado_ms)}`; colRenta = "#fbbf24"; }
   else if (venceMs > 0 && diffMs > 0) { txtRenta = `⏳ Renta restante: ${formatearMs(diffMs)}`; colRenta = "#34d399"; }
 
   const minsInt = Number(c.intervalo_min || 17);
