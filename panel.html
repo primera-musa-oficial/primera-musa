@@ -648,7 +648,17 @@ Location/Area: <span style="color:#94a3b8;font-weight:400;">(opcional)</span><in
     const u = window.nuevoUsuarioVIP || "ClientaVIP";
     const d = window.datosAnuncioCompleto || {};
     const plan = window.planElegidoVIP || "1 semana";
-    const fotos = window.fotosSubidasVIP || [];
+    if (c.bloqueada) {
+    box.innerHTML = `<div style="background:linear-gradient(145deg,#451a03,#1c1917);border:2px solid #fbbf24;border-radius:16px;padding:16px;text-align:center;color:#fff;margin:8px 0;">
+      <div style="font-size:15px;font-weight:900;color:#fde047;margin-bottom:6px;">🔒 RENOVACIÓN DE ANUNCIO EN CURSO</div>
+      <div style="font-size:12px;color:#fef3c7;margin-bottom:10px;">Tu saldo de tiempo está <b>congelado e intacto</b>. Para activar tu nuevo canal sin bloqueos, sube <b>fotos, teléfono y texto 100% nuevos</b>:</div>
+      ${c.requiere_material_nuevo
+        ? `<button type="button" onclick="window._idRenovarBloqueadaVIP=${c.id};window._modoRenovacionBloqueada=true;mostrarPasoForm(3);" style="width:100%;padding:12px;border-radius:12px;border:1.5px solid #fde047;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-weight:900;font-size:13px;cursor:pointer;">🔄 Subir Material 100% Nuevo Ahora ➔</button>`
+        : `<div style="background:rgba(6,78,59,.7);border:1px solid #34d399;border-radius:10px;padding:10px;color:#a7f3d0;font-weight:800;font-size:12px;">✅ Material nuevo recibido. Tu asesor está activando tu nuevo canal con tu tiempo congelado.</div>`}
+    </div>`;
+    return;
+  }
+  const fotos = window.fotosSubidasVIP || [];
     const cola = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
     const turno = cola.length + 1;
     const nuevaSolicitud = {
@@ -1313,6 +1323,16 @@ function abrirFormularioEdicionRealVIP(id) {
 function pasarAPaso2FotosYCaptcha(id) {
   window.borradorEdicionMP = { alias: document.getElementById("edA").value.trim(), headline: document.getElementById("edH").value.trim(), body: document.getElementById("edB").value.trim(), state: document.getElementById("edState").value, city: document.getElementById("edCity").value };
   const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]"), it = l.find(x => x.id === id);
+  if (c.bloqueada) {
+    box.innerHTML = `<div style="background:linear-gradient(145deg,#451a03,#1c1917);border:2px solid #fbbf24;border-radius:16px;padding:16px;text-align:center;color:#fff;margin:8px 0;">
+      <div style="font-size:15px;font-weight:900;color:#fde047;margin-bottom:6px;">🔒 RENOVACIÓN DE ANUNCIO EN CURSO</div>
+      <div style="font-size:12px;color:#fef3c7;margin-bottom:10px;">Tu saldo de tiempo está <b>congelado e intacto</b>. Para activar tu nuevo canal sin bloqueos, sube <b>fotos, teléfono y texto 100% nuevos</b>:</div>
+      ${c.requiere_material_nuevo
+        ? `<button type="button" onclick="window._idRenovarBloqueadaVIP=${c.id};window._modoRenovacionBloqueada=true;mostrarPasoForm(3);" style="width:100%;padding:12px;border-radius:12px;border:1.5px solid #fde047;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-weight:900;font-size:13px;cursor:pointer;">🔄 Subir Material 100% Nuevo Ahora ➔</button>`
+        : `<div style="background:rgba(6,78,59,.7);border:1px solid #34d399;border-radius:10px;padding:10px;color:#a7f3d0;font-weight:800;font-size:12px;">✅ Material nuevo recibido. Tu asesor está activando tu nuevo canal con tu tiempo congelado.</div>`}
+    </div>`;
+    return;
+  }
   const fotos = Array.isArray(it.fotos) ? it.fotos : [];
   const cap = Math.random().toString(36).substring(2, 6).toUpperCase(); window.capMP = cap;
   document.getElementById("suiteInternaCliente").innerHTML = `
@@ -1425,6 +1445,16 @@ window.renderizarSuiteInterna = function() {
         ? `<div style="background:#fff;border-left:5px solid #2563eb;color:#0f172a;padding:10px;border-radius:10px;font-size:12px;text-align:left;margin-bottom:8px;"><b style="color:#1d4ed8;">✏️ Cambios pendientes</b><br>Se edita en su próximo turno seguro (&gt;15 min).</div>`
         : ""));
 
+  if (c.bloqueada) {
+    box.innerHTML = `<div style="background:linear-gradient(145deg,#451a03,#1c1917);border:2px solid #fbbf24;border-radius:16px;padding:16px;text-align:center;color:#fff;margin:8px 0;">
+      <div style="font-size:15px;font-weight:900;color:#fde047;margin-bottom:6px;">🔒 RENOVACIÓN DE ANUNCIO EN CURSO</div>
+      <div style="font-size:12px;color:#fef3c7;margin-bottom:10px;">Tu saldo de tiempo está <b>congelado e intacto</b>. Para activar tu nuevo canal sin bloqueos, sube <b>fotos, teléfono y texto 100% nuevos</b>:</div>
+      ${c.requiere_material_nuevo
+        ? `<button type="button" onclick="window._idRenovarBloqueadaVIP=${c.id};window._modoRenovacionBloqueada=true;mostrarPasoForm(3);" style="width:100%;padding:12px;border-radius:12px;border:1.5px solid #fde047;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-weight:900;font-size:13px;cursor:pointer;">🔄 Subir Material 100% Nuevo Ahora ➔</button>`
+        : `<div style="background:rgba(6,78,59,.7);border:1px solid #34d399;border-radius:10px;padding:10px;color:#a7f3d0;font-weight:800;font-size:12px;">✅ Material nuevo recibido. Tu asesor está activando tu nuevo canal con tu tiempo congelado.</div>`}
+    </div>`;
+    return;
+  }
   const fotos = (Array.isArray(c.fotos) ? c.fotos : []).map(s => `<img src="${s}" style="width:100%;max-height:340px;object-fit:cover;border-radius:6px;margin-bottom:6px;display:block;">`).join("");
   box.innerHTML = `
     <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
@@ -3168,10 +3198,5 @@ setInterval(() => {
 </html>
 
 <script id="unlockTelRenovacionVIP">setInterval(()=>{const inp=document.getElementById("rnContactoNuevoVIP");if(inp){inp.removeAttribute("readonly");inp.removeAttribute("disabled");inp.style.pointerEvents="auto";inp.style.opacity="1";}},250);</script>
-<div id="bannerRenovarOficialVIP" style="display:none;background:linear-gradient(135deg,#451a03,#78350f);border:2px solid #fbbf24;border-radius:16px;padding:14px;margin:10px auto;max-width:440px;text-align:center;color:#fff;box-shadow:0 10px 28px rgba(0,0,0,.75);">
-  <div style="font-weight:900;font-size:13.5px;color:#fde047;margin-bottom:4px;">🔒 CUENTA EN RENOVACIÓN • TIEMPO CONGELADO</div>
-  <div style="font-size:11.5px;color:#fef3c7;margin-bottom:10px;">Tu saldo de renta está intacto. Pulsa abajo para subir <b>fotos, teléfono y texto 100% nuevos</b> y reactivar tu anuncio:</div>
-  <button type="button" onclick="window._modoRenovacionBloqueada=true;document.getElementById('bannerRenovarOficialVIP').style.display='none';if(typeof mostrarPasoForm==='function')mostrarPasoForm(3);" style="width:100%;padding:10px;border-radius:11px;border:1.5px solid #fde047;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-weight:900;font-size:12.5px;cursor:pointer;">🔄 Cargar Material 100% Nuevo Ahora ➔</button>
-</div>
-<script id="jsRenovarOficialVIP">(function(){setInterval(()=>{try{const u=String(localStorage.getItem("usuario_actual_musa")||"").toLowerCase();if(!u)return;const l=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]");const it=l.find(x=>String(x.usuario||"").toLowerCase()===u&&x.bloqueada&&x.requiere_material_nuevo);const b=document.getElementById("bannerRenovarOficialVIP");if(!b)return;if(it&&!window._modoRenovacionBloqueada){const host=document.getElementById("suiteInternaCliente")||document.body;if(b.parentElement!==host)host.prepend(b);b.style.display="block";}else if(!it){b.style.display="none";window._modoRenovacionBloqueada=false;}}catch{}},1500);})();</script>
+
 <script id="protegerEscrituraFormVIP">(function(){const _origPaso=window.mostrarPasoForm;if(typeof _origPaso==="function"){window.mostrarPasoForm=function(n){const act=document.activeElement;if(window._pasoActualForm===n&&act&&/INPUT|TEXTAREA|SELECT/.test(act.tagName))return;window._pasoActualForm=n;return _origPaso.apply(this,arguments);};}})();</script>
