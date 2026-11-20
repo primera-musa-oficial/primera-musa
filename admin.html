@@ -418,24 +418,26 @@ ${c.es_adicional ? `<span style="background:linear-gradient(90deg,#1d4ed8,#3b82f
 function toggleDetenerLocal(id, detener) { const l=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]"), it=l.find(x=>String(x.id)===String(id)); if(!it)return; it.detenido=detener; it.activo=!detener; localStorage.setItem("cola_turnos_local",JSON.stringify(l)); cargarColaTurnos(); }
 function extenderRentaLocal(id, d) { const l=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]"), it=l.find(x=>String(x.id)===String(id)); if(!it)return; const base=(it.vence_ms&&Number(it.vence_ms)>Date.now())?Number(it.vence_ms):Date.now(); it.vence_ms=base+d*86400000; it.activo=true; it.detenido=false; it.renta_finalizada=false; localStorage.setItem("cola_turnos_local",JSON.stringify(l)); cargarColaTurnos(); }
 function bloquearYCongelarTiempoAdmin(id) { const l=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]"), it=l.find(x=>String(x.id)===String(id)); if(!it)return; it.tiempo_congelado_ms=Math.max(0,Number(it.vence_ms||0)-Date.now()); it.bloqueada=true; it.activo=false; it.vence_ms=0; it.bot_asignado=""; it.fotos=[]; it.foto1=""; it.foto2=""; it.foto3=""; it.phone=""; it.telefono=""; it.headline=""; it.body=""; it.alias=""; it.requiere_material_nuevo=true; localStorage.setItem("cola_turnos_local",JSON.stringify(l)); alert("🔒 Cuenta bloqueada y material anterior borrado. Saldo congelado: "+formatearMs(it.tiempo_congelado_ms)+". La clienta ya puede cargar su material nuevo."); cargarColaTurnos(); }
-function liberarPaginaFinRentaAdmin(id) {
-  if (!confirm("🔓 ¿Finalizar renta de esta clienta y detener su publicación?")) return;
+async function liberarPaginaFinRentaAdmin(id) {
   let l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
   const it = l.find(x => String(x.id) === String(id));
   if (!it) return;
-
-  const info = String(it.ultimo_anuncio || "");
-  const mBot = info.match(/MUSA-\d+/);
-  const codBot = mBot ? mBot : "";
-
-  if (codBot && confirm(`🔌 Esta clienta tenía asignado el perfil ${codBot}.\n\n• Pulsa ACEPTAR para ELIMINAR también ${codBot} de tu lista de bots.\n• Pulsa CANCELAR para dejar ${codBot} libre para otra clienta.`)) {
-    let bots = obtenerCuentasBot().filter(b => b.codigo !== codBot);
-    localStorage.setItem("cuentas_bot_musa", JSON.stringify(bots));
-  }
-
-  l = l.filter(x => x.id !== id);
+  const botLib = it.bot_asignado || "Sin bot";
+  l = l.filter(x => String(x.id) !== String(id));
   localStorage.setItem("cola_turnos_local", JSON.stringify(l));
-  alert("✅ Renta finalizada: el anuncio y la asignación se han eliminado del panel.");
+  if (typeof subirClaveNube === "function") await subirClaveNube("cola_turnos_local", JSON.stringify(l));
+  const U = "https://supabase.co";
+  const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  const rDel = await fetch(U + "?clave=eq.ids_eliminados_musa&select=datos", { headers: { apikey: K, Authorization: "Bearer " + K }, cache: "no-store" });
+  const jDel = await rDel.json();
+  let elim = (Array.isArray(jDel) && jDel && Array.isArray(jDel.datos)) ? jDel.datos : [];
+  if (!elim.includes(String(id))) elim.push(String(id));
+  await fetch(U + "?on_conflict=clave", {
+    method: "POST",
+    headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+    body: JSON.stringify([{ clave: "cola_turnos_local", datos: l, actualizado_en: new Date().toISOString() }, { clave: "ids_eliminados_musa", datos: elim, actualizado_en: new Date().toISOString() }])
+  });
+  alert("✅ Renta finalizada: anuncio eliminado en la nube y bot (" + botLib + ") liberado.");
   cargarColaTurnos();
 }
 function rechazarSolicitudAdmin(id) { if(!confirm("¿Rechazar solicitud?"))return; localStorage.setItem("cola_turnos_local",JSON.stringify(JSON.parse(localStorage.getItem("cola_turnos_local")||"[]").filter(x=>x.id!==id))); cargarColaTurnos(); }
@@ -1582,24 +1584,3 @@ window.addEventListener("load", function() {
   cargarColaTurnos();
 }</script>
 
-<script id="overrideLiberarAdmVIP">async function liberarPaginaFinRentaAdmin(id) {
-  let l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
-  const it = l.find(x => String(x.id) === String(id));
-  if (!it) return;
-  const botLib = it.bot_asignado || "Sin bot";
-  l = l.filter(x => String(x.id) !== String(id));
-  localStorage.setItem("cola_turnos_local", JSON.stringify(l));
-  const U = "https://supabase.co";
-  const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
-  const rDel = await fetch(U + "?clave=eq.ids_eliminados_musa&select=datos", { headers: { apikey: K, Authorization: "Bearer " + K }, cache: "no-store" });
-  const jDel = await rDel.json();
-  let elim = (Array.isArray(jDel) && jDel[0] && Array.isArray(jDel[0].datos)) ? jDel[0].datos : [];
-  if (!elim.includes(String(id))) elim.push(String(id));
-  await fetch(U + "?on_conflict=clave", {
-    method: "POST",
-    headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
-    body: JSON.stringify([{ clave: "cola_turnos_local", datos: l, actualizado_en: new Date().toISOString() }, { clave: "ids_eliminados_musa", datos: elim, actualizado_en: new Date().toISOString() }])
-  });
-  alert("🔓 Fin de renta completado. Anuncio eliminado y bot (" + botLib + ") liberado.");
-  cargarColaTurnos();
-}</script>
