@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script id="blindajeTotalNubeVIP">
+(function(){
+  const _origFetch=window.fetch;
+  window.fetch=function(url,opts){
+    const uStr=String(url||"");
+    const m=(opts&&opts.method?opts.method:"GET").toUpperCase();
+    if(uStr.includes("musa_estado")&&(m==="DELETE"||(m==="PATCH"&&opts&&opts.body&&String(opts.body).includes('"datos":[]')))){
+      return Promise.resolve(new Response("[]",{status:200}));
+    }
+    return _origFetch.apply(this,arguments);
+  };
+})();
+</script>
 <script>window._musaPausadoAhora = true;</script>
 
 
