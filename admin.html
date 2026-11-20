@@ -647,12 +647,12 @@ async function refrescarBotsFijos() {
     const box = document.getElementById("listaChipsBots");
     if (!box) return;
     const ahora = Date.now();
-    const activos = Object.entries(mapa).filter(([k, v]) => v && (ahora - Number(v.ts || 0)) < 35000);
+    const activos = Object.entries(mapa).filter(([k, v]) => v && (ahora - Number(v.ts || 0)) < 600000);
     if (!activos.length) {
       box.innerHTML = '<span style="color:#94a3b8;">🚨 Ningún perfil de MegaPersonals activo (si cerraste la pestaña o sesión, ábrela).</span>';
       return;
     }
-    box.innerHTML = activos.sort().map(([cod, info]) => { const caido = !info || info.alerta || (Date.now() - Number(info.ts || 0)) > 120000; const msgR = (info && info.alerta) ? info.alerta : "Sin señal / Pestaña o proxy caído"; return caido ? `<span style="background:#991b1b;color:#fef08a;border:2px solid #f87171;padding:6px 14px;border-radius:20px;font-weight:900;">🚨 ${cod} • ${msgR}</span>` : `<span style="background:#065f46;color:#6ee7b7;border:1.5px solid #34d399;padding:6px 14px;border-radius:20px;font-weight:900;">🟢 ${cod} ONLINE</span>`; }).join("");
+    box.innerHTML = activos.sort().map(([cod, info]) => { const caido = !info || info.alerta || (Date.now() - Number(info.ts || 0)) > 600000; const msgR = (info && info.alerta) ? info.alerta : "Sin señal / Pestaña o proxy caído"; return caido ? `<span style="background:#991b1b;color:#fef08a;border:2px solid #f87171;padding:6px 14px;border-radius:20px;font-weight:900;">🚨 ${cod} • ${msgR}</span>` : `<span style="background:#065f46;color:#6ee7b7;border:1.5px solid #34d399;padding:6px 14px;border-radius:20px;font-weight:900;">🟢 ${cod} ONLINE</span>`; }).join("");
   } catch (e) {}
 }
 refrescarBotsFijos().then(() => { if (typeof cargarColaTurnos === "function") cargarColaTurnos(); });
