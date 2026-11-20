@@ -1581,3 +1581,18 @@ window.addEventListener("load", function() {
   alert("🔒 Bloqueada (" + it.fecha_bloqueo_txt + "). Tiempo restante guardado: " + formatearMs(it.tiempo_congelado_ms));
   cargarColaTurnos();
 }</script>
+<script id="overrideLiberarAdmVIP">async function liberarPaginaFinRentaAdmin(id) {
+  let l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const it = l.find(x => String(x.id) === String(id));
+  if (!it) return;
+  const botLib = it.bot_asignado || "Sin bot";
+  l = l.filter(x => String(x.id) !== String(id));
+  localStorage.setItem("cola_turnos_local", JSON.stringify(l));
+  await fetch("https://supabase.co", {
+    method: "POST",
+    headers: { apikey: "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", Authorization: "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+    body: JSON.stringify([{ clave: "cola_turnos_local", datos: l, actualizado_en: new Date().toISOString() }])
+  });
+  alert("🔓 Fin de renta completado. Anuncio eliminado y bot (" + botLib + ") liberado.");
+  cargarColaTurnos();
+}</script>
