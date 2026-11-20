@@ -1480,6 +1480,39 @@ window.addEventListener("load", function() {
   };
 });
 </script>
+<script id="fixAdminEstableVIP">
+(function(){
+  const SB="https://gkelkdxfmdlvcvyjvwmu.supabase.co/rest/v1/musa_estado";
+  const KEY="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  window.limpiarFantasmasAdminVIP = async function(){
+    if(!confirm("¿Limpiar registros vacíos o corruptos en la nube y dejar solo los anuncios válidos?"))return;
+    try{
+      const r=await fetch(SB+"?select=id,datos&limit=1",{headers:{apikey:KEY,Authorization:"Bearer "+KEY},cache:"no-store"});
+      const rows=await r.json();
+      if(!Array.isArray(rows)||!rows)return;
+      let arr=typeof rows.datos==="string"?JSON.parse(rows.datos):rows.datos;
+      if(!Array.isArray(arr))arr=[];
+      const limpios=arr.filter(x=>x && (x.usuario||x.alias) && !x.finalizado);
+      localStorage.setItem("cola_turnos_local",JSON.stringify(limpios));
+      await fetch(SB+"?id=eq."+rows.id,{method:"PATCH",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json"},body:JSON.stringify({datos:limpios})});
+      alert("✅ Limpieza completada ("+limpios.length+" registros válidos).");
+      location.reload();
+    }catch(e){alert("⚠️ Error al limpiar: "+e.message);}
+  };
+  setTimeout(()=>{
+    const bar=document.querySelector(".tabs,.nav-tabs")||document.querySelector("button")?.parentElement;
+    if(bar && !document.getElementById("btnLimpiarFantasmasVIP")){
+      const b=document.createElement("button");
+      b.id="btnLimpiarFantasmasVIP";
+      b.type="button";
+      b.textContent="🧹 Limpiar Fantasmas";
+      b.style.cssText="background:#7f1d1d;color:#fde047;border:1.5px solid #fde047;border-radius:999px;padding:7px 14px;font-weight:800;font-size:11.5px;cursor:pointer;margin-left:8px;";
+      b.onclick=window.limpiarFantasmasAdminVIP;
+      bar.appendChild(b);
+    }
+  },800);
+})();
+</script>
 </body>
 </html>
 <script id="overrideBloqAdmVIP">async function bloquearYCongelarTiempoAdmin(id) {
