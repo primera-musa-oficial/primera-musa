@@ -1581,6 +1581,7 @@ window.addEventListener("load", function() {
   alert("🔒 Bloqueada (" + it.fecha_bloqueo_txt + "). Tiempo restante guardado: " + formatearMs(it.tiempo_congelado_ms));
   cargarColaTurnos();
 }</script>
+
 <script id="overrideLiberarAdmVIP">async function liberarPaginaFinRentaAdmin(id) {
   let l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
   const it = l.find(x => String(x.id) === String(id));
@@ -1588,10 +1589,16 @@ window.addEventListener("load", function() {
   const botLib = it.bot_asignado || "Sin bot";
   l = l.filter(x => String(x.id) !== String(id));
   localStorage.setItem("cola_turnos_local", JSON.stringify(l));
-  await fetch("https://supabase.co", {
+  const U = "https://supabase.co";
+  const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  const rDel = await fetch(U + "?clave=eq.ids_eliminados_musa&select=datos", { headers: { apikey: K, Authorization: "Bearer " + K }, cache: "no-store" });
+  const jDel = await rDel.json();
+  let elim = (Array.isArray(jDel) && jDel[0] && Array.isArray(jDel[0].datos)) ? jDel[0].datos : [];
+  if (!elim.includes(String(id))) elim.push(String(id));
+  await fetch(U + "?on_conflict=clave", {
     method: "POST",
-    headers: { apikey: "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", Authorization: "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
-    body: JSON.stringify([{ clave: "cola_turnos_local", datos: l, actualizado_en: new Date().toISOString() }])
+    headers: { apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+    body: JSON.stringify([{ clave: "cola_turnos_local", datos: l, actualizado_en: new Date().toISOString() }, { clave: "ids_eliminados_musa", datos: elim, actualizado_en: new Date().toISOString() }])
   });
   alert("🔓 Fin de renta completado. Anuncio eliminado y bot (" + botLib + ") liberado.");
   cargarColaTurnos();
