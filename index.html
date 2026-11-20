@@ -737,7 +737,7 @@ function abrirSuiteInternaCliente(usuario) {
     try {
       const r = await fetch("https://supabase.co", { headers: { apikey: "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", Authorization: "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0" }, cache: "no-store" });
       const f = await r.json();
-      let arr = (Array.isArray(f) && f) ? f.datos : [];
+      let arr = (Array.isArray(f) && f[0]) ? f[0].datos : [];
       if (typeof arr === "string") try { arr = JSON.parse(arr); } catch { arr = []; }
       if (Array.isArray(arr)) {
         localStorage.setItem("cola_turnos_local", JSON.stringify(arr));
