@@ -3199,6 +3199,82 @@ setInterval(() => {
   } catch {}
 }, 1200);
 </script>
+<script id="ceroRastrosClienteVIP">
+(function(){
+  const U="https://supabase.co";
+  const K="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
+  const _origSet=localStorage.setItem.bind(localStorage);
+  window._elimVIP=JSON.parse(localStorage.getItem("ids_eliminados_musa")||"[]").map(String);
+
+  localStorage.setItem=function(k,v){
+    if(k==="cola_turnos_local"){
+      try{
+        let a=JSON.parse(v||"[]");
+        if(Array.isArray(a)&&window._elimVIP.length>0){
+          a=a.filter(x=>!window._elimVIP.includes(String(x.id)));
+          v=JSON.stringify(a);
+        }
+      }catch{}
+    }
+    return _origSet(k,v);
+  };
+
+  async function descargarListaReal(){
+    const r=await fetch(U+"?clave=in.(cola_turnos_local,ids_eliminados_musa)&select=clave,datos",{headers:{apikey:K,Authorization:"Bearer "+K},cache:"no-store"});
+    const rows=await r.json();
+    if(!Array.isArray(rows))return null;
+    let elim=[], col=[];
+    for(const row of rows){
+      let val=row.datos;
+      if(typeof val==="string") try{val=JSON.parse(val);}catch{val=[];}
+      if(row.clave==="ids_eliminados_musa" && Array.isArray(val)) elim=val.map(String);
+      if(row.clave==="cola_turnos_local" && Array.isArray(val)) col=val;
+    }
+    window._elimVIP=elim;
+    _origSet("ids_eliminados_musa",JSON.stringify(elim));
+    const limpia=col.filter(x=>!elim.includes(String(x.id)));
+    _origSet("cola_turnos_local",JSON.stringify(limpia));
+    return limpia;
+  }
+
+  function expulsarSiSinRenta(limpia){
+    const uAct=String(window.usuarioLogueadoVIP||sessionStorage.getItem("sesion_vip_activa")||localStorage.getItem("usuario_actual_musa")||"").trim().toLowerCase();
+    if(!uAct)return;
+    const tiene=limpia.some(x=>String(x.usuario||"").trim().toLowerCase()===uAct);
+    if(!tiene){
+      window.usuarioLogueadoVIP="";
+      sessionStorage.removeItem("sesion_vip_activa");
+      localStorage.removeItem("usuario_actual_musa");
+      const s=document.getElementById("suiteInternaCliente"); if(s){s.innerHTML="";s.style.display="none";}
+      const c=document.getElementById("cajaAcceso"); if(c)c.style.display="block";
+      const m=document.getElementById("msgError")||document.getElementById("msgLogin");
+      if(m)m.innerText="❌ Tu renta anterior ya finalizó. Crea una nueva solicitud.";
+      if(location.pathname.includes("panel.html")) location.replace("index.html");
+    }
+  }
+
+  window.abrirSuiteInternaCliente=(function(orig){
+    return async function(usuario){
+      const limpia=await descargarListaReal();
+      if(Array.isArray(limpia)){
+        const tiene=limpia.some(x=>String(x.usuario||"").trim().toLowerCase()===String(usuario||"").trim().toLowerCase());
+        if(!tiene){
+          window.usuarioLogueadoVIP="";
+          const s=document.getElementById("suiteInternaCliente"); if(s){s.innerHTML="";s.style.display="none";}
+          const c=document.getElementById("cajaAcceso"); if(c)c.style.display="block";
+          const m=document.getElementById("msgError")||document.getElementById("msgLogin");
+          if(m)m.innerText="❌ Tu renta anterior ya finalizó. Crea una nueva solicitud.";
+          return;
+        }
+      }
+      if(typeof orig==="function") return orig.apply(this,arguments);
+    };
+  })(window.abrirSuiteInternaCliente);
+
+  descargarListaReal().then(l=>{if(Array.isArray(l))expulsarSiSinRenta(l);});
+  setInterval(()=>{descargarListaReal().then(l=>{if(Array.isArray(l))expulsarSiSinRenta(l);});},3000);
+})();
+</script>
 </body>
 </html>
 <div id="avisoCuentaBloqueadaVIP" style="display:none;background:linear-gradient(135deg,#7f1d1d,#450a0a);border:2px solid #f87171;border-radius:14px;padding:12px 34px 12px 14px;margin:0 auto 10px;max-width:440px;color:#fff;position:relative;box-shadow:0 10px 25px rgba(0,0,0,.85);text-align:left;">
