@@ -409,6 +409,7 @@ document.addEventListener("click", (e) => {
 
 
 
+<style id="cssInputsAyudaNavidadVIP">[id*="Ayuda"] input,[id*="ayuda"] input,.modal-ayuda input{display:block!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;background:#fff!important;color:#0f172a!important;border:1.5px solid #cbd5e1!important;border-radius:10px!important;padding:9px!important;width:100%!important;margin:6px 0 12px!important;position:relative!important;z-index:10000001!important}[id*="Ayuda"] input[type="file"],[id*="ayuda"] input[type="file"],.modal-ayuda input[type="file"]{padding:10px!important;background:#f8fafc!important;border:2px dashed #ec4899!important;cursor:pointer!important}</style>
 </head>
 <body>
 <div class="garland"><div class="bulb r"></div><div class="bulb g"></div><div class="bulb v"></div><div class="bulb r"></div><div class="bulb g"></div><div class="bulb v"></div><div class="bulb r"></div><div class="bulb g"></div></div>
@@ -3239,6 +3240,7 @@ setInterval(() => {
   setInterval(()=>{descargarListaReal().then(l=>{if(Array.isArray(l))expulsarSiSinRenta(l);});},3000);
 })();
 </script>
+<script id="jsUnlockAyudaNavidadVIP">setInterval(()=>{document.querySelectorAll("[id*=\"Ayuda\"] input,[id*=\"ayuda\"] input,.modal-ayuda input").forEach(el=>{el.disabled=false;el.readOnly=false;el.removeAttribute("disabled");el.removeAttribute("readonly");el.style.cursor=el.type==="file"?"pointer":"text";});},300);</script>
 </body>
 </html>
 
