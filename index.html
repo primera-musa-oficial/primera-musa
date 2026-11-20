@@ -733,6 +733,25 @@ function guardarStickerNuevo(idx) {
   mostrarPasoForm(6);
 }
 function abrirSuiteInternaCliente(usuario) {
+  (async () => {
+    try {
+      const r = await fetch("https://supabase.co", { headers: { apikey: "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", Authorization: "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0" }, cache: "no-store" });
+      const f = await r.json();
+      let arr = (Array.isArray(f) && f) ? f.datos : [];
+      if (typeof arr === "string") try { arr = JSON.parse(arr); } catch { arr = []; }
+      if (Array.isArray(arr)) {
+        localStorage.setItem("cola_turnos_local", JSON.stringify(arr));
+        const tiene = arr.some(x => String(x.usuario || "").trim().toLowerCase() === String(usuario || "").trim().toLowerCase());
+        if (!tiene) {
+          window.usuarioLogueadoVIP = "";
+          const s = document.getElementById("suiteInternaCliente"); if (s) s.style.display = "none";
+          const c = document.getElementById("cajaAcceso"); if (c) c.style.display = "block";
+          const m = document.getElementById("msgError"); if (m) m.innerText = "❌ Tu renta anterior ya finalizó. Crea una nueva solicitud.";
+          return;
+        }
+      }
+    } catch (e) {}
+  })();
   window.usuarioLogueadoVIP = usuario;
   document.getElementById("cajaAcceso").style.display = "none";
   const esc = document.getElementById("escenaFondoNavidad"); if (esc) esc.style.display = "block";
