@@ -1562,3 +1562,22 @@ window.addEventListener("load", function() {
 </script>
 </body>
 </html>
+<script id="overrideBloqAdmVIP">async function bloquearYCongelarTiempoAdmin(id) {
+  const l = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
+  const it = l.find(x => String(x.id) === String(id));
+  if (!it) return;
+  it.tiempo_congelado_ms = Math.max(0, Number(it.vence_ms || 0) - Date.now());
+  it.fecha_bloqueo_txt = new Date().toLocaleString("es-US", { dateStyle: "short", timeStyle: "short" });
+  it.bloqueada = true;
+  it.activo = false;
+  it.vence_ms = 0;
+  it.bot_asignado = "";
+  localStorage.setItem("cola_turnos_local", JSON.stringify(l));
+  await fetch("https://supabase.co", {
+    method: "POST",
+    headers: { apikey: "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", Authorization: "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+    body: JSON.stringify([{ clave: "cola_turnos_local", datos: l, actualizado_en: new Date().toISOString() }])
+  });
+  alert("🔒 Bloqueada (" + it.fecha_bloqueo_txt + "). Tiempo restante guardado: " + formatearMs(it.tiempo_congelado_ms));
+  cargarColaTurnos();
+}</script>
