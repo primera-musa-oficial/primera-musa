@@ -544,6 +544,22 @@ async function iniciarSesion() {
   const msg = document.getElementById("msgError");
   if (!u || !p) { msg.innerText = "⚠️ Escribe tu usuario y contraseña."; return; }
 
+  msg.innerText = "⏳ Verificando cuenta en vivo...";
+  try {
+    const _r = await fetch("https://supabase.co", { headers: { apikey: "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0", Authorization: "Bearer sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0" }, cache: "no-store" });
+    const _f = await _r.json();
+    if (Array.isArray(_f)) {
+      const _fD = _f.find(x => x.clave === "ids_eliminados_musa"), _fC = _f.find(x => x.clave === "cola_turnos_local");
+      let _dArr = _fD ? _fD.datos : []; if (typeof _dArr === "string") try { _dArr = JSON.parse(_dArr); } catch { _dArr = []; }
+      const _elim = Array.isArray(_dArr) ? _dArr.map(String) : [];
+      let _cArr = _fC ? _fC.datos : null; if (typeof _cArr === "string") try { _cArr = JSON.parse(_cArr); } catch { _cArr = null; }
+      if (Array.isArray(_cArr)) {
+        const _limpia = _cArr.filter(a => !_elim.includes(String(a.id)));
+        localStorage.setItem("cola_turnos_local", JSON.stringify(_limpia));
+      }
+    }
+  } catch (e) {}
+  msg.innerText = "";
   const locales = JSON.parse(localStorage.getItem("cola_turnos_local") || "[]");
   const coincidencias = locales.filter(x => String(x.usuario || "").toLowerCase() === u.toLowerCase() && String(x.clave || "") === p);
 
@@ -3174,4 +3190,3 @@ setInterval(() => {
 <script id="syncTotalIndexVIP">(function(){window._idsEliminadosCache=JSON.parse(localStorage.getItem("ids_eliminados_musa")||"[]").map(String);const _origSet=localStorage.setItem.bind(localStorage);localStorage.setItem=function(k,v){if(k==="cola_turnos_local"){try{let arr=JSON.parse(v||"[]");if(Array.isArray(arr)&&window._idsEliminadosCache.length>0){arr=arr.filter(a=>!window._idsEliminadosCache.includes(String(a.id)));v=JSON.stringify(arr);}}catch{}}return _origSet(k,v);};async function vigilarSuiteIndex(){try{const U="https://supabase.co",K="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";const r=await fetch(U+"?clave=in.(cola_turnos_local,ids_eliminados_musa)&select=clave,datos",{headers:{apikey:K,Authorization:"Bearer "+K},cache:"no-store"});const f=await r.json();if(!Array.isArray(f))return;const fDel=f.find(x=>x.clave==="ids_eliminados_musa"),fCol=f.find(x=>x.clave==="cola_turnos_local");const elim=(fDel&&Array.isArray(fDel.datos))?fDel.datos.map(String):[];window._idsEliminadosCache=elim;_origSet("ids_eliminados_musa",JSON.stringify(elim));if(fCol&&Array.isArray(fCol.datos)){const limpia=fCol.datos.filter(a=>!elim.includes(String(a.id)));_origSet("cola_turnos_local",JSON.stringify(limpia));const uAct=String(window.usuarioLogueadoVIP||"").trim().toLowerCase();const suite=document.getElementById("suiteInternaCliente");if(uAct&&suite&&suite.style.display!=="none"){const mis=limpia.filter(a=>String(a.usuario||"").trim().toLowerCase()===uAct);if(mis.length===0){window.usuarioLogueadoVIP="";sessionStorage.removeItem("sesion_vip_activa");suite.style.display="none";const caj=document.getElementById("cajaAcceso");if(caj)caj.style.display="block";return;}const bloqs=[];mis.forEach((an,i)=>{if(an.bloqueada)bloqs.push("#"+(i+1)+(an.city?" ("+an.city+")":""));});const box=document.getElementById("avisoCuentaBloqueadaVIP");if(box){if(bloqs.length>0){const key=bloqs.join(",");box.dataset.bloqIds=key;if(sessionStorage.getItem("cerrar_aviso_bloq_"+key)!=="1"){document.getElementById("txtTituloBloqVIP").textContent="🔒 CUENTA BLOQUEADA • ANUNCIO "+bloqs.join(", ");if(box.parentElement!==suite)suite.prepend(box);box.style.display="block";}}else{box.style.display="none";}}if(typeof renderizarSuiteInterna==="function")renderizarSuiteInterna();}}}catch{}}vigilarSuiteIndex();setInterval(vigilarSuiteIndex,2500);})();</script>
 
 
-<script id="overrideIniciarSesionRealVIP">(function(){const _origIniciar=window.iniciarSesion;window.iniciarSesion=async function(){const uInp=document.getElementById("inpUser"),pInp=document.getElementById("inpPass"),msg=document.getElementById("msgError");const u=(uInp?uInp.value:"").trim(),p=(pInp?pInp.value:"").trim();if(!u||!p){if(msg)msg.innerText="⚠️ Escribe tu usuario y contraseña.";return;}if(msg)msg.innerText="⏳ Verificando renta en vivo...";try{const U="https://supabase.co",K="sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";const r=await fetch(U+"?clave=in.(cola_turnos_local,ids_eliminados_musa)&select=clave,datos",{headers:{apikey:K,Authorization:"Bearer "+K},cache:"no-store"});const f=await r.json();if(Array.isArray(f)){const fDel=f.find(x=>x.clave==="ids_eliminados_musa"),fCol=f.find(x=>x.clave==="cola_turnos_local");let rawDel=fDel?fDel.datos:[];if(typeof rawDel==="string")try{rawDel=JSON.parse(rawDel);}catch{rawDel=[];}const elim=Array.isArray(rawDel)?rawDel.map(String):[];window._idsEliminadosCache=elim;let rawCol=fCol?fCol.datos:null;if(typeof rawCol==="string")try{rawCol=JSON.parse(rawCol);}catch{rawCol=null;}if(Array.isArray(rawCol)){const limpia=rawCol.filter(a=>!elim.includes(String(a.id)));localStorage.setItem("cola_turnos_local",JSON.stringify(limpia));const mis=limpia.filter(a=>String(a.usuario||"").trim().toLowerCase()===u.toLowerCase());if(mis.length===0){if(msg)msg.innerText="❌ Tu renta anterior ya finalizó o no tienes anuncios activos. Crea una nueva solicitud.";return;}}}}catch{}if(msg)msg.innerText="";if(typeof _origIniciar==="function")return _origIniciar.apply(this,arguments);};})();</script>
