@@ -95,6 +95,7 @@
   .turno-card { background: linear-gradient(160deg, rgba(16,36,27,0.92), rgba(8,18,14,0.96)); border: 1.5px solid rgba(234,179,8,0.45); border-radius: 18px; padding: 18px; margin-bottom: 16px; box-shadow: 0 12px 30px rgba(0,0,0,0.55); }
   .dato-pill { background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.12); border-radius: 9px; padding: 7px 10px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 </style>
+<script id="definirObtenerBotsVIP">window.obtenerCuentasBot=function(){try{const mapa=JSON.parse(localStorage.getItem("mapa_bots_musa_activos")||"{}");const lista=JSON.parse(localStorage.getItem("cola_turnos_local")||"[]");const ahora=Date.now();const ocupados=new Set(lista.filter(x=>x.activo&&!x.bloqueada&&x.bot_asignado).map(x=>String(x.bot_asignado).split("•").trim().toUpperCase()));return Object.entries(mapa).filter(([k,v])=>v&&(ahora-Number(v.ts||0))<600000&&!ocupados.has(String(k).trim().toUpperCase())).map(([k,v])=>({codigo:String(k).trim().toUpperCase(),nombre:v.alerta?("⚠️ "+v.alerta):"🟢 ONLINE en Chrome"})).sort((a,b)=>a.codigo.localeCompare(b.codigo));}catch{return[];}};</script>
 </head>
 <body>
 
