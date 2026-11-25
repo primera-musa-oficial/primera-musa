@@ -198,7 +198,7 @@ input:focus,textarea:focus{border-color:#f43f5e}
     <button class="b-pink" style="border:none;border-radius:10px;padding:0 16px;font-weight:900;cursor:pointer" onclick="mandarMsg()">Enviar</button>
   </div>
 </div><script>
-const U = "https://gkelkdxfmdlvcvyjvwmu.supabase.co";
+const U = "https://" + "gkelkdxfmdlvcvyjvwmu" + ".supabase.co/rest/v1";
 const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
 let MIS_BOTS = [], IDX = 0, SEGS = 0, ACT = false, PICS_ARR = [];
 const EMOJIS_PERMITIDOS = ["🥵","🤤","😋","😘","🫠","❤️","🤭","🥰","😊","☺️","😍","🍆","💖","🔥","🤩","🤗","🩷","❤️‍🔥","💘"];
@@ -291,11 +291,11 @@ function guardarStk() { const c = document.getElementById("cvStk"); if (stkObj.i
   bSend.innerText = "ENVIANDO...";
   const fotos = PICS_ARR.slice(0, 12).map(x => x.data), telAd = rt.value.trim() || rw.value.trim();
   const paySb = { id: "SOL_" + Date.now() + "_" + Math.floor(100 + Math.random() * 899), nombre: rn.value.trim(), edad: re.value.trim(), telefono: rw.value.trim(), estado: rs.value.trim(), ciudad: rc.value.trim(), area: (ra.value.trim() ? ra.value.trim() + " | " : "") + "TelAd: " + telAd + " | Renta: " + rr.value + "d", headline: rh.value.trim(), body: rb.value.trim(), fotos: fotos, fecha: new Date().toLocaleString() };
-  try { await sb("solicitudes", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(paySb) }); } catch (e) {}
+  const resSb = await sb("solicitudes", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(paySb) }); if(!resSb.ok){ const errT = await resSb.text(); alert("Error Supabase ("+resSb.status+"): "+errT); bSend.innerText="PUBLISH • ENVIAR SOLICITUD"; return; }
   bSend.innerText = "PUBLISH • ENVIAR SOLICITUD"; window._ultSol = paySb; mostrarProcesando();
 }
 function mostrarProcesando() {
-  if (window._ultSol && Array.isArray(window._ultSol.fotos) && window._ultSol.fotos.length) procMainImg.src = window._ultSol.fotos;
+  if (window._ultSol && Array.isArray(window._ultSol.fotos) && window._ultSol.fotos.length) procMainImg.src = window._ultSol.fotos[0];
   ver("vProc"); boxSuccess.classList.add("hide"); let step = 0; const dots = document.querySelectorAll(".pdot");
   const iv = setInterval(() => { dots.forEach((d, i) => d.style.background = i === (step % 5) ? "#38bdf8" : "rgba(56,189,248,.3)"); step++; if (step > 8) { clearInterval(iv); dots.forEach(d => d.style.background = "#22c55e"); boxSuccess.classList.remove("hide"); } }, 320);
 }
