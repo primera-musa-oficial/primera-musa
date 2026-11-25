@@ -200,29 +200,14 @@ input:focus,textarea:focus{border-color:#f43f5e}
 </div><script>
 const U = "https://supabase.co";
 const K = "sb_publishable_cYTRqB0q933Y23txZK2-wg_NYkJ7OL0";
-let MIS_BOTS = [], IDX = 0, SEGS = 0, ACT = false, DEMO = false;
-function sb(p, o) { o = o || {}; o.headers = Object.assign({ apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json" }, o.headers || {}); return fetch(U + "/" + p, o); }
+let MIS_BOTS = [], IDX = 0, SEGS = 0, ACT = false, PICS_ARR = [];
+const EMOJIS_PERMITIDOS = ["🥵","🤤","😋","😘","🫠","❤️","🤭","🥰","😊","☺️","😍","🍆","💖","🔥","🤩","🤗","🩷","❤️‍🔥","💘"];
+let stkObj = { idx: -1, img: null, emoji: "😘", x: 150, y: 120, sz: 80, drag: false };
 const MEGA_STATES = {
-  "Alaska (AK)": ["Anchorage / Mat-Su","Fairbanks","Juneau","Kenai Peninsula"],
-  "Arkansas (AR)": ["Fayetteville","Fort Smith","Jonesboro","Little Rock","Texarkana"],
-  "Hawaii (HI)": ["Big Island","Honolulu","Kauai","Maui"],
-  "Idaho (ID)": ["Boise","East Idaho","Lewiston / Clarkston","Twin Falls"],
-  "Iowa (IA)": ["Ames","Cedar Rapids","Des Moines","Dubuque","Fort Dodge","Iowa City","Mason City","Quad Cities","Sioux City","Southeast IA","Waterloo / Cedar Falls"],
-  "Kansas (KS)": ["Lawrence","Manhattan","Northwest KS","Salina","Southeast KS","Southwest KS","Topeka","Wichita"],
-  "Maine (ME)": ["Maine"],
-  "Mississippi (MS)": ["Gulfport / Biloxi","Hattiesburg","Jackson","Meridian","North Mississippi","Southwest MS"],
-  "Montana (MT)": ["Billings","Bozeman","Butte","Eastern Montana","Great Falls","Helena","Kalispell","Missoula"],
-  "Nebraska (NE)": ["Grand Island","Lincoln","North Platte","Omaha","Scottsbluff"],
-  "New Hampshire (NH)": ["New Hampshire"],
-  "New Mexico (NM)": ["Albuquerque","Clovis / Portales","Farmington","Las Cruces","Roswell / Carlsbad","Santa Fe / Taos"],
-  "North Dakota (ND)": ["Bismarck","Fargo / Moorhead","Grand Forks","North Dakota"],
-  "Rhode Island (RI)": ["Rhode Island"],
-  "South Dakota (SD)": ["Northeast SD","Pierre / Central SD","Rapid City / West SD","Sioux Falls / SE SD"],
-  "Vermont (VT)": ["Vermont"],
-  "West Virginia (WV)": ["Charleston","Eastern Panhandle","Huntington / Ashland","Morgantown","Northern Panhandle","Parkersburg / Marietta","Southern WV"],
-  "Wyoming (WY)": ["Wyoming"],
   "Alabama (AL)": ["Auburn","Birmingham","Dothan","Florence","Gadsden","Huntsville","Mobile","Montgomery","Tuscaloosa"],
+  "Alaska (AK)": ["Anchorage / Mat-Su","Fairbanks","Juneau","Kenai Peninsula"],
   "Arizona (AZ)": ["Flagstaff","Mohave County","Phoenix","Prescott","Show Low","Sierra Vista","Tucson","Yuma"],
+  "Arkansas (AR)": ["Fayetteville","Fort Smith","Jonesboro","Little Rock","Texarkana"],
   "California (CA)": ["Bakersfield","Chico","Fresno","Humboldt","Imperial County","Inland Empire","Long Beach","Los Angeles","Mendocino","Merced","Modesto","Monterey","North Bay","Oakland","Orange County","Palm Springs","Palmdale","Redding","Sacramento","San Diego","San Fernando Valley","San Francisco","San Gabriel Valley","San Jose","San Luis Obispo","San Mateo","Santa Barbara","Santa Cruz","Santa Maria","Siskiyou","Stockton","Susanville","Ventura","Visalia","Yuba-Sutter"],
   "Colorado (CO)": ["Boulder","Colorado Springs","Denver","Eastern CO","Fort Collins","High Rockies","Pueblo","Western Slope"],
   "Connecticut (CT)": ["Eastern CT","Hartford","New Haven","Northwest CT"],
@@ -230,176 +215,133 @@ const MEGA_STATES = {
   "District of Columbia (DC)": ["Washington DC"],
   "Florida (FL)": ["Daytona Beach","Florida Keys","Fort Lauderdale","Fort Myers","Gainesville","Heartland FL","Jacksonville","Lakeland","Miami","North Central FL","Ocala","Okaloosa","Orlando","Panama City","Pensacola","Sarasota","Space Coast","St. Augustine","Tallahassee","Tampa","Treasure Coast","West Palm Beach"],
   "Georgia (GA)": ["Albany","Athens","Atlanta","Augusta","Brunswick","Columbus","Macon","Northwest GA","Savannah","Statesboro","Valdosta"],
+  "Hawaii (HI)": ["Big Island","Honolulu","Kauai","Maui"],
+  "Idaho (ID)": ["Boise","East Idaho","Lewiston / Clarkston","Twin Falls"],
   "Illinois (IL)": ["Bloomington-Normal","Champaign","Chicago","Decatur","La Salle County","Mattoon-Charleston","Peoria","Rockford","Southern Illinois","Springfield","Western IL"],
   "Indiana (IN)": ["Bloomington","Evansville","Fort Wayne","Indianapolis","Kokomo","Lafayette","Muncie","Richmond","South Bend","Terre Haute"],
+  "Iowa (IA)": ["Ames","Cedar Rapids","Des Moines","Dubuque","Fort Dodge","Iowa City","Mason City","Quad Cities","Sioux City","Southeast IA","Waterloo / Cedar Falls"],
+  "Kansas (KS)": ["Lawrence","Manhattan","Northwest KS","Salina","Southeast KS","Southwest KS","Topeka","Wichita"],
   "Kentucky (KY)": ["Bowling Green","Eastern KY","Lexington","Louisville","Owensboro","Western KY"],
   "Louisiana (LA)": ["Baton Rouge","Central Louisiana","Houma","Lafayette","Lake Charles","Monroe","New Orleans","Shreveport"],
+  "Maine (ME)": ["Maine"],
   "Maryland (MD)": ["Annapolis","Baltimore","Cumberland Valley","Eastern Shore","Frederick","Southern Maryland","Western Maryland"],
   "Massachusetts (MA)": ["Boston","Cape Cod","South Coast","Western Mass","Worcester"],
   "Michigan (MI)": ["Ann Arbor","Battle Creek","Central Michigan","Detroit","Flint","Grand Rapids","Holland","Jackson","Kalamazoo","Lansing","Monroe","Muskegon","Northern Michigan","Port Huron","Saginaw","Southwest Michigan","Upper Peninsula"],
   "Minnesota (MN)": ["Bemidji","Brainerd","Duluth","Mankato","Minneapolis / St. Paul","Rochester","Southwest MN","St. Cloud"],
+  "Mississippi (MS)": ["Gulfport / Biloxi","Hattiesburg","Jackson","Meridian","North Mississippi","Southwest MS"],
   "Missouri (MO)": ["Columbia / Jeff City","Joplin","Kansas City","Kirksville","Lake of the Ozarks","Southeast Missouri","Springfield","St. Joseph","St. Louis"],
+  "Montana (MT)": ["Billings","Bozeman","Butte","Eastern Montana","Great Falls","Helena","Kalispell","Missoula"],
+  "Nebraska (NE)": ["Grand Island","Lincoln","North Platte","Omaha","Scottsbluff"],
   "Nevada (NV)": ["Elko","Las Vegas","Reno / Tahoe"],
+  "New Hampshire (NH)": ["New Hampshire"],
   "New Jersey (NJ)": ["Central NJ","Jersey Shore","North Jersey","South Jersey"],
+  "New Mexico (NM)": ["Albuquerque","Clovis / Portales","Farmington","Las Cruces","Roswell / Carlsbad","Santa Fe / Taos"],
   "New York (NY)": ["Albany","Binghamton","Bronx","Brooklyn","Buffalo","Catskills","Chautauqua","Elmira","Finger Lakes","Glens Falls","Hudson Valley","Ithaca","Long Island","Manhattan","Oneonta","Plattsburgh","Potsdam","Queens","Rochester","Staten Island","Syracuse","Twin Tiers","Utica","Watertown","Westchester"],
   "North Carolina (NC)": ["Asheville","Boone","Charlotte","Eastern NC","Fayetteville","Greensboro","Hickory","Jacksonville","Outer Banks","Raleigh / Durham","Wilmington","Winston-Salem"],
+  "North Dakota (ND)": ["Bismarck","Fargo / Moorhead","Grand Forks","North Dakota"],
   "Ohio (OH)": ["Akron / Canton","Ashtabula","Athens","Chillicothe","Cincinnati","Cleveland","Columbus","Dayton","Lima / Findlay","Mansfield","Sandusky","Toledo","Tuscarawas County","Youngstown","Zanesville"],
   "Oklahoma (OK)": ["Lawton","Northwest OK","Oklahoma City","Stillwater","Tulsa"],
   "Oregon (OR)": ["Bend","Corvallis","East Oregon","Eugene","Klamath Falls","Medford","Oregon Coast","Portland","Roseburg","Salem"],
   "Pennsylvania (PA)": ["Altoona","Chambersburg","Erie","Harrisburg","Lancaster","Lehigh Valley","Meadville","Philadelphia","Pittsburgh","Poconos","Reading","Scranton","State College","Williamsport","York"],
+  "Rhode Island (RI)": ["Rhode Island"],
   "South Carolina (SC)": ["Charleston","Columbia","Florence","Greenville","Hilton Head","Myrtle Beach"],
+  "South Dakota (SD)": ["Northeast SD","Pierre / Central SD","Rapid City / West SD","Sioux Falls / SE SD"],
   "Tennessee (TN)": ["Chattanooga","Clarksville","Cookeville","Jackson","Knoxville","Memphis","Nashville","Tri-Cities"],
   "Texas (TX)": ["Abilene","Amarillo","Austin","Beaumont","Brownsville","College Station","Corpus Christi","Dallas","Deep East Texas","Del Rio","El Paso","Fort Worth","Galveston","Houston","Killeen / Temple","Laredo","Lubbock","McAllen","Midland / Odessa","San Angelo","San Antonio","San Marcos","Texarkana","Texoma","Tyler","Victoria","Waco","Wichita Falls"],
   "Utah (UT)": ["Logan","Ogden","Provo","Salt Lake City","St. George"],
+  "Vermont (VT)": ["Vermont"],
   "Virginia (VA)": ["Charlottesville","Danville","Fredericksburg","Hampton Roads","Harrisonburg","Lynchburg","New River Valley","Richmond","Roanoke","Southwest VA","Winchester"],
   "Washington (WA)": ["Bellingham","Kennewick","Moses Lake","Olympic Peninsula","Pullman","Seattle","Skagit","Spokane","Tacoma","Wenatchee","Yakima"],
-  "Wisconsin (WI)": ["Appleton","Eau Claire","Green Bay","Janesville","Kenosha","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"]
+  "West Virginia (WV)": ["Charleston","Eastern Panhandle","Huntington / Ashland","Morgantown","Northern Panhandle","Parkersburg / Marietta","Southern WV"],
+  "Wisconsin (WI)": ["Appleton","Eau Claire","Green Bay","Janesville","Kenosha","La Crosse","Madison","Milwaukee","Northern WI","Sheboygan","Wausau"],
+  "Wyoming (WY)": ["Wyoming"]
 };
-function initStates() {
-  if (!document.getElementById("rs")) return;
-  rs.innerHTML = `<option value="">-- Select State --</option>` + Object.keys(MEGA_STATES).map(s => `<option value="${s}">${s}</option>`).join("");
-}
-function cargarCities() {
-  const arr = MEGA_STATES[rs.value] || [];
-  rc.innerHTML = `<option value="">-- Select City --</option>` + arr.map(c => `<option value="${c}">${c}</option>`).join("");
-}
-function genIA(modo) {
+function sb(p, o) { o = o || {}; o.headers = Object.assign({ apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json" }, o.headers || {}); return fetch(U + "/" + p, o); }
+function ver(id) { ["vLogin","vReg","vProc","vPanel","vChat"].forEach(x => { const el = document.getElementById(x); if (el) el.classList.toggle("hide", x !== id); }); }
+function initStates() { if (document.getElementById("rs")) rs.innerHTML = `<option value="">-- Select State --</option>` + Object.keys(MEGA_STATES).map(s => `<option value="${s}">${s}</option>`).join(""); }
+function cargarCities() { const arr = MEGA_STATES[rs.value] || []; rc.innerHTML = `<option value="">-- Select City --</option>` + arr.map(c => `<option value="${c}">${c}</option>`).join(""); }function genIA(modo) {
   const pk = a => a[Math.floor(Math.random() * a.length)];
   const usados = JSON.parse(localStorage.getItem("pm_ia_used") || "[]");
-  const unico = (pref, fn) => {
-    let val = "", tries = 0;
-    do { val = fn(); tries++; } while (usados.includes(pref + ":" + val) && tries < 120);
-    usados.push(pref + ":" + val);
-    localStorage.setItem("pm_ia_used", JSON.stringify(usados.slice(-800)));
-    return val;
-  };
-  if (modo === "name" || modo === "all") {
-    const nombres = ["Valeria","Camila","Sofia","Isabella","Valentina","Lucia","Gabriela","Antonella","Natalia","Mariana","Renata","Elena","Victoria","Daniela","Paula","Ximena","Alina","Bianca","Catalina","Samanta","Juliana","Salome","Alessia","Miranda","Adriana","Carolina","Fernanda","Melissa","Romina","Ariana","Celeste","Estefania","Monserrat","Regina","Jimena","Paulina","Emilia","Nicole","Samantha","Andrea","Abril","Zoe","Chloe","Maya","Luna","Mia","Emma","Aria","Scarlett","Kendra","Danna","Kiara","Aitana","Giselle","Tatiana","Sabrina","Lorena","Noemi","Camille","Nadia","Yuliana","Veronica","Pamela","Rebeca","ivanna","Brianna","genesis","alexa","amanda","monica","silvia","claudia","karina","vanessa","estela","juliette","valery","sara","paola","fabiola","marcela","nataly","andrea","melany","dayana","viviana","evelyn","yesenia","alejandra","stefany","rosario","beatriz","irene","cecilia","luisa","teresa","angelica","patricia","diana","laura"];
-    rn.value = unico("n", () => {
-      const n = pk(nombres);
-      return n.charAt(0).toUpperCase() + n.slice(1);
-    });
-  }
-  if (modo === "head" || modo === "all") {
-    const em = ["✨","💋","🌹","🔥","💎","🥂","💖","😘","🦋","💫","🌸","🎀","🍒","💃"];
-    const p1 = ["Sweet","Exotic","Classy","Charming","Sensual","Playful","Elegant","Passionate","Stunning","Petite","Curvy","Irresistible","Warm","Friendly","Exclusive","Gorgeous","Lovely","Affectionate","Natural","Radiant","Soft","Alluring"];
-    const p2 = ["Latina","Beauty","Angel","Goddess","Doll","Muse","Companion","Princess","Dream","Model","Gem","Babe","Brunette","Star","Sweetheart"];
-    const p3 = ["Available Now","Ready For You","100% Real & Discreet","Upscale & Unrushed","Here For A Good Time","New In Town","Private & Clean","Unforgettable Vibes","Text Me Now","Just Arrived","Waiting For You","Sweet Company","Quality Time"];
-    rh.value = unico("h", () => pk(em) + " " + pk(p1) + " " + pk(p2) + " - " + pk(p3) + " " + pk(em));
-  }
-  if (modo === "body" || modo === "all") {
-    const s1 = ["Hello handsome!","Hey love!","Hi baby!","Welcome love!","Hey sweetie!","Hello there!","Hi darling!","Hey cutie!"];
-    const s2 = [
-      "I am a fun, affectionate and super clean girl looking to share an unforgettable moment.",
-      "Come relax and enjoy great company with zero rush and total discretion.",
-      "Looking for a sweet escape today? I offer a cozy, private and upscale atmosphere.",
-      "New and excited to meet respectful gentlemen who appreciate genuine warmth.",
-      "Soft skin, warm energy and an experience you will definitely want to repeat.",
-      "If you appreciate beauty, charm and a relaxed vibe, let's spend quality time together.",
-      "Always fresh, attentive and ready to put a big smile on your face today."
-    ];
-    const s3 = [
-      "Your comfort and privacy always come first.",
-      "I am 100% real, friendly and easy to talk to.",
-      "No drama, no rush, just amazing vibes from start to finish.",
-      "Clean, safe and discreet environment guaranteed.",
-      "Let's disconnect from stress and enjoy a wonderful time."
-    ];
-    const s4 = [
-      "Text me now for fast response and details.",
-      "Message me anytime for quick info and availability.",
-      "Serious and respectful inquiries only please, reach out via text.",
-      "Send me a message right now and let's set it up.",
-      "Don't be shy, shoot me a text for a fast reply."
-    ];
-    const em = ["✨","💋","🌹","🔥","💎","🥂","💖","😘","🦋","💫","🌸"];
-    rb.value = unico("b", () => pk(s1) + " " + pk(s2) + " " + pk(s3) + " " + pk(s4) + " " + pk(em) + pk(em));
-  }
-}function ver(id) { ["vLogin","vReg","vProc","vPanel","vChat"].forEach(x => document.getElementById(x).classList.toggle("hide", x !== id)); }
-function probarDemoCliente() {
-  DEMO = true;
-  const f1 = "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='400' height='210'><rect width='400' height='210' fill='%232d112b'/><text x='50%' y='52%' fill='%23fde047' font-size='19' font-family='Arial' text-anchor='middle'>FOTO ANUNCIO 1 • #5166</text></svg>";
-  const f2 = "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='400' height='210'><rect width='400' height='210' fill='%23161b33'/><text x='50%' y='52%' fill='%2338bdf8' font-size='19' font-family='Arial' text-anchor='middle'>FOTO ANUNCIO 2 • #0821</text></svg>";
-  MIS_BOTS = [
-    { bot_id: "demo_c1", usuario: "Karla123", clave: "5166", cuenta: "Karla VIP", telefono: "+1 305 555 5166", ad_edad: "24", activo: true, next_ms: Date.now() + 525000, vence_ms: Date.now() + 3146400000, ad_city: "Miami, FL", ad_estado: "Florida (FL)", ad_location: "Brickell / Downtown", ad_headline: "Sweet & Discreet Latina Ready Now", ad_body: "Hello handsome! Come relax and enjoy great company with zero rush. Text me now for fast response.", bumps: 14, last_pub: "Hoy, 01:12 AM", siguiente_accion: "En linea • Subida automatica activa", ad_fotos: [f1], historial: [] },
-    { bot_id: "demo_c2", usuario: "Karla123", clave: "5166", cuenta: "Karla VIP 2", telefono: "+1 786 555 0821", ad_edad: "24", activo: false, next_ms: 0, vence_ms: Date.now() + 1296000000, ad_city: "Orlando, FL", ad_estado: "Florida (FL)", ad_location: "International Dr", ad_headline: "Upscale Company 24/7 VIP", ad_body: "Hey love! New in town and ready for a wonderful time. Clean, private and discreet.", bumps: 6, last_pub: "Ayer, 11:40 PM", siguiente_accion: "Pausada por usuario", ad_fotos: [f2], historial: [] }
-  ];
-  IDX = 0; pintarPanel();
+  const unico = (pref, fn) => { let val = "", tries = 0; do { val = fn(); tries++; } while (usados.includes(pref + ":" + val) && tries < 120); usados.push(pref + ":" + val); localStorage.setItem("pm_ia_used", JSON.stringify(usados.slice(-800))); return val; };
+  if (modo === "name" || modo === "all") { const n = ["Valeria","Camila","Sofia","Isabella","Valentina","Lucia","Gabriela","Antonella","Natalia","Mariana","Renata","Elena","Victoria","Daniela","Paula","Ximena","Alina","Bianca","Catalina","Samanta","Juliana","Salome","Alessia","Miranda","Adriana","Carolina","Fernanda","Melissa","Romina","Ariana","Celeste","Estefania","Monserrat","Regina","Jimena","Paulina","Emilia","Nicole","Samantha","Andrea","Abril","Zoe","Chloe","Maya","Luna","Mia","Emma","Aria","Scarlett","Kendra"]; rn.value = unico("n", () => pk(n)); }
+  if (modo === "head" || modo === "all") { const em = ["✨","💋","🌹","🔥","💎","🥂","💖","😘","🦋","💫","🌸"], p1 = ["Sweet","Exotic","Classy","Charming","Sensual","Playful","Elegant","Passionate","Stunning","Petite","Curvy","Irresistible","Warm","Friendly","Exclusive"], p2 = ["Latina","Beauty","Angel","Goddess","Doll","Muse","Companion","Princess","Dream","Model","Gem"], p3 = ["Available Now","Ready For You","100% Real & Discreet","Upscale & Unrushed","Here For A Good Time","New In Town","Private & Clean","Unforgettable Vibes","Text Me Now"]; rh.value = unico("h", () => pk(em) + " " + pk(p1) + " " + pk(p2) + " - " + pk(p3) + " " + pk(em)); }
+  if (modo === "body" || modo === "all") { const s1 = ["Hello handsome!","Hey love!","Hi baby!","Welcome love!","Hey sweetie!"], s2 = ["I am a fun, affectionate and super clean girl looking to share an unforgettable moment.","Come relax and enjoy great company with zero rush and total discretion.","Looking for a sweet escape today? I offer a cozy, private and upscale atmosphere.","New and excited to meet respectful gentlemen who appreciate genuine warmth."], s3 = ["Your comfort and privacy always come first.","I am 100% real, friendly and easy to talk to.","Clean, safe and discreet environment guaranteed."], s4 = ["Text me now for fast response and details.","Message me anytime for quick info and availability.","Send me a message right now and let's set it up."], em = ["✨","💋","🌹","🔥","💎","🥂","💖","😘"]; rb.value = unico("b", () => pk(s1) + " " + pk(s2) + " " + pk(s3) + " " + pk(s4) + " " + pk(em) + pk(em)); }
 }
+function compFoto(file) { return new Promise(res => { const rd = new FileReader(); rd.onload = e => { const im = new Image(); im.onload = () => { const c = document.createElement("canvas"); const w = Math.min(1080, im.width), h = im.height * (w / im.width); c.width = w; c.height = h; c.getContext("2d").drawImage(im, 0, 0, w, h); res(c.toDataURL("image/jpeg", 0.85)); }; im.src = e.target.result; }; rd.readAsDataURL(file); }); }
+function renderPicsGrid() {
+  if (!document.getElementById("gridPics")) return;
+  let html = "";
+  for (let i = 0; i < 12; i++) {
+    const it = PICS_ARR[i];
+    if (it) html += `<div style="position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;border:${i===0?'2px solid #22c55e':'2px solid #f43f5e'}"><img src="${it.data}" style="width:100%;height:100%;object-fit:cover">${i===0?'<span style="position:absolute;top:2px;left:2px;background:#16a34a;color:#fff;font-size:8px;font-weight:900;padding:1px 4px;border-radius:4px">MAIN</span>':`<button type="button" onclick="hacerMainPic(${i})" style="position:absolute;top:2px;left:2px;background:rgba(0,0,0,.75);color:#fde047;border:none;font-size:10px;border-radius:4px;padding:1px 4px;cursor:pointer">&#9733;</button>`}<button type="button" onclick="abrirEditorStk(${i})" style="position:absolute;bottom:2px;left:2px;right:2px;background:${it.stk?'rgba(22,163,74,.92)':'rgba(225,29,72,.95)'};color:#fff;border:none;font-size:9.5px;font-weight:900;border-radius:5px;padding:3px 2px;cursor:pointer">${it.stk?'&#10004; Sticker OK':'&#9888; Poner Sticker'}</button><button type="button" onclick="PICS_ARR.splice(${i},1);renderPicsGrid()" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.8);color:#fff;border:none;font-size:9px;border-radius:4px;padding:1px 4px;cursor:pointer">&#10005;</button></div>`;
+    else html += `<div onclick="rf.click()" style="aspect-ratio:1/1;background:#1f1b29;border:1px dashed #3f374f;border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center;color:#71717a;font-weight:900;font-size:${i===0?'10px':'15px'};cursor:pointer;padding:4px">${i===0?'MAIN<br>PHOTO':(i+1)}</div>`;
+  }
+  gridPics.innerHTML = html;
+}
+async function cargarFotosGrid(files) { for (const f of [...files]) { if (f.type.startsWith("image/") && PICS_ARR.length < 12) PICS_ARR.push({ data: await compFoto(f), stk: false }); } rf.value = ""; renderPicsGrid(); const sin = PICS_ARR.findIndex(x => !x.stk); if (sin >= 0) abrirEditorStk(sin); }
+function hacerMainPic(i) { const [it] = PICS_ARR.splice(i, 1); PICS_ARR.unshift(it); renderPicsGrid(); }
+function abrirEditorStk(i) { stkObj.idx = i; stkPalette.innerHTML = EMOJIS_PERMITIDOS.map(em => `<button type="button" class="b-dark" style="border:1px solid #4c1d3d;border-radius:8px;padding:4px 7px;font-size:18px;cursor:pointer" onclick="stkObj.emoji='${em}';dibujarStk()">${em}</button>`).join(""); const im = new Image(); im.onload = () => { stkObj.img = im; const c = document.getElementById("cvStk"); c.width = im.naturalWidth || im.width; c.height = im.naturalHeight || im.height; stkObj.x = Math.round(c.width * 0.5); stkObj.y = Math.round(c.height * 0.32); stkObj.sz = Math.max(40, Math.round(Math.min(c.width, c.height) * 0.22)); if (document.getElementById("rngStk")) { rngStk.max = Math.round(Math.min(c.width, c.height) * 0.65); rngStk.value = stkObj.sz; } boxSticker.classList.remove("hide"); dibujarStk(); }; im.src = PICS_ARR[i].data; }
+function dibujarStk() { const c = document.getElementById("cvStk"), x = c.getContext("2d"); if (!stkObj.img) return; if (document.getElementById("rngStk")) rngStk.value = stkObj.sz; x.clearRect(0, 0, c.width, c.height); x.drawImage(stkObj.img, 0, 0, c.width, c.height); x.font = stkObj.sz + "px 'Segoe UI Emoji','Apple Color Emoji',sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(stkObj.emoji, stkObj.x, stkObj.y); }
+function guardarStk() { const c = document.getElementById("cvStk"); if (stkObj.idx >= 0 && PICS_ARR[stkObj.idx]) { PICS_ARR[stkObj.idx].data = c.toDataURL("image/jpeg", 0.85); PICS_ARR[stkObj.idx].stk = true; } boxSticker.classList.add("hide"); renderPicsGrid(); const sig = PICS_ARR.findIndex(x => !x.stk); if (sig >= 0) abrirEditorStk(sig); }
+(function(){ const c = document.getElementById("cvStk"); if (!c) return; const pos = e => { const r = c.getBoundingClientRect(), t = e.touches ? e.touches[0] : e; return { x: (t.clientX - r.left) * (c.width / r.width), y: (t.clientY - r.top) * (c.height / r.height) }; }; c.onmousedown = c.ontouchstart = e => { stkObj.drag = true; const p = pos(e); stkObj.x = p.x; stkObj.y = p.y; dibujarStk(); }; window.onmousemove = window.ontouchmove = e => { if (!stkObj.drag) return; const p = pos(e); stkObj.x = p.x; stkObj.y = p.y; dibujarStk(); }; window.onmouseup = window.ontouchend = () => { stkObj.drag = false; }; })();async function enviarSol() {
+  if (!rn.value.trim() || !rw.value.trim()) return alert("Completa tu Name/Alias y tu WhatsApp.");
+  if (!PICS_ARR.length) return alert("Debes subir al menos 1 foto.");
+  if (PICS_ARR.some(x => !x.stk)) return alert("Es obligatorio poner un sticker tapando tu rostro en TODAS las fotos antes de publicar.");
+  if (!chkFace.checked) return alert("Marca la casilla confirmando que tapaste tu rostro con un sticker en todas las fotos.");
+  bSend.innerText = "ENVIANDO...";
+  const fotos = PICS_ARR.slice(0, 12).map(x => x.data), telAd = rt.value.trim() || rw.value.trim();
+  const paySb = { id: "SOL_" + Date.now() + "_" + Math.floor(100 + Math.random() * 899), nombre: rn.value.trim(), edad: re.value.trim(), telefono: rw.value.trim(), estado: rs.value.trim(), ciudad: rc.value.trim(), area: (ra.value.trim() ? ra.value.trim() + " | " : "") + "TelAd: " + telAd + " | Renta: " + rr.value + "d", headline: rh.value.trim(), body: rb.value.trim(), fotos: fotos, fecha: new Date().toLocaleString() };
+  try { await sb("solicitudes", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(paySb) }); } catch (e) {}
+  bSend.innerText = "PUBLISH • ENVIAR SOLICITUD"; window._ultSol = paySb; mostrarProcesando();
+}
+function mostrarProcesando() {
+  if (window._ultSol && Array.isArray(window._ultSol.fotos) && window._ultSol.fotos.length) procMainImg.src = window._ultSol.fotos;
+  ver("vProc"); boxSuccess.classList.add("hide"); let step = 0; const dots = document.querySelectorAll(".pdot");
+  const iv = setInterval(() => { dots.forEach((d, i) => d.style.background = i === (step % 5) ? "#38bdf8" : "rgba(56,189,248,.3)"); step++; if (step > 8) { clearInterval(iv); dots.forEach(d => d.style.background = "#22c55e"); boxSuccess.classList.remove("hide"); } }, 320);
+}
+function volverAlLogin() { PICS_ARR = []; renderPicsGrid(); regStep2.classList.add("hide"); regStep1.classList.remove("hide"); barStep1.classList.remove("hide"); ver("vLogin"); }
 async function entrar() {
-  const u = lu.value.trim(), p = lp.value.trim();
-  if (!u || !p) return alert("Ingresa tu usuario y contraseña.");
+  const u = lu.value.trim(), p = lp.value.trim(); if (!u || !p) return alert("Ingresa tu usuario y contraseña.");
   bIn.innerText = "VERIFICANDO...";
-  try {
-    const r = await sb("cuentas_bot?usuario=eq." + encodeURIComponent(u) + "&clave=eq." + encodeURIComponent(p) + "&select=*");
-    const rows = await r.json();
-    if (Array.isArray(rows) && rows.length > 0) { DEMO = false; MIS_BOTS = rows; IDX = 0; localStorage.setItem("pm_cu", u); localStorage.setItem("pm_cp", p); pintarPanel(); }
-    else alert("Usuario o contraseña incorrectos, o tu solicitud aun esta en activacion.");
-  } catch (e) { alert("Error de conexion."); }
+  try { const r = await sb("cuentas_bot?usuario=eq." + encodeURIComponent(u) + "&clave=eq." + encodeURIComponent(p) + "&select=*"); const rows = await r.json(); if (Array.isArray(rows) && rows.length > 0) { MIS_BOTS = rows; IDX = 0; localStorage.setItem("pm_cu", u); localStorage.setItem("pm_cp", p); pintarPanel(); } else alert("Usuario o contraseña incorrectos, o tu solicitud aun esta en activacion."); } catch (e) { alert("Error de conexion."); }
   bIn.innerText = "ENTRAR A MI PANEL";
 }
-function salir() { localStorage.removeItem("pm_cu"); localStorage.removeItem("pm_cp"); MIS_BOTS = []; DEMO = false; ver("vLogin"); }
-function compFoto(file) { return new Promise(res => { const rd = new FileReader(); rd.onload = e => { const im = new Image(); im.onload = () => { const c = document.createElement("canvas"); const w = Math.min(1080, im.width), h = im.height * (w / im.width); c.width = w; c.height = h; c.getContext("2d").drawImage(im, 0, 0, w, h); res(c.toDataURL("image/jpeg", 0.85)); }; im.src = e.target.result; }; rd.readAsDataURL(file); }); }
+function salir() { localStorage.removeItem("pm_cu"); localStorage.removeItem("pm_cp"); MIS_BOTS = []; ver("vLogin"); }
 function pintarPanel() {
-  ver("vPanel");
-  const b = MIS_BOTS.at(IDX) || MIS_BOTS.at(0); if (!b) return;
-  pSub.innerText = "Bienvenida @" + (b.usuario || "VIP") + (DEMO ? " • Vista Demo" : "");
-  pAvispas.innerHTML = MIS_BOTS.length > 1 ? MIS_BOTS.map((x, i) => {
-    const dig = String(x.telefono || x.bot_id || "").replace(/\D/g, "").slice(-4) || ("0" + (i + 1));
-    return `<div class="avtab ${IDX===i?'on':''}" onclick="IDX=${i};pintarPanel()">Post #${dig}</div>`;
-  }).join("") : "";
-  const now = Date.now(), vm = Number(b.vence_ms || 0), venc = vm > 0 && now >= vm;
-  const act = !!b.activo && !venc, nm = Number(b.next_ms || 0);
-  ACT = act; SEGS = (act && nm > now) ? Math.floor((nm - now) / 1000) : 0;
-  const dias = venc ? 0 : (vm > 0 ? Math.max(0, Math.ceil((vm - now) / 86400000)) : 0);
-  pTel.innerText = b.telefono || "-"; pAge.innerText = b.ad_edad || "23";
-  pLoc.innerText = [b.ad_city, b.ad_estado].filter(Boolean).join(", ") || "USA";
-  pArea.innerText = b.ad_location || "-"; pHead.innerText = b.ad_headline || b.cuenta || "Anuncio VIP";
-  pBody.innerText = b.ad_body || "-"; pBumps.innerText = b.bumps || 0; pDias.innerText = dias + "d";
-  pPaso.innerText = b.siguiente_accion || (act ? "En linea" : "Pausada");
-  pLastPub.innerText = b.last_pub || (b.updated_at ? new Date(Number(b.updated_at)).toLocaleString() : "En espera de ciclo");
-  pLastPub.style.color = act ? "#4ade80" : "#fb7185";
-  if (venc) {
-    pBadge.innerText = "VENCIDO"; pBadge.style.cssText = "background:rgba(244,63,94,.2);color:#f43f5e;border:1px solid #f43f5e;font-weight:900;padding:3px 9px;border-radius:99px;font-size:10px";
-    pAccion.innerHTML = "<button class='btn b-dark' style='margin:0;padding:12px 8px;font-size:11px' disabled>RENTA VENCIDA</button>";
-  } else if (act) {
-    pBadge.innerText = "ACTIVO"; pBadge.style.cssText = "background:rgba(74,222,128,.2);color:#4ade80;border:1px solid #22c55e;font-weight:900;padding:3px 9px;border-radius:99px;font-size:10px";
-    pAccion.innerHTML = "<button class='btn b-red' style='margin:0;padding:12px 8px;font-size:12px' onclick='cliToggle(false)'>&#9208; PAUSAR ANUNCIO</button>";
-  } else {
-    pBadge.innerText = "PAUSADO"; pBadge.style.cssText = "background:rgba(250,204,21,.2);color:#facc15;border:1px solid #eab308;font-weight:900;padding:3px 9px;border-radius:99px;font-size:10px";
-    pAccion.innerHTML = "<button class='btn b-green' style='margin:0;padding:12px 8px;font-size:12px' onclick='cliToggle(true)'>&#9654; ACTIVAR ANUNCIO</button>";
-  }
+  ver("vPanel"); const b = MIS_BOTS.at(IDX) || MIS_BOTS.at(0); if (!b) return;
+  pSub.innerText = "Bienvenida @" + (b.usuario || "VIP");
+  pAvispas.innerHTML = MIS_BOTS.length > 1 ? MIS_BOTS.map((x, i) => { const dig = String(x.telefono || x.bot_id || "").replace(/\D/g, "").slice(-4) || ("0" + (i + 1)); return `<div class="avtab ${IDX===i?'on':''}" onclick="IDX=${i};pintarPanel()">Post #${dig}</div>`; }).join("") : "";
+  const now = Date.now(), vm = Number(b.vence_ms || 0), venc = vm > 0 && now >= vm, act = !!b.activo && !venc, nm = Number(b.next_ms || 0);
+  ACT = act; SEGS = (act && nm > now) ? Math.floor((nm - now) / 1000) : 0; const dias = venc ? 0 : (vm > 0 ? Math.max(0, Math.ceil((vm - now) / 86400000)) : 0);
+  pTel.innerText = b.telefono || "-"; pAge.innerText = b.ad_edad || "23"; pLoc.innerText = [b.ad_city, b.ad_estado].filter(Boolean).join(", ") || "USA"; pArea.innerText = b.ad_location || "-"; pHead.innerText = b.ad_headline || b.cuenta || "Anuncio VIP"; pBody.innerText = b.ad_body || "-"; pBumps.innerText = b.bumps || 0; pDias.innerText = dias + "d"; pPaso.innerText = b.siguiente_accion || (act ? "En linea" : "Pausada");
+  pLastPub.innerText = b.last_pub || (b.updated_at ? new Date(Number(b.updated_at)).toLocaleString() : "En espera de ciclo"); pLastPub.style.color = act ? "#4ade80" : "#fb7185";
+  if (venc) { pBadge.innerText = "VENCIDO"; pBadge.style.cssText = "background:rgba(244,63,94,.2);color:#f43f5e;border:1px solid #f43f5e;font-weight:900;padding:3px 9px;border-radius:99px;font-size:10px"; pAccion.innerHTML = "<button class='btn b-dark' style='margin:0;padding:12px 8px;font-size:11px' disabled>RENTA VENCIDA</button>"; }
+  else if (act) { pBadge.innerText = "ACTIVO"; pBadge.style.cssText = "background:rgba(74,222,128,.2);color:#4ade80;border:1px solid #22c55e;font-weight:900;padding:3px 9px;border-radius:99px;font-size:10px"; pAccion.innerHTML = "<button class='btn b-red' style='margin:0;padding:12px 8px;font-size:12px' onclick='cliToggle(false)'>&#9208; PAUSAR ANUNCIO</button>"; }
+  else { pBadge.innerText = "PAUSADO"; pBadge.style.cssText = "background:rgba(250,204,21,.2);color:#facc15;border:1px solid #eab308;font-weight:900;padding:3px 9px;border-radius:99px;font-size:10px"; pAccion.innerHTML = "<button class='btn b-green' style='margin:0;padding:12px 8px;font-size:12px' onclick='cliToggle(true)'>&#9654; ACTIVAR ANUNCIO</button>"; }
   const fs = (Array.isArray(b.ad_fotos) ? b.ad_fotos : []).filter(x => x && !String(x).includes("close")).slice(0, 6);
   pFotos.innerHTML = fs.map(im => `<img src="${im}" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;border:1.5px solid rgba(255,255,255,.25)">`).join("");
   updReloj();
-}function updReloj() { if (!ACT) { pReloj.innerText = "00:00"; return; } pReloj.innerText = String(Math.floor(SEGS/60)).padStart(2,"0") + ":" + String(SEGS%60).padStart(2,"0"); }
+}
+function updReloj() { if (!ACT) { pReloj.innerText = "00:00"; return; } pReloj.innerText = String(Math.floor(SEGS/60)).padStart(2,"0") + ":" + String(SEGS%60).padStart(2,"0"); }
 async function cliToggle(enc) {
   const b = MIS_BOTS.at(IDX) || MIS_BOTS.at(0); if (!b) return;
-  const d = new Date(), p = n => String(n).padStart(2,"0");
-  const fch = p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear()+", "+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
+  const d = new Date(), p = n => String(n).padStart(2,"0"), fch = p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear()+", "+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
   const msg = fch + ' - Cliente: Pagina "' + (b.ad_headline||b.cuenta||b.bot_id) + '" ' + (enc ? 'activada' : 'pausada');
   b.activo = enc; b.next_ms = enc ? Date.now() + 120000 : 0; b.siguiente_accion = enc ? "1. Click en Actualizar en 2 min" : "Pausada por cliente";
-  b.historial = Array.isArray(b.historial) ? b.historial : []; b.historial.unshift(msg);
-  pintarPanel();
-  if (!DEMO) { await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(b.bot_id), { method: "PATCH", body: JSON.stringify({ activo: enc, next_ms: b.next_ms, cmd_id: String(Date.now()), cmd_action: enc?"RESUME":"PAUSE", historial: b.historial.slice(0,50), updated_at: Date.now() }) }); }
+  b.historial = Array.isArray(b.historial) ? b.historial : []; b.historial.unshift(msg); pintarPanel();
+  await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(b.bot_id), { method: "PATCH", body: JSON.stringify({ activo: enc, next_ms: b.next_ms, cmd_id: String(Date.now()), cmd_action: enc?"RESUME":"PAUSE", historial: b.historial.slice(0,50), updated_at: Date.now() }) });
 }
 function abrirSoporte() {
-  ver("vChat");
-  const u = (MIS_BOTS.at(0)?.usuario || "Karla123");
-  const chats = JSON.parse(localStorage.getItem("pm_chats") || "{}");
+  ver("vChat"); const u = (MIS_BOTS.at(0)?.usuario || "VIP"), chats = JSON.parse(localStorage.getItem("pm_chats") || "{}");
   const arr = chats[u] || [{ from: "admin", txt: "Hola @" + u + "! ¿En que podemos ayudarte hoy?", time: "Ahora" }];
   cMsgs.innerHTML = arr.map(m => `<div style="align-self:${m.from==='client'?'flex-end':'flex-start'};max-width:80%;background:${m.from==='client'?'#4c1d3d':'#1f1b29'};padding:8px 12px;border-radius:10px;font-size:12.5px"><div>${m.txt}</div><div style="font-size:10px;color:#a1a1aa;margin-top:3px;text-align:right">${m.time}</div></div>`).join("");
   cMsgs.scrollTop = cMsgs.scrollHeight;
 }
 function mandarMsg() {
   if (!cInp.value.trim()) return;
-  const u = (MIS_BOTS.at(0)?.usuario || "Karla123");
-  const d = new Date(), p = n => String(n).padStart(2,"0");
-  const fch = p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear()+", "+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
-  const chats = JSON.parse(localStorage.getItem("pm_chats") || "{}");
-  chats[u] = chats[u] || []; chats[u].push({ from: "client", txt: cInp.value.trim(), time: fch });
-  localStorage.setItem("pm_chats", JSON.stringify(chats));
-  cInp.value = ""; abrirSoporte();
+  const u = (MIS_BOTS.at(0)?.usuario || "VIP"), d = new Date(), p = n => String(n).padStart(2,"0"), fch = p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear()+", "+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
+  const chats = JSON.parse(localStorage.getItem("pm_chats") || "{}"); chats[u] = chats[u] || []; chats[u].push({ from: "client", txt: cInp.value.trim(), time: fch });
+  localStorage.setItem("pm_chats", JSON.stringify(chats)); cInp.value = ""; abrirSoporte();
 }
-initStates();renderPicsGrid();setInterval(() => { if (ACT && SEGS > 0) { SEGS--; updReloj(); } }, 1000);
-</script><script>window.addEventListener("load",function(){try{if(typeof initStates==="function")initStates();if(typeof renderPicsGrid==="function")renderPicsGrid();}catch(e){}});</script></body></html>
+initStates(); renderPicsGrid(); setInterval(() => { if (ACT && SEGS > 0) { SEGS--; updReloj(); } }, 1000);
+</script></body></html>
