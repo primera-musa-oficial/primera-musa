@@ -544,7 +544,7 @@ function renderAct() {
 }
 
 function renderBoxAdd() {
-  const libres = BOTS.filter(b => !b.usuario || !b.vence_ms || Date.now() >= Number(b.vence_ms));
+  const libres = BOTS.filter(b => !(b.usuario||"").trim() || Number(b.vence_ms||0) <= Date.now());
   const opts = `<option value="">-- Selecciona Avispa Disponible (${libres.length}) --</option>` + libres.map((b, i) => `<option value="${b.bot_id}">&#128029; Avispa Libre 0${i+1}: ${b.ad_headline || b.cuenta || b.bot_id} (${b.ad_city || ''})</option>`).join("");
   const d = window._addDias || "7";
   return `<div style="background:#1c1626;border:1px solid #be185d;border-radius:12px;padding:12px;margin-top:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between">
