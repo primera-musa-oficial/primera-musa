@@ -598,7 +598,7 @@ async function confirmarAgregarAvispa() {
       })
     });
   }
-}async function tog(id) {
+}async function tog(id) { window._lockLoad = Date.now() + 4500;
   const x = BOTS.find(i => i.bot_id === id);
   if (!x) return;
   const nuevoEstado = !x.activo;
