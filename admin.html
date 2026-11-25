@@ -149,7 +149,7 @@ async function cargar() {
   } else { boxColmena.classList.add("hide"); boxDetalle.classList.add("hide"); }
   secSol.innerHTML = SOLS.map(s => `<div class="bcard" style="margin-bottom:10px"><b style="color:#fb7185">${s.nombre || ""}</b> (${s.telefono || "-"}) - ${s.ciudad || ""}, ${s.estado || ""}</div>`).join("") || "<span style='color:#a1a1aa'>No hay solicitudes pendientes.</span>";
 }
-let CHATS = JSON.parse(localStorage.getItem("pm_chats") || "null") || {
+let CHATS = JSON.parse(localStorage.getItem("pm_chats_real") || "{}"); const _old = {
   "Karla123": [
     { from: "client", txt: "Hola admin! Ya subi mis fotos nuevas, me confirmas si todo esta activo?", time: "24/11/2026, 20:15:10" },
     { from: "admin", txt: "Hola Karla! Si, tus 2 paginas ya estan sincronizadas y activas con 36 dias de renta.", time: "24/11/2026, 20:16:02" }
@@ -505,7 +505,7 @@ function enviarChat() {
   const fch = p(d.getDate()) + "/" + p(d.getMonth() + 1) + "/" + d.getFullYear() + ", " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
   CHATS[CHAT_SEL] = CHATS[CHAT_SEL] || [];
   CHATS[CHAT_SEL].push({ from: "admin", txt: inp.value.trim(), time: fch });
-  localStorage.setItem("pm_chats", JSON.stringify(CHATS));
+  localStorage.setItem("pm_chats_real", JSON.stringify(CHATS));
   renderMen();
 }
 
@@ -514,7 +514,7 @@ function simularMsg() {
   const d = new Date(), p = n => String(n).padStart(2, "0");
   const fch = p(d.getDate()) + "/" + p(d.getMonth() + 1) + "/" + d.getFullYear() + ", " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
   CHATS[CHAT_SEL].push({ from: "client", txt: "Hola admin, tengo una consulta sobre mi anuncio.", time: fch });
-  localStorage.setItem("pm_chats", JSON.stringify(CHATS));
+  localStorage.setItem("pm_chats_real", JSON.stringify(CHATS));
   renderMen();
 }
 function renderAct() {
