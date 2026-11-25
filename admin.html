@@ -35,15 +35,15 @@
     <button class="on" id="nLobby" onclick="setTab('lobby')">Lobby</button>
     <button id="nRes" onclick="setTab('res')">Resumen y Alertas</button>
     <button id="nRen" onclick="setTab('ren')">Anuncios y Renta</button>
-    <button id="nSol" onclick="setTab('sol')">Solicitudes <span class="pill-cnt" id="cntSol">1</span></button>
+    <button id="nSol" onclick="setTab('sol')">Solicitudes <span class="pill-cnt" id="cntSol">0</span></button>
     <button id="nCli" onclick="setTab('cli')">Clientes</button>
     <button id="nMen" onclick="setTab('men')">Mensajes</button>
     <button id="nAct" onclick="setTab('act')">Actividad</button>
   </div>
   <div id="secLobby">
     <div class="kpis">
-      <div class="kpi"><b id="kCli">1</b><small>&#9679; CLIENTES</small></div>
-      <div class="kpi"><b id="kViv" style="color:#4ade80">1</b><small style="color:#4ade80">&#9679; BOTS VIVOS</small></div>
+      <div class="kpi"><b id="kCli">0</b><small>&#9679; CLIENTES</small></div>
+      <div class="kpi"><b id="kViv" style="color:#4ade80">0</b><small style="color:#4ade80">&#9679; BOTS VIVOS</small></div>
       <div class="kpi"><b id="kPau" style="color:#facc15">0</b><small style="color:#facc15">&#9679; PAUSADOS</small></div>
       <div class="kpi"><b id="kBlo" style="color:#f43f5e">0</b><small style="color:#f43f5e">&#9679; BLOQUEADOS</small></div>
     </div>
@@ -56,7 +56,7 @@
         </div>
         <div style="display:flex;align-items:center;gap:12px">
           <input class="search" id="qBus" oninput="render()" placeholder="&#128269; Buscar cliente...">
-          <span style="font-size:11px;color:#71717a" id="lblTot">1 clientes &bull; 2 bots</span>
+          <span style="font-size:11px;color:#71717a" id="lblTot">0 clientes &bull; 0 bots</span>
         </div>
       </div>
       <div class="cgrid" id="gridClientes"></div>
