@@ -598,38 +598,33 @@ async function confirmarAgregarAvispa() {
       })
     });
   }
-}async function tog(id) { window._lockLoad = Date.now() + 4500;
-  const x = BOTS.find(i => i.bot_id === id);
-  if (!x) return;
-  const nuevoEstado = !x.activo;
+}async function tog(id) {
+  window._lockLoad = Date.now() + 6000;
+  const b = BOTS.find(i => i.bot_id === id); if (!b) return;
+  b.activo = !b.activo;
+  const cid = String(Date.now());
+  b.cmd_id = cid;
+  b.cmd_action = b.activo ? "RESUME" : "PAUSE";
+  b.next_ms = b.activo ? (Date.now() + 120000) : 0;
+  b.siguiente_accion = b.activo ? "1. Esperando 02:00 para Actualizar (1 clic)" : "Pausada";
   const d = new Date(), p = n => String(n).padStart(2, "0");
-  const fch = p(d.getDate()) + "/" + p(d.getMonth() + 1) + "/" + d.getFullYear() + ", " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
-  const tit = x.ad_headline || x.cuenta || id;
-  const msg = fch + ' - Pagina "' + tit + '" ' + (nuevoEstado ? 'activada' : 'pausada');
-  x.activo = nuevoEstado;
-  x.siguiente_accion = nuevoEstado ? 'Sincronizando datos...' : '---';
-  x.historial = Array.isArray(x.historial) ? x.historial : [];
-  x.historial.unshift(msg);
-  localStorage.setItem("pm_demo", JSON.stringify(BOTS));
+  const fch = p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear()+", "+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
+  b.historial = Array.isArray(b.historial) ? b.historial : [];
+  b.historial.unshift(fch + ' - Admin: Pagina "' + (b.ad_headline || b.cuenta || id) + '" ' + (b.activo ? 'activada' : 'pausada'));
   render();
-  if (!id.startsWith("demo") && !id.startsWith("ja1w")) {
-    await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(id), {
-      method: "PATCH",
-      body: JSON.stringify({ activo: nuevoEstado, cmd_id: String(Date.now()), cmd_action: nuevoEstado ? "RESUME" : "PAUSE", historial: x.historial.slice(0, 50), updated_at: Date.now() })
-    });
-  }
+  await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(id), {
+    method: "PATCH",
+    body: JSON.stringify({
+      activo: b.activo,
+      cmd_id: cid,
+      cmd_action: b.cmd_action,
+      next_ms: b.next_ms,
+      siguiente_accion: b.siguiente_accion,
+      historial: b.historial.slice(0, 50),
+      updated_at: Date.now()
+    })
+  });
 }
-
-async function darD(id, d) {
-  const x = BOTS.find(i => i.bot_id === id);
-  if (x) x.vence_ms = Math.max(Date.now(), Number(x.vence_ms || 0)) + (d * 86400000);
-  localStorage.setItem("pm_demo", JSON.stringify(BOTS));
-  render();
-  if (!id.startsWith("demo") && !id.startsWith("ja1w")) {
-    await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify({ vence_ms: x.vence_ms, updated_at: Date.now() }) });
-  }
-}
-
 async function delB(id) {
   if (!confirm("¿Eliminar esta pagina?")) return;
   BOTS = BOTS.filter(i => i.bot_id !== id);
