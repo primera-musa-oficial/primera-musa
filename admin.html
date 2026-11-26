@@ -756,14 +756,15 @@ window.addEventListener("DOMContentLoaded", () => {
   setInterval(() => { if (window._curTab === "men") window.cargarChatSupa(); }, 3000);
 });
 </script>
-<!-- REAL_ACT_MEN_V2 -->
+
+<!-- REAL_ACT_MEN_V3 -->
 <script>
 (function(){
   window.pintarActReal = function(){
-    const c = document.getElementById("c-act") || document.querySelector("[data-tab='act']");
+    const c = document.getElementById("secOtro");
     if(!c) return;
-    const ped = Array.isArray(window.P) ? window.P : [];
-    const usu = Array.isArray(window.U) ? window.U : [];
+    const ped = Array.isArray(window.P) ? window.P : (typeof P !== "undefined" && Array.isArray(P) ? P : []);
+    const usu = Array.isArray(window.U) ? window.U : (typeof U !== "undefined" && Array.isArray(U) ? U : []);
     const items = [];
     usu.slice(-10).reverse().forEach(u => {
       items.push({ ico: "👤", tit: "Nuevo registro: @" + (u.usuario || u.nombre || "cliente"), det: (u.correo || "") + " · Saldo: $" + (u.saldo || 0), fch: u.creado || u.fecha || "Reciente" });
@@ -786,7 +787,7 @@ window.addEventListener("DOMContentLoaded", () => {
   };
 
   window.pintarMenReal = async function(){
-    const c = document.getElementById("c-men") || document.querySelector("[data-tab='men']");
+    const c = document.getElementById("secOtro");
     if(!c) return;
     let rows = [];
     try {
@@ -802,12 +803,11 @@ window.addEventListener("DOMContentLoaded", () => {
       if(!grupos[u]) grupos[u] = [];
       grupos[u].push(m);
     });
-    if (Array.isArray(window.U)) {
-      window.U.forEach(u => {
-        const nom = u.usuario || u.nombre;
-        if (nom && !grupos[nom]) grupos[nom] = [];
-      });
-    }
+    const usu = Array.isArray(window.U) ? window.U : (typeof U !== "undefined" && Array.isArray(U) ? U : []);
+    usu.forEach(u => {
+      const nom = u.usuario || u.nombre;
+      if (nom && !grupos[nom]) grupos[nom] = [];
+    });
 
     const lista = Object.keys(grupos);
     if (!window._chatSel || !grupos[window._chatSel]) {
@@ -867,11 +867,21 @@ window.addEventListener("DOMContentLoaded", () => {
 
   window.renderAct = window.pintarActReal;
   window.renderMen = window.pintarMenReal;
+  if (typeof setTab === "function") {
+    const _origSetTab = setTab;
+    window.setTab = function(t){
+      window.renderAct = window.pintarActReal;
+      window.renderMen = window.pintarMenReal;
+      _origSetTab(t);
+      if (t === "men") window.pintarMenReal();
+      if (t === "act") window.pintarActReal();
+    };
+  }
   setInterval(function(){
     window.renderAct = window.pintarActReal;
     window.renderMen = window.pintarMenReal;
-    const cm = document.getElementById("c-men");
-    if (cm && cm.style.display !== "none" && document.activeElement?.id !== "inpRespReal") {
+    const btnMen = document.getElementById("nMen");
+    if (btnMen && btnMen.classList.contains("active") && document.activeElement?.id !== "inpRespReal") {
       window.pintarMenReal();
     }
   }, 4000);
