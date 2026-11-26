@@ -323,11 +323,14 @@ function pintarPanel() {
   updReloj();
 }
 function updReloj() { if (!ACT) { pReloj.innerText = "00:00"; return; } pReloj.innerText = String(Math.floor(SEGS/60)).padStart(2,"0") + ":" + String(SEGS%60).padStart(2,"0"); }
-async function cliToggle(enc) {
-  const b = MIS_BOTS.at(IDX) || MIS_BOTS.at(0);
+async function cliToggle(encForzado) {
+  const b = MIS_BOTS[IDX] || MIS_BOTS[0];
   if (!b) return;
   const bid = b.bot_id || b.id;
   if (!bid) return alert("Error: No se encontró ID del bot.");
+
+  // Siempre alterna el estado actual del boton para que responda al PRIMER clic
+  const enc = (typeof encForzado === "boolean" && encForzado !== Boolean(b.activo)) ? encForzado : !Boolean(b.activo);
 
   const d = new Date(), p = n => String(n).padStart(2, "0");
   const fch = p(d.getDate()) + "/" + p(d.getMonth() + 1) + "/" + d.getFullYear() + " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
@@ -335,7 +338,8 @@ async function cliToggle(enc) {
 
   const nextMs = enc ? (Date.now() + 120000) : 0;
   const cmdId = String(Date.now());
-  window.pausaSync = Date.now() + 1800;
+  window.pausaSync = Date.now() + 2500;
+
   ACT = enc;
   SEGS = enc ? 120 : 0;
   b.activo = enc;
@@ -347,7 +351,7 @@ async function cliToggle(enc) {
   b.siguiente_accion = enc ? "1. Esperando 02:00 para Actualizar (1 clic)" : "Pausada por cliente";
   b.historial = Array.isArray(b.historial) ? b.historial : [];
   b.historial.unshift(msg);
-  pintarPanel();
+  if (typeof pintarPanel === "function") pintarPanel();
 
   const payload = {
     activo: enc,
@@ -360,7 +364,7 @@ async function cliToggle(enc) {
     historial: b.historial
   };
 
-  let res = await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(bid), {
+  const res = await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(bid), {
     method: "PATCH",
     headers: { "Prefer": "return=representation" },
     body: JSON.stringify(payload)
@@ -524,6 +528,7 @@ setInterval(syncChatClienteBlindado, 2500);
 </script>
 </body>
 </html>
+
 
 
 
