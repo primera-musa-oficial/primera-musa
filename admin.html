@@ -121,7 +121,7 @@ async function cargar() {
     }
     render();
   } catch (e) {}
-}function render() {
+}function render() { if ((window._pausaSelect && Date.now() < window._pausaSelect) || (document.activeElement && ["SELECT","INPUT","TEXTAREA"].includes(document.activeElement.tagName))) return;
   const now = Date.now(), g = {}; let viv = 0, pau = 0, blo = 0;
   BOTS.forEach(b => {
     const vc = b.vence_ms > 0 && now >= b.vence_ms;
@@ -230,7 +230,7 @@ window._credSol = JSON.parse(localStorage.getItem("pm_cred_sol")||"{}"); window.
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">${imgs || "<span style='font-size:11px;color:#71717a'>Fotos para descargar apareceran aqui</span>"}</div>
       <div style="background:#1c1626;border:1px solid #3f283c;border-radius:12px;padding:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between">
         <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-          <select onmousedown="window._pausaSelect=Date.now()+15000" onfocus="window._pausaSelect=Date.now()+15000" onchange="window._pausaSelect=Date.now()+5000" onchange="SOLS[${idx}].avispa_id=this.value" style="background:#0e0b14;border:1px solid #4c1d3d;color:#fff;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700">${optsAvispas}</select>
+          <select onmousedown="window._pausaSelect=Date.now()+15000" onfocus="window._pausaSelect=Date.now()+15000" onchange="window._pausaSelect=Date.now()+8000;window._selAvispa=window._selAvispa||{};window._selAvispa[this.id||0]=this.value;" onchange="SOLS[${idx}].avispa_id=this.value" style="background:#0e0b14;border:1px solid #4c1d3d;color:#fff;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700">${optsAvispas}</select>
           <div style="display:flex;gap:4px">
             <button class="mbtn" style="padding:8px 10px;background:${dSel==='1'?'#eab308':'#272230'};color:${dSel==='1'?'#090d16':'#e4e4e7'}" onclick="SOLS[${idx}].renta='1';renderSol()">1 D&iacute;a</button>
             <button class="mbtn" style="padding:8px 10px;background:${dSel==='7'?'#eab308':'#272230'};color:${dSel==='7'?'#090d16':'#e4e4e7'}" onclick="SOLS[${idx}].renta='7';renderSol()">7 D&iacute;as</button>
@@ -550,7 +550,7 @@ function renderBoxAdd() {
   return `<div style="background:#1c1626;border:1px solid #be185d;border-radius:12px;padding:12px;margin-top:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between">
     <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
       <b style="font-size:12px;color:#fda4af">Sumar Avispa a @${SEL}:</b>
-      <select onmousedown="window._pausaSelect=Date.now()+15000" onfocus="window._pausaSelect=Date.now()+15000" onchange="window._pausaSelect=Date.now()+5000" id="selAvispaAdd" style="background:#0e0b14;border:1px solid #4c1d3d;color:#fff;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:700">${opts}</select>
+      <select onmousedown="window._pausaSelect=Date.now()+15000" onfocus="window._pausaSelect=Date.now()+15000" onchange="window._pausaSelect=Date.now()+8000;window._selAvispa=window._selAvispa||{};window._selAvispa[this.id||0]=this.value;" id="selAvispaAdd" style="background:#0e0b14;border:1px solid #4c1d3d;color:#fff;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:700">${opts}</select>
       <div style="display:flex;gap:4px">
         <button class="mbtn" style="padding:7px 10px;background:${d==='1'?'#eab308':'#272230'};color:${d==='1'?'#090d16':'#e4e4e7'}" onclick="window._addDias='1';render()">1 D&iacute;a</button>
         <button class="mbtn" style="padding:7px 10px;background:${d==='7'?'#eab308':'#272230'};color:${d==='7'?'#090d16':'#e4e4e7'}" onclick="window._addDias='7';render()">7 D&iacute;as</button>
