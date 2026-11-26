@@ -78,7 +78,7 @@ function sb(p, o) {
   return fetch(U + "/" + p, o);
 }
 
-function setTab(t) {
+function setTab(t) { window._curTab = t;
   ["nLobby","nRes","nRen","nSol","nCli","nMen","nAct"].forEach(x => document.getElementById(x).classList.remove("on"));
   secLobby.classList.toggle("hide", t !== "lobby");
   secSol.classList.toggle("hide", t !== "sol");
@@ -149,7 +149,31 @@ async function cargar() {
   } else { boxColmena.classList.add("hide"); boxDetalle.classList.add("hide"); }
   syncChatsNube(); if(typeof renderSol==="function")renderSol(); if(document.getElementById("inpChat")) renderMen();
 }
-let CHATS = {}; function syncChatsNube(){ CHATS={}; (SOLS||[]).filter(s=>s.nombre_completo==="__CHAT__" && s.usuario).forEach(s=>{ try{ const m=JSON.parse(s.nota_admin); if(m&&m.txt){ CHATS[s.usuario]=CHATS[s.usuario]||[]; CHATS[s.usuario].push(m); } }catch(e){} }); } const _old = {
+let CHATS = {}; async function cargarChatsNube(){
+  try {
+    const res = await sb("mensajes_chat?select=*&order=id.asc&_t=" + Date.now());
+    const rows = Array.isArray(res) ? res : (res && typeof res.json === "function" && res.ok ? await res.json() : []);
+    const nuevo = {};
+    (rows || []).forEach(m => {
+      const u = String(m.usuario || "").trim();
+      if (!u) return;
+      nuevo[u] = nuevo[u] || [];
+      nuevo[u].push({ from: m.remitente === "admin" ? "admin" : "client", txt: m.mensaje, time: m.hora || "" });
+    });
+    CHATS = nuevo;
+    if (!CHAT_SEL && Object.keys(CHATS).length) CHAT_SEL = Object.keys(CHATS);
+    const inp = document.getElementById("inpChat");
+    if (inp) {
+      const curTxt = inp.value;
+      const hadFocus = document.activeElement && document.activeElement.id === "inpChat";
+      renderMen();
+      const inp2 = document.getElementById("inpChat");
+      if (inp2) { inp2.value = curTxt; if (hadFocus) inp2.focus(); }
+    }
+  } catch(e) {}
+}
+function syncChatsNube(){ cargarChatsNube(); if(window._curTab && window._curTab!=="lobby"){ setTab(window._curTab); } }
+setInterval(() => { if (document.getElementById("inpChat")) cargarChatsNube(); if(window._curTab && window._curTab!=="lobby"){ setTab(window._curTab); } }, 3000); const _old = {
   "Karla123": [
     { from: "client", txt: "Hola admin! Ya subi mis fotos nuevas, me confirmas si todo esta activo?", time: "24/11/2026, 20:15:10" },
     { from: "admin", txt: "Hola Karla! Si, tus 2 paginas ya estan sincronizadas y activas con 36 dias de renta.", time: "24/11/2026, 20:16:02" }
@@ -453,7 +477,31 @@ function renderCli() {
     </div>`;
   }).join("") : "<span style='color:#a1a1aa'>No se encontraron clientes.</span>");
 }
-function syncChatsNube(){ CHATS={}; (SOLS||[]).filter(s=>s.nombre_completo==="__CHAT__" && s.usuario).forEach(s=>{ try{ const m=JSON.parse(s.nota_admin); if(m&&m.txt){ CHATS[s.usuario]=CHATS[s.usuario]||[]; CHATS[s.usuario].push(m); } }catch(e){} }); } function renderMen() { syncChatsNube();
+async function cargarChatsNube(){
+  try {
+    const res = await sb("mensajes_chat?select=*&order=id.asc&_t=" + Date.now());
+    const rows = Array.isArray(res) ? res : (res && typeof res.json === "function" && res.ok ? await res.json() : []);
+    const nuevo = {};
+    (rows || []).forEach(m => {
+      const u = String(m.usuario || "").trim();
+      if (!u) return;
+      nuevo[u] = nuevo[u] || [];
+      nuevo[u].push({ from: m.remitente === "admin" ? "admin" : "client", txt: m.mensaje, time: m.hora || "" });
+    });
+    CHATS = nuevo;
+    if (!CHAT_SEL && Object.keys(CHATS).length) CHAT_SEL = Object.keys(CHATS);
+    const inp = document.getElementById("inpChat");
+    if (inp) {
+      const curTxt = inp.value;
+      const hadFocus = document.activeElement && document.activeElement.id === "inpChat";
+      renderMen();
+      const inp2 = document.getElementById("inpChat");
+      if (inp2) { inp2.value = curTxt; if (hadFocus) inp2.focus(); }
+    }
+  } catch(e) {}
+}
+function syncChatsNube(){ cargarChatsNube(); if(window._curTab && window._curTab!=="lobby"){ setTab(window._curTab); } }
+setInterval(() => { if (document.getElementById("inpChat")) cargarChatsNube(); if(window._curTab && window._curTab!=="lobby"){ setTab(window._curTab); } }, 3000); function renderMen() { syncChatsNube();
   const clientes = Object.keys(CHATS);
   if (!CHAT_SEL && clientes.length) CHAT_SEL = clientes.at(0);
   const msgs = CHATS[CHAT_SEL] || [];
@@ -506,7 +554,7 @@ async function enviarChat() {
   const fch = p(d.getDate()) + "/" + p(d.getMonth() + 1) + "/" + d.getFullYear() + ", " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
   const msgObj = { from: "admin", txt, time: fch };
   CHATS[CHAT_SEL] = CHATS[CHAT_SEL] || []; CHATS[CHAT_SEL].push(msgObj); renderMen();
-  await sb("solicitudes_vip", { method: "POST", body: JSON.stringify({ nombre_completo: "__CHAT__", usuario: CHAT_SEL, nota_admin: JSON.stringify(msgObj), estado: "CHAT" }) });
+  const pr = await sb("mensajes_chat", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ usuario: CHAT_SEL, remitente: "admin", mensaje: msgObj.txt, hora: msgObj.time }) }); if(pr && pr.ok===false){ alert("Error enviando respuesta"); }
 }
 function simularMsg() {
   if (!CHAT_SEL) return;
@@ -517,136 +565,36 @@ function simularMsg() {
   renderMen();
 }
 function renderAct() {
-  let evs = [];
-  BOTS.forEach(b => {
-    const u = b.usuario || b.cuenta || "Cliente";
-    (Array.isArray(b.historial) ? b.historial : []).forEach(h => {
-      const m = h.match(/^(\d{2})\/(\d{2})\/(\d{4}),\s*(\d{2}):(\d{2}):(\d{2})/);
-      const ts = m ? new Date(m[3]+"-"+m[2]+"-"+m[1]+"T"+m[4]+":"+m[5]+":"+m[6]).getTime() : 0;
-      evs.push({ u, txt: h, ts });
-    });
-  });
-  evs.sort((a, b) => b.ts - a.ts);
-  secOtro.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <div><h3 style="margin:0">Registro de Actividad en Vivo</h3><span style="font-size:12px;color:#a1a1aa">Historial exacto de pausas y activaciones de clientes</span></div>
-    <div style="display:flex;gap:10px;align-items:center">
-      <span style="font-size:11px;color:#4ade80">&#9679; ${evs.length} eventos</span>
-      <button class="fbtn" onclick="BOTS.forEach(x=>x.historial=[]);localStorage.setItem('pm_demo',JSON.stringify(BOTS));renderAct()">Limpiar</button>
-    </div>
-  </div>` + (evs.length ? evs.map(e => {
-    const isP = /paus|bloque/i.test(e.txt);
-    return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;background:#191521;border:1px solid #2e283b;border-left:3px solid ${isP ? '#facc15' : '#4ade80'};border-radius:10px;margin-bottom:8px;font-size:12.5px">
-      <div><b style="color:#fb7185">@${e.u}</b> &bull; <span style="color:#e4e4e7">${e.txt}</span></div>
-      <span style="font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;background:${isP ? 'rgba(250,204,21,.15);color:#facc15' : 'rgba(74,222,128,.15);color:#4ade80'}">${isP ? 'PAUSADA' : 'ACTIVADA'}</span>
-    </div>`;
-  }).join("") : "<span style='color:#a1a1aa'>Aun no hay movimientos registrados.</span>");
-}
-
-function renderBoxAdd() {
-  const libres = BOTS.filter(b => !(b.usuario||"").trim() || Number(b.vence_ms||0) <= Date.now());
-  const opts = `<option value="">-- Selecciona Avispa Disponible (${libres.length}) --</option>` + libres.map((b, i) => `<option value="${b.bot_id}">&#128029; Avispa Libre 0${i+1}: ${b.ad_headline || b.cuenta || b.bot_id} (${b.ad_city || ''})</option>`).join("");
-  const d = window._addDias || "7";
-  return `<div style="background:#1c1626;border:1px solid #be185d;border-radius:12px;padding:12px;margin-top:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between">
-    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-      <b style="font-size:12px;color:#fda4af">Sumar Avispa a @${SEL}:</b>
-      <select onmousedown="window._pausaSelect=Date.now()+15000" onfocus="window._pausaSelect=Date.now()+15000" onchange="window._pausaSelect=Date.now()+8000;window._selAvispa=window._selAvispa||{};window._selAvispa[this.id||0]=this.value;" id="selAvispaAdd" style="background:#0e0b14;border:1px solid #4c1d3d;color:#fff;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:700">${opts}</select>
-      <div style="display:flex;gap:4px">
-        <button class="mbtn" style="padding:7px 10px;background:${d==='1'?'#eab308':'#272230'};color:${d==='1'?'#090d16':'#e4e4e7'}" onclick="window._addDias='1';render()">1 D&iacute;a</button>
-        <button class="mbtn" style="padding:7px 10px;background:${d==='7'?'#eab308':'#272230'};color:${d==='7'?'#090d16':'#e4e4e7'}" onclick="window._addDias='7';render()">7 D&iacute;as</button>
-        <button class="mbtn" style="padding:7px 10px;background:${d==='30'?'#eab308':'#272230'};color:${d==='30'?'#090d16':'#e4e4e7'}" onclick="window._addDias='30';render()">1 Mes</button>
+  window._curTab = "act";
+  let items = [];
+  (BOTS || []).forEach(b => {
+    const u = b.usuario || "Cliente";
+    const tit = b.ad_headline || b.cuenta || "Pagina enlazada";
+    const est = b.status || (b.activo ? "ACTIVO" : "PAUSADO");
+    const acc = b.siguiente_accion || b.cmd_action || "Sin accion pendiente";
+    const city = b.ad_city || "";
+    const bumps = b.bumps || 0;
+    const vence = b.vence_ms ? new Date(Number(b.vence_ms)).toLocaleString("es-ES") : "";
+    items.push(`<div style="background:#181420;border:1px solid #2b2338;padding:14px;border-radius:10px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div><strong style="color:#ff4d94;font-size:14px;">@${u}</strong> <span style="color:#fff;font-weight:600;margin-left:6px;">${tit}</span></div>
+        <span style="background:${b.activo?'#163826':'#3a2c14'};color:${b.activo?'#4ade80':'#fbbf24'};padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;">${est}</span>
       </div>
-    </div>
-    <div style="display:flex;gap:6px">
-      <button class="mbtn" style="background:#16a34a;color:#fff;padding:8px 14px" onclick="confirmarAgregarAvispa()">Confirmar y Asignar</button>
-      <button class="mbtn" style="background:#272230;color:#a1a1aa;padding:8px 12px" onclick="window._addOpen=false;render()">Cancelar</button>
-    </div>
-  </div>`;
-}
-
-async function confirmarAgregarAvispa() {
-  const id = document.getElementById("selAvispaAdd")?.value;
-  if (!id) return alert("Primero selecciona una Avispa disponible de la lista.");
-  const bNew = BOTS.find(x => x.bot_id === id);
-  if (!bNew) return;
-  const dias = parseInt(window._addDias || "7") || 7;
-  const base = BOTS.find(x => (x.usuario || "").trim() === SEL) || {};
-  const d = new Date(), p = n => String(n).padStart(2, "0");
-  const fch = p(d.getDate()) + "/" + p(d.getMonth() + 1) + "/" + d.getFullYear() + ", " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
-
-  bNew.usuario = SEL;
-  bNew.clave = base.clave || "1234";
-  bNew.telefono = base.telefono || "";
-  bNew.vence_ms = Date.now() + (dias * 86400000);
-  bNew.activo = true;
-  bNew.siguiente_accion = "Sincronizando datos...";
-  bNew.historial = Array.isArray(bNew.historial) ? bNew.historial : [];
-  bNew.historial.unshift(fch + ' - Nueva avispa "' + (bNew.ad_headline || bNew.cuenta || bNew.bot_id) + '" agregada a @' + SEL + ' (' + dias + ' dias)');
-
-  window._addOpen = false;
-  localStorage.setItem("pm_demo", JSON.stringify(BOTS));
-  IDX = BOTS.filter(x => (x.usuario || "").trim() === SEL).length - 1;
-  render();
-
-  if (!bNew.bot_id.startsWith("demo") && !bNew.bot_id.startsWith("ja1w")) {
-    await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(bNew.bot_id), {
-      method: "PATCH",
-      body: JSON.stringify({
-        usuario: bNew.usuario, clave: bNew.clave, telefono: bNew.telefono,
-        vence_ms: bNew.vence_ms, activo: true, cmd_id: String(Date.now()),
-        cmd_action: "RESUME", historial: bNew.historial.slice(0, 50), updated_at: Date.now()
-      })
-    });
-  }
-}async function tog(id) {
-  window._lockLoad = Date.now() + 6000;
-  const b = BOTS.find(i => i.bot_id === id); if (!b) return;
-  b.activo = !b.activo;
-  const cid = String(Date.now());
-  b.cmd_id = cid;
-  b.cmd_action = b.activo ? "RESUME" : "PAUSE";
-  b.next_ms = b.activo ? (Date.now() + 120000) : 0;
-  b.siguiente_accion = b.activo ? "1. Esperando 02:00 para Actualizar (1 clic)" : "Pausada";
-  const d = new Date(), p = n => String(n).padStart(2, "0");
-  const fch = p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear()+", "+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
-  b.historial = Array.isArray(b.historial) ? b.historial : [];
-  b.historial.unshift(fch + ' - Admin: Pagina "' + (b.ad_headline || b.cuenta || id) + '" ' + (b.activo ? 'activada' : 'pausada'));
-  render();
-  await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(id), {
-    method: "PATCH",
-    body: JSON.stringify({
-      activo: b.activo,
-      cmd_id: cid,
-      cmd_action: b.cmd_action,
-      next_ms: b.next_ms,
-      siguiente_accion: b.siguiente_accion,
-      historial: b.historial.slice(0, 50),
-      updated_at: Date.now()
-    })
+      <div style="font-size:12.5px;color:#ccc;line-height:1.6;">
+        <div>⚡ <b>Ultima / Siguiente accion:</b> ${acc} (Comando: ${b.cmd_action || "N/A"})</div>
+        <div>📍 <b>Ciudad:</b> ${city || "N/A"} &nbsp;|&nbsp; 🚀 <b>Publicaciones (Bumps):</b> ${bumps} &nbsp;|&nbsp; 📞 <b>Tel:</b> ${b.telefono || "N/A"}</div>
+        ${vence ? `<div>⏳ <b>Renta vence:</b> ${vence}</div>` : ""}
+      </div>
+    </div>`);
   });
+  (SOLS || []).forEach(s => {
+    items.push(`<div style="background:#181420;border:1px solid #2b2338;padding:12px;border-radius:10px;margin-bottom:8px;font-size:12.5px;color:#ddd;">
+      📝 <b>Solicitud de ${s.nombre || "Cliente"}</b> (${s.ciudad || ""}) — Estado: <b>${s.estado || "PENDIENTE"}</b> · ${s.fecha || ""}
+    </div>`);
+  });
+  const htmlList = items.length ? items.join("") : '<div style="color:#888;padding:20px;text-align:center;">No hay cuentas ni actividad registrada todavía.</div>';
+  secOtro.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div><h3 style="margin:0;font-size:16px;color:#fff;">⚡ Historial y Estado de Actividad</h3><p style="margin:4px 0 0;font-size:12px;color:#999;">Actividad en vivo de tus cuentas enlazadas y solicitudes</p></div></div><div>${htmlList}</div>`;
 }
-async function delB(id) {
-  if (!confirm("¿Eliminar esta pagina?")) return;
-  BOTS = BOTS.filter(i => i.bot_id !== id);
-  localStorage.setItem("pm_demo", JSON.stringify(BOTS));
-  render();
-  if (!id.startsWith("demo") && !id.startsWith("ja1w")) {
-    await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(id), { method: "DELETE" });
-  }
-}
-
-async function setC(id) {
-  const u = prompt("Usuario:", SEL); if (u === null) return;
-  const p = prompt("Clave:"); if (p === null) return;
-  BOTS.forEach(x => { if ((x.usuario || x.cuenta) === SEL) { x.usuario = u.trim(); x.clave = p.trim(); } });
-  SEL = u.trim();
-  localStorage.setItem("pm_demo", JSON.stringify(BOTS));
-  render();
-  if (!id.startsWith("demo") && !id.startsWith("ja1w")) {
-    await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify({ usuario: u.trim(), clave: p.trim(), updated_at: Date.now() }) });
-  }
-}
-
-const savedDemo = localStorage.getItem("pm_demo");
-if (savedDemo) { try { const parsed = JSON.parse(savedDemo); if (Array.isArray(parsed) && parsed.length) BOTS = parsed; if (!BOTS.some(x => !x.usuario)) BOTS.push({bot_id:"demo_libre_1",usuario:"",clave:"",cuenta:"Avispa Libre Miami 01",telefono:"",activo:false,vence_ms:0,ad_city:"Miami",ad_estado:"Florida (FL)",ad_headline:"Avispa Libre Miami 01",ad_edad:"23",ad_body:"",siguiente_accion:"---",bumps:0,ad_fotos:[],historial:[]},{bot_id:"demo_libre_2",usuario:"",clave:"",cuenta:"Avispa Libre Orlando 02",telefono:"",activo:false,vence_ms:0,ad_city:"Orlando",ad_estado:"Florida (FL)",ad_headline:"Avispa Libre Orlando 02",ad_edad:"24",ad_body:"",siguiente_accion:"---",bumps:0,ad_fotos:[],historial:[]}); } catch (e) {} }
-if(localStorage.getItem("pm_adm_ok")==="1"){vAuth.classList.add("hide");vMain.classList.remove("hide");cargar();setInterval(()=>{if(!document.hidden)cargar();},4000);}
-</script></body></html>
+</script>
+<script src="chat_sync.js"></script></body>
+</html>
