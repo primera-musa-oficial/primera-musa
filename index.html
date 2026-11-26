@@ -345,17 +345,17 @@ initStates(); renderPicsGrid(); setInterval(() => { if (ACT && SEGS > 0) { SEGS-
 
   function obtenerUsuarioActual() {
     if (typeof MIS_BOTS !== "undefined" && Array.isArray(MIS_BOTS) && MIS_BOTS.length > 0) {
-      const b = MIS_BOTS[typeof IDX !== "undefined" ? IDX : 0] || MIS_BOTS;
+      const b = MIS_BOTS[typeof IDX !== "undefined" ? IDX : 0] || MIS_BOTS[0];
       const u = b.usuario || b.cuenta || b.cliente;
       if (u) return String(u).replace(/^@/, "").trim();
     }
     const box = document.getElementById("cMsgs");
     if (box) {
       const m = box.innerText.match(/Hola\s+@([A-Za-z0-9_.-]+)/i);
-      if (m && m) return m.trim();
+      if (m && m[1]) return m[1].trim();
     }
     const bodyMatch = document.body.innerText.match(/@([A-Za-z0-9_.-]{3,})/);
-    if (bodyMatch && bodyMatch) return bodyMatch.trim();
+    if (bodyMatch && bodyMatch[1]) return bodyMatch[1].trim();
     return "Zoe305";
   }
 
