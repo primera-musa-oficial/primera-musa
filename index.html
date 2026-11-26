@@ -329,14 +329,14 @@ async function cliToggle(enc) {
   const msg = fch + ' - Cliente: Pagina "' + (b.ad_headline||b.cuenta||b.bot_id) + '" ' + (enc ? 'activada' : 'pausada');
   window._pausaSync = Date.now() + 6000; ACT = enc; SEGS = enc ? 120 : 0; b.activo = enc; b.ciclo_activo = enc; b.status = enc ? "ACTIVO" : "PAUSADO"; b.next_ms = enc ? Date.now() + 120000 : 0; b.siguiente_accion = enc ? "1. Click en Actualizar en 2 min" : "Pausada por cliente";
   b.historial = Array.isArray(b.historial) ? b.historial : []; b.historial.unshift(msg); pintarPanel();
-  await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(b.bot_id), { method: "PATCH", body: JSON.stringify({ activo: enc, ciclo_activo: enc, status: enc ? "ACTIVO" : "PAUSADO", next_ms: b.next_ms, cmd_id: String(Date.now()), cmd_action: enc?"RESUME":"PAUSE", historial: b.historial.slice(0,50), updated_at: Date.now() }) });
+  await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(bid), { method: "PATCH", body: JSON.stringify({ activo: enc, ciclo_activo: enc, status: enc ? "ACTIVO" : "PAUSADO", next_ms: b.next_ms, cmd_id: String(Date.now()), cmd_action: enc?"RESUME":"PAUSE", historial: b.historial.slice(0,50), updated_at: Date.now() }) });
 }
 async function abrirSoporte() {
   ver("vChat"); const b = MIS_BOTS[IDX] || MIS_BOTS.at(0), u = (b?.usuario || "VIP");
   let arr = [{ from: "admin", txt: "Hola @" + u + "! ¿En que podemos ayudarte hoy?", time: "Ahora" }];
-  if (b && b.bot_id) {
+  const bid = b && (b.bot_id || b.id); if (bid) {
     try {
-      const r = await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(b.bot_id) + "&select=historial");
+      const r = await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(bid) + "&select=historial");
       const h = (Array.isArray(r) && r.at(0)?.historial) || [];
       const cm = h.filter(x => x && x.chat);
       if (cm.length) arr = cm;
@@ -349,12 +349,12 @@ async function mandarMsg() {
   if (!cInp.value.trim()) return;
   const b = MIS_BOTS[IDX] || MIS_BOTS.at(0), txt = cInp.value.trim(); cInp.value = "";
   const d = new Date(), p = n => String(n).padStart(2,"0"), fch = p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear()+", "+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
-  if (b && b.bot_id) {
+  const bid = b && (b.bot_id || b.id); if (bid) {
     try {
-      const r = await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(b.bot_id) + "&select=historial");
+      const r = await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(bid) + "&select=historial");
       const h = (Array.isArray(r) && r.at(0)?.historial) || [];
       h.push({ chat: true, from: "client", txt, time: fch });
-      await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(b.bot_id), { method: "PATCH", body: JSON.stringify({ historial: h.slice(-80) }) });
+      await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(bid), { method: "PATCH", body: JSON.stringify({ historial: h.slice(-80) }) });
     } catch(e) {}
   }
   abrirSoporte();
