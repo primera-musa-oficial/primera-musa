@@ -167,7 +167,7 @@ function genCredUnico(nombre) {
   return { u, p };
 }
 
-function renderSol() {
+window._credSol = JSON.parse(localStorage.getItem("pm_cred_sol")||"{}"); window._credSol = JSON.parse(localStorage.getItem("pm_cred_sol")||"{}"); function regenCred(idx){ const s=SOLS[idx]; if(!s)return; const g=genCredUnico(s.nombre||""); window._credSol=window._credSol||{}; window._credSol[s.id]=g; localStorage.setItem("pm_cred_sol",JSON.stringify(window._credSol)); s.usuario=g.u; s.clave=g.p; renderSol(); } function renderSol() {
   if (false) {
     const c = genCredUnico("Valeria");
     SOLS = [{
@@ -200,7 +200,7 @@ function renderSol() {
   secSol.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
     <div><h3 style="margin:0">Solicitudes de Registro VIP</h3><span style="font-size:12px;color:#a1a1aa">Asigna una Avispa (&#128029;), elige el tiempo de renta y pulsa ACTIVADA</span></div>
     <span style="font-size:11px;color:#fb7185;font-weight:800">${SOLS.length} solicitudes</span>
-  </div>` + SOLS.map((s, idx) => {
+  </div>` + SOLS.map((s, idx) => { if(window._credSol[s.id]){ s.usuario=window._credSol[s.id].u; s.clave=window._credSol[s.id].p; } else if(s.usuario && s.clave){ window._credSol[s.id]={u:s.usuario, p:s.clave};localStorage.setItem("pm_cred_sol",JSON.stringify(window._credSol)); }
     const imgs = (Array.isArray(s.fotos) ? s.fotos : []).map((im, i) => `<div style="text-align:center"><img src="${im}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1.5px solid #f43f5e;display:block;margin-bottom:4px"><a href="${im}" download="${(s.nombre||'foto').replace(/\s+/g,'_')}_${i+1}.jpg" style="font-size:10px;color:#38bdf8;text-decoration:none;font-weight:700">&#11015; Descargar</a></div>`).join("");
     const libres = BOTS.filter(b => !b.usuario || !b.vence_ms || Date.now() >= Number(b.vence_ms) || s.avispa_id === b.bot_id);const optsAvispas = `<option value="">-- Avispas disponibles sin renta (${libres.length}) --</option>` + libres.map((b, i) => `<option value="${b.bot_id}" ${s.avispa_id === b.bot_id ? 'selected' : ''}>&#128029; Avispa Libre 0${i+1}: ${b.ad_headline || b.cuenta || b.bot_id}</option>`).join("");
     const dSel = String(s.renta || "7");
@@ -214,7 +214,7 @@ function renderSol() {
         </div>
         <div style="display:flex;gap:8px;align-items:center;background:#1f1629;border:1px solid #4c1d3d;padding:7px 12px;border-radius:10px">
           <div style="font-size:12px">Usuario: <b style="color:#4ade80">${s.usuario}</b> &nbsp;|&nbsp; Clave: <b style="color:#f43f5e">${s.clave}</b></div>
-          <button class="mbtn" style="background:#3f1d2e;color:#fda4af" onclick="const g=genCredUnico('${s.nombre||""}');SOLS[${idx}].usuario=g.u;SOLS[${idx}].clave=g.p;renderSol()">Regenerar</button>
+          <button class="mbtn" style="background:#3f1d2e;color:#fda4af" onclick="regenCred(${idx})""}');window._credSol[\x27${s.id}\x27]=g;localStorage.setItem("pm_cred_sol",JSON.stringify(window._credSol));SOLS[${idx}].usuario=g.u;SOLS[${idx}].clave=g.p;renderSol()">Regenerar</button>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;font-size:12px;color:#d4d4d8;margin-bottom:10px">
