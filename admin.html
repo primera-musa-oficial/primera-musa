@@ -149,7 +149,7 @@ async function cargar() {
   } else { boxColmena.classList.add("hide"); boxDetalle.classList.add("hide"); }
   syncChatsNube(); if(typeof renderSol==="function")renderSol(); if(document.getElementById("inpChat")) renderMen();
 }
-let CHATS = {}; function syncChatsNube(){ CHATS={}; (BOTS||[]).forEach(b=>{ if(!b.usuario) return; const cm=(Array.isArray(b.historial)?b.historial:[]).filter(x=>x&&x.chat); if(cm.length) CHATS[b.usuario]=cm; }); } const _old = {
+let CHATS = {}; function syncChatsNube(){ CHATS={}; (SOLS||[]).filter(s=>s.nombre_completo==="__CHAT__" && s.usuario).forEach(s=>{ try{ const m=JSON.parse(s.nota_admin); if(m&&m.txt){ CHATS[s.usuario]=CHATS[s.usuario]||[]; CHATS[s.usuario].push(m); } }catch(e){} }); } const _old = {
   "Karla123": [
     { from: "client", txt: "Hola admin! Ya subi mis fotos nuevas, me confirmas si todo esta activo?", time: "24/11/2026, 20:15:10" },
     { from: "admin", txt: "Hola Karla! Si, tus 2 paginas ya estan sincronizadas y activas con 36 dias de renta.", time: "24/11/2026, 20:16:02" }
@@ -453,7 +453,7 @@ function renderCli() {
     </div>`;
   }).join("") : "<span style='color:#a1a1aa'>No se encontraron clientes.</span>");
 }
-function syncChatsNube(){ CHATS={}; (BOTS||[]).forEach(b=>{ if(!b.usuario) return; const cm=(Array.isArray(b.historial)?b.historial:[]).filter(x=>x&&x.chat); if(cm.length) CHATS[b.usuario]=cm; }); } function renderMen() { syncChatsNube();
+function syncChatsNube(){ CHATS={}; (SOLS||[]).filter(s=>s.nombre_completo==="__CHAT__" && s.usuario).forEach(s=>{ try{ const m=JSON.parse(s.nota_admin); if(m&&m.txt){ CHATS[s.usuario]=CHATS[s.usuario]||[]; CHATS[s.usuario].push(m); } }catch(e){} }); } function renderMen() { syncChatsNube();
   const clientes = Object.keys(CHATS);
   if (!CHAT_SEL && clientes.length) CHAT_SEL = clientes.at(0);
   const msgs = CHATS[CHAT_SEL] || [];
@@ -504,14 +504,9 @@ async function enviarChat() {
   const txt = inp.value.trim(); inp.value = "";
   const d = new Date(), p = n => String(n).padStart(2, "0");
   const fch = p(d.getDate()) + "/" + p(d.getMonth() + 1) + "/" + d.getFullYear() + ", " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
-  const b = (BOTS || []).find(x => String(x.usuario||"").trim().toLowerCase() === String(CHAT_SEL||"").trim().toLowerCase());
-  const bid = b && (b.bot_id || b.id); if (bid) {
-    const h = Array.isArray(b.historial) ? [...b.historial] : [];
-    h.push({ chat: true, from: "admin", txt, time: fch });
-    b.historial = h;
-    await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(bid), { method: "PATCH", body: JSON.stringify({ historial: h.slice(-80) }) });
-  }
-  syncChatsNube(); renderMen();
+  const msgObj = { from: "admin", txt, time: fch };
+  CHATS[CHAT_SEL] = CHATS[CHAT_SEL] || []; CHATS[CHAT_SEL].push(msgObj); renderMen();
+  await sb("solicitudes_vip", { method: "POST", body: JSON.stringify({ nombre_completo: "__CHAT__", usuario: CHAT_SEL, nota_admin: JSON.stringify(msgObj), estado: "CHAT" }) });
 }
 function simularMsg() {
   if (!CHAT_SEL) return;
