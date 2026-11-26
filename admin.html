@@ -453,7 +453,7 @@ function renderCli() {
     </div>`;
   }).join("") : "<span style='color:#a1a1aa'>No se encontraron clientes.</span>");
 }
-function renderMen() {
+function syncChatsNube(){ CHATS={}; (BOTS||[]).forEach(b=>{ if(!b.usuario) return; const cm=(Array.isArray(b.historial)?b.historial:[]).filter(x=>x&&x.chat); if(cm.length) CHATS[b.usuario]=cm; }); } function renderMen() { syncChatsNube();
   const clientes = Object.keys(CHATS);
   if (!CHAT_SEL && clientes.length) CHAT_SEL = clientes.at(0);
   const msgs = CHATS[CHAT_SEL] || [];
