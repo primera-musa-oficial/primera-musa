@@ -333,7 +333,7 @@ async function cliToggle(enc) {
   const fch = p(d.getDate()) + "/" + p(d.getMonth() + 1) + "/" + d.getFullYear() + " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
   const msg = fch + " · Cliente: Pagina · " + (b.ad_headline || b.cuenta || b.bot_id) + " · " + (enc ? "activada" : "pausada");
 
-  const segsAleatorios = Math.floor(Math.random() * (1200 - 960 + 1)) + 960;
+  const segsAleatorios = 120;
   window.pausaSync = Date.now() + 6000;
   ACT = enc;
   SEGS = enc ? segsAleatorios : 0;
@@ -341,7 +341,7 @@ async function cliToggle(enc) {
   b.ciclo_activo = enc;
   b.status = enc ? "ACTIVO" : "PAUSADO";
   b.next_ms = enc ? Date.now() + (segsAleatorios * 1000) : 0;
-  b.siguiente_accion = enc ? "En ciclo anti-spam" : "Pausado por cliente";
+  b.siguiente_accion = enc ? "1. Esperando 02:00 para Actualizar (1 clic)" : "Pausado por cliente";
   b.historial = Array.isArray(b.historial) ? b.historial : [];
   b.historial.unshift(msg);
   pintarPanel();
@@ -493,4 +493,5 @@ setInterval(syncChatClienteBlindado, 2500);
 </script>
 </body>
 </html>
+
 
