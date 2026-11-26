@@ -333,14 +333,15 @@ async function cliToggle(enc) {
   const fch = p(d.getDate()) + "/" + p(d.getMonth() + 1) + "/" + d.getFullYear() + " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
   const msg = fch + " · Cliente: Pagina · " + (b.ad_headline || b.cuenta || b.bot_id) + " · " + (enc ? "activada" : "pausada");
 
+  const segsAleatorios = Math.floor(Math.random() * (1200 - 960 + 1)) + 960;
   window.pausaSync = Date.now() + 6000;
   ACT = enc;
-  SEGS = enc ? 120 : 0;
+  SEGS = enc ? segsAleatorios : 0;
   b.activo = enc;
   b.ciclo_activo = enc;
   b.status = enc ? "ACTIVO" : "PAUSADO";
-  b.next_ms = enc ? Date.now() + 120000 : 0;
-  b.siguiente_accion = enc ? "Preparando..." : "Pausado por cliente";
+  b.next_ms = enc ? Date.now() + (segsAleatorios * 1000) : 0;
+  b.siguiente_accion = enc ? "En ciclo anti-spam" : "Pausado por cliente";
   b.historial = Array.isArray(b.historial) ? b.historial : [];
   b.historial.unshift(msg);
   pintarPanel();
@@ -354,7 +355,8 @@ async function cliToggle(enc) {
       ciclo_activo: enc,
       status: enc ? "ACTIVO" : "PAUSADO",
       next_ms: b.next_ms,
-      historial: b.historial
+      historial: b.historial,
+      cmd_id: String(Date.now())
     })
   });
 
@@ -369,60 +371,82 @@ function obtenerUsuarioChat() {
   const u = b && (b.usuario || b.cuenta || b.cliente);
   if (u) return String(u).replace(/^@/, "").trim();
   const sub = document.getElementById("pSub")?.innerText.match(/@([A-Za-z0-9._-]+)/);
-  return sub ? sub.trim() : "Cliente";
+  return sub ? sub[1].trim() : "Cliente";
+}
+
+function obtenerCajaChat() {
+  return document.getElementById("cMsgs") || document.querySelector("#vChat div[style*='overflow']");
 }
 
 let htmlCache = "";
 let cargandoChat = false;
 
+function pintarBurbujasChat(box, user, mios) {
+  const lista = [{ remitente: "admin", mensaje: "Hola @" + user + "! En que podemos ayudarte hoy?", hora: "Ahora" }].concat(mios);
+  const nuevoHtml = lista.map(m => {
+    const esCliente = (m.remitente !== "admin" && m.remitente !== "soporte");
+    const texto = m.mensaje || m.texto || m.msg || "";
+    return `<div style="align-self:${esCliente ? "flex-end" : "flex-start"};max-width:82%;background:${esCliente ? "#4c1d3d" : "#1f1b29"};color:#fff;padding:9px 13px;border-radius:16px;font-size:13px;line-height:1.35;margin-bottom:6px;word-break:break-word">
+      <div>${texto}</div>
+      <div style="font-size:10px;opacity:.7;margin-top:3px;text-align:right">${m.hora || ""}</div>
+    </div>`;
+  }).join("");
+
+  if (nuevoHtml !== htmlCache) {
+    const estabaAbajo = (box.scrollHeight - box.scrollTop - box.clientHeight) < 80;
+    htmlCache = nuevoHtml;
+    box.style.display = "flex";
+    box.style.flexDirection = "column";
+    box.innerHTML = htmlCache;
+    if (estabaAbajo || lista.length <= 2) box.scrollTop = box.scrollHeight;
+  }
+}
+
 async function syncChatClienteBlindado() {
-  if (cargandoChat) return;
-  const box = document.getElementById("cMsgs");
+  const box = obtenerCajaChat();
+  if (!box) return;
   const vc = document.getElementById("vChat");
-  if (!box || !vc || vc.classList.contains("hide")) return;
+  if (vc && (vc.classList.contains("hide") || vc.style.display === "none")) return;
+  if (cargandoChat) return;
 
   cargandoChat = true;
+  const user = obtenerUsuarioChat();
+  if (!htmlCache) pintarBurbujasChat(box, user, []);
+
   try {
-    const user = obtenerUsuarioChat();
     const userLower = user.toLowerCase();
     const res = await sb("mensajes_chat?select=*&order=id.asc&t=" + Date.now());
-    if (!res.ok) return;
+    if (!res.ok) {
+      const err = await res.text();
+      box.innerHTML += `<div style="color:#fca5a5;font-size:11px;padding:6px">Error leyendo chat: ${err}</div>`;
+      return;
+    }
     const rows = await res.json();
     if (!Array.isArray(rows)) return;
 
     const mios = rows.filter(m => {
-      const mu = String(m.usuario || "").replace(/^@/, "").trim().toLowerCase();
+      const mu = String(m.usuario || m.cliente || "").replace(/^@/, "").trim().toLowerCase();
       return mu === userLower;
     });
 
-    const lista = [{ remitente: "admin", mensaje: "Hola @" + user + "! En que podemos ayudarte hoy?", hora: "Ahora" }].concat(mios);
-    const nuevoHtml = lista.map(m => {
-      const esCliente = (m.remitente !== "admin" && m.remitente !== "soporte");
-      return `<div style="align-self:${esCliente ? "flex-end" : "flex-start"};max-width:80%;background:${esCliente ? "#4c1d3d" : "#1f1b29"};color:#fff;padding:8px 12px;border-radius:18px;font-size:12.5px">
-        <div>${m.mensaje || ""}</div>
-        <div style="font-size:10px;opacity:.7;margin-top:3px;text-align:right">${m.hora || ""}</div>
-      </div>`;
-    }).join("");
-
-    if (nuevoHtml !== htmlCache) {
-      const estabaAbajo = (box.scrollHeight - box.scrollTop - box.clientHeight) < 80;
-      htmlCache = nuevoHtml;
-      box.innerHTML = htmlCache;
-      if (estabaAbajo || lista.length <= 2) box.scrollTop = box.scrollHeight;
-    }
+    pintarBurbujasChat(box, user, mios);
+  } catch (e) {
+    box.innerHTML += `<div style="color:#fca5a5;font-size:11px;padding:6px">Error de red: ${e.message}</div>`;
   } finally {
     cargandoChat = false;
   }
 }
 
 async function abrirSoporte() {
-  ver("vChat");
+  if (typeof ver === "function") ver("vChat");
+  const vc = document.getElementById("vChat");
+  if (vc) { vc.classList.remove("hide"); vc.style.display = ""; }
   htmlCache = "";
   await syncChatClienteBlindado();
 }
 
 async function mandarMsg() {
-  const inp = document.getElementById("cInp");
+  const inp = document.getElementById("cInp") || document.querySelector("#vChat input");
   if (!inp) return;
   const txt = inp.value.trim();
   if (!txt) return;
@@ -452,6 +476,11 @@ async function mandarMsg() {
   await syncChatClienteBlindado();
 }
 
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("button,a");
+  if (btn && /MENSAJES\s*ADMIN|SOPORTE/i.test(btn.innerText || "")) abrirSoporte();
+});
+
 initStates();
 renderPicsGrid();
 setInterval(() => {
@@ -460,7 +489,7 @@ setInterval(() => {
     updReloj();
   }
 }, 1000);
-setInterval(syncChatClienteBlindado, 3000);
+setInterval(syncChatClienteBlindado, 2500);
 </script>
 </body>
 </html>
