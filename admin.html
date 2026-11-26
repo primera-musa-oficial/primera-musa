@@ -757,20 +757,28 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-<!-- REAL_ACT_MEN_V3 -->
+
+<!-- REAL_ACT_MEN_V4 -->
 <script>
 (function(){
   window.pintarActReal = function(){
     const c = document.getElementById("secOtro");
     if(!c) return;
-    const ped = Array.isArray(window.P) ? window.P : (typeof P !== "undefined" && Array.isArray(P) ? P : []);
-    const usu = Array.isArray(window.U) ? window.U : (typeof U !== "undefined" && Array.isArray(U) ? U : []);
+    const bots = (typeof BOTS !== "undefined" && Array.isArray(BOTS)) ? BOTS : [];
+    const sols = (typeof SOLS !== "undefined" && Array.isArray(SOLS)) ? SOLS : [];
     const items = [];
-    usu.slice(-10).reverse().forEach(u => {
-      items.push({ ico: "👤", tit: "Nuevo registro: @" + (u.usuario || u.nombre || "cliente"), det: (u.correo || "") + " · Saldo: $" + (u.saldo || 0), fch: u.creado || u.fecha || "Reciente" });
+    bots.slice(-15).reverse().forEach(b => {
+      const nom = b.usuario || b.cuenta || b.cliente || "cliente";
+      const est = b.estado || b.status || "Activo";
+      const pag = b.paginas || b.pages || 0;
+      items.push({ ico: "🤖", tit: "Cuenta Bot: @" + nom, det: "Estado: " + est + " · Páginas: " + pag, fch: b.fecha || b.creado || "En sistema" });
     });
-    ped.slice(-15).reverse().forEach(p => {
-      items.push({ ico: "🛒", tit: "Pedido #" + (p.id || "") + " · @" + (p.usuario || "cliente"), det: (p.servicio || p.producto || "Servicio") + " · $" + (p.precio || p.total || 0) + " (" + (p.estado || "Pendiente") + ")", fch: p.fecha || p.creado || "Reciente" });
+    sols.slice(-20).reverse().forEach(s => {
+      const nom = s.usuario || s.cliente || "cliente";
+      const tipo = s.tipo || s.servicio || s.plan || "Solicitud";
+      const est = s.estado || "Pendiente";
+      const det = s.detalle || s.paginas || s.monto || "";
+      items.push({ ico: "📩", tit: "Solicitud #" + (s.id || "") + " · @" + nom, det: tipo + (det ? " (" + det + ")" : "") + " · Estado: " + est, fch: s.fecha || s.creado || "Reciente" });
     });
     c.innerHTML = `<div style="padding:20px;background:#120d1d;border:1px solid #2a1f3d;border-radius:14px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -792,26 +800,30 @@ window.addEventListener("DOMContentLoaded", () => {
     let rows = [];
     try {
       if (typeof sb === "function") {
-        const r = await sb("mensajes_chat?select=*&order=id.asc");
-        if (Array.isArray(r)) rows = r;
+        const res = await sb("mensajes_chat?select=*&order=id.asc");
+        if (res && res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) rows = data;
+        }
       }
     } catch(e) {}
 
     const grupos = {};
     rows.forEach(m => {
-      const u = m.usuario || "Cliente";
+      const u = (m.usuario || "Cliente").trim();
       if(!grupos[u]) grupos[u] = [];
       grupos[u].push(m);
     });
-    const usu = Array.isArray(window.U) ? window.U : (typeof U !== "undefined" && Array.isArray(U) ? U : []);
-    usu.forEach(u => {
-      const nom = u.usuario || u.nombre;
+    const bots = (typeof BOTS !== "undefined" && Array.isArray(BOTS)) ? BOTS : [];
+    bots.forEach(b => {
+      const nom = (b.usuario || b.cuenta || b.cliente || "").trim();
       if (nom && !grupos[nom]) grupos[nom] = [];
     });
 
     const lista = Object.keys(grupos);
     if (!window._chatSel || !grupos[window._chatSel]) {
-      window._chatSel = lista[0] || "";
+      const conMsgs = lista.find(u => grupos[u].length > 0);
+      window._chatSel = conMsgs || lista || "";
     }
     const sel = window._chatSel;
     const msgs = sel ? (grupos[sel] || []) : [];
@@ -822,7 +834,7 @@ window.addEventListener("DOMContentLoaded", () => {
         ${lista.length === 0 ? '<div style="color:#7c6f99;font-size:12px">Sin clientes aún</div>' :
           lista.map(u => `<div onclick="window._chatSel='${u}';window.pintarMenReal()" style="padding:10px 12px;border-radius:10px;margin-bottom:6px;cursor:pointer;background:${u===sel?'#241633':'#181126'};border:1px solid ${u===sel?'#ff3b6b':'transparent'};display:flex;justify-content:space-between;align-items:center">
             <span style="color:#fff;font-weight:600;font-size:13px">@${u}</span>
-            <span style="background:#2e2147;color:#cbbde8;font-size:11px;padding:2px 7px;border-radius:10px">${grupos[u].length}</span>
+            <span style="background:${grupos[u].length>0?'#ff2a5f':'#2e2147'};color:#fff;font-size:11px;padding:2px 7px;border-radius:10px">${grupos[u].length}</span>
           </div>`).join("")}
       </div>
       <div style="display:flex;flex-direction:column;height:100%">
@@ -881,7 +893,7 @@ window.addEventListener("DOMContentLoaded", () => {
     window.renderAct = window.pintarActReal;
     window.renderMen = window.pintarMenReal;
     const btnMen = document.getElementById("nMen");
-    if (btnMen && btnMen.classList.contains("active") && document.activeElement?.id !== "inpRespReal") {
+    if (btnMen && btnMen.classList.contains("on") && document.activeElement?.id !== "inpRespReal") {
       window.pintarMenReal();
     }
   }, 4000);
