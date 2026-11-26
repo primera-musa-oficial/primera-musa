@@ -190,7 +190,7 @@ input:focus,textarea:focus{border-color:#f43f5e}
 </div><div id="vChat" class="card hide" style="max-width:490px">
   <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #272230;padding-bottom:10px;margin-bottom:12px">
     <div><b style="font-size:16px;color:#fb7185">&#128172; Soporte Musa VIP</b><div style="font-size:11px;color:#4ade80">&#9679; Conectado con el Administrador</div></div>
-    <button class="b-dark" style="border:none;padding:7px 12px;border-radius:8px;cursor:pointer;font-weight:700" onclick="ver('vPanel')">Volver</button>
+    <button class="b-dark" style="border:none;padding:7px 12px;border-radius:8px;cursor:pointer;font-weight:700" onclick="ver('vPanel', true)">Volver</button>
   </div>
   <div id="cMsgs" style="height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;background:#0b090f;border:1px solid #272230;border-radius:12px;padding:12px;margin-bottom:10px"></div>
   <div style="display:flex;gap:8px">
@@ -257,7 +257,7 @@ const MEGA_STATES = {
   "Wyoming (WY)": ["Wyoming"]
 };
 function sb(p, o) { o = o || {}; o.headers = Object.assign({ apikey: K, Authorization: "Bearer " + K, "Content-Type": "application/json" }, o.headers || {}); return fetch(U + "/" + p, o); }
-function ver(id) { ["vLogin","vReg","vProc","vPanel","vChat"].forEach(x => { const el = document.getElementById(x); if (el) el.classList.toggle("hide", x !== id); }); }
+window._vistaActual = "vLogin"; function ver(id, forzar) { if (window._vistaActual === "vChat" && id === "vPanel" && !forzar) return; window._vistaActual = id; ["vLogin","vReg","vProc","vPanel","vChat"].forEach(x => { const el = document.getElementById(x); if (el) el.classList.toggle("hide", x !== id); }); }
 function initStates() { if (document.getElementById("rs")) rs.innerHTML = `<option value="">-- Select State --</option>` + Object.keys(MEGA_STATES).map(s => `<option value="${s}">${s}</option>`).join(""); }
 function cargarCities() { const arr = MEGA_STATES[rs.value] || []; rc.innerHTML = `<option value="">-- Select City --</option>` + arr.map(c => `<option value="${c}">${c}</option>`).join(""); }function genIA(modo) {
   const pk = a => a[Math.floor(Math.random() * a.length)];
@@ -528,6 +528,7 @@ setInterval(syncChatClienteBlindado, 2500);
 </script>
 </body>
 </html>
+
 
 
 
