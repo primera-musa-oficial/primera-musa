@@ -335,7 +335,7 @@ async function cliToggle(enc) {
 
   const nextMs = enc ? (Date.now() + 120000) : 0;
   const cmdId = String(Date.now());
-  window.pausaSync = Date.now() + 4000;
+  window.pausaSync = Date.now() + 1800;
   ACT = enc;
   SEGS = enc ? 120 : 0;
   b.activo = enc;
@@ -511,7 +511,7 @@ async function syncPanelTiempoReal() {
     }
   } catch (e) {}
 }
-setInterval(syncPanelTiempoReal, 1500);
+setInterval(syncPanelTiempoReal, 1000);
 initStates();
 renderPicsGrid();
 setInterval(() => {
@@ -524,6 +524,7 @@ setInterval(syncChatClienteBlindado, 2500);
 </script>
 </body>
 </html>
+
 
 
 
