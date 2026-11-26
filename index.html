@@ -331,43 +331,6 @@ async function cliToggle(enc) {
   b.historial = Array.isArray(b.historial) ? b.historial : []; b.historial.unshift(msg); pintarPanel();
   await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(bid), { method: "PATCH", body: JSON.stringify({ activo: enc, ciclo_activo: enc, status: enc ? "ACTIVO" : "PAUSADO", next_ms: b.next_ms, cmd_id: String(Date.now()), cmd_action: enc?"RESUME":"PAUSE", historial: b.historial.slice(0,50), updated_at: Date.now() }) });
 }
-async function abrirSoporte() {
-  ver("vChat");
-  const b = (typeof MIS_BOTS !== "undefined" ? MIS_BOTS[IDX] : null) || { usuario: "Zoe305" };
-  const u = String(b.usuario || "Zoe305").trim();
-  let arr = window._chatArr || [{ from: "admin", txt: "Hola @" + u + "! ¿En que podemos ayudarte hoy?", time: "Ahora" }];
-  try {
-    const resC = await sb("mensajes_chat?usuario=ilike." + encodeURIComponent(u) + "&order=id.asc&_t=" + Date.now());
-    const r = Array.isArray(resC) ? resC : (resC && typeof resC.json === "function" && resC.ok ? await resC.json() : []);
-    if (Array.isArray(r) && r.length) {
-      arr = r.map(x => ({ from: x.remitente === "admin" ? "admin" : "client", txt: x.mensaje, time: x.hora || "" }));
-    }
-  } catch(e) {}
-  window._chatArr = arr;
-  cMsgs.innerHTML = arr.map(m => `<div style="align-self:${m.from==='client'?'flex-end':'flex-start'};max-width:80%;background:${m.from==='client'?'#4c1d3d':'#1f1b29'};padding:8px 12px;border-radius:10px;font-size:12.5px"><div>${m.txt}</div><div style="font-size:10px;color:#alaaaa;margin-top:3px;text-align:right">${m.time}</div></div>`).join("");
-  cMsgs.scrollTop = cMsgs.scrollHeight;
-}
-async function mandarMsg() {
-  if (!cInp.value.trim()) return;
-  const b = (typeof MIS_BOTS !== "undefined" ? MIS_BOTS[IDX] : null) || { usuario: "Zoe305" };
-  const u = String(b.usuario || "Zoe305").trim();
-  const txt = cInp.value.trim();
-  cInp.value = "";
-  const d = new Date(), p = n => String(n).padStart(2,"0"), fch = p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear()+", "+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
-  const msgObj = { from: "client", txt, time: fch };
-  window._chatArr = window._chatArr || [{ from: "admin", txt: "Hola @" + u + "! ¿En que podemos ayudarte hoy?", time: "Ahora" }];
-  window._chatArr.push(msgObj);
-  cMsgs.innerHTML += `<div style="align-self:flex-end;max-width:80%;background:#4c1d3d;padding:8px 12px;border-radius:10px;font-size:12.5px"><div>${txt}</div><div style="font-size:10px;color:#alaaaa;margin-top:3px;text-align:right">${fch}</div></div>`;
-  cMsgs.scrollTop = cMsgs.scrollHeight;
-  try {
-    const pr = await sb("mensajes_chat", {
-      method: "POST",
-      headers: { Prefer: "return=minimal" },
-      body: JSON.stringify({ usuario: u, remitente: "client", mensaje: txt, hora: fch })
-    });
-    if (pr && pr.ok === false) { alert("Error guardando chat: " + await pr.text()); }
-  } catch(e) { alert("Error red chat: " + e.message); }
-}
-setInterval(() => { const vc = document.getElementById("vChat"); if (vc && !vc.classList.contains("hide")) abrirSoporte(); }, 4000);
+async function abrirSoporte(){ ver("vChat"); const b = (typeof MIS_BOTS!=="undefined" && MIS_BOTS.at(typeof IDX!=="undefined"?IDX:0)) || {usuario:"Zoe305"}; const u = String(b.usuario||"Zoe305").trim(); let arr = window._chatArr || new Array({from:"admin",txt:"Hola @"+u+"! En que podemos ayudarte hoy?",time:"Ahora"}); try { const res = await sb("mensajes_chat?usuario=ilike."+encodeURIComponent(u)+"&order=id.asc&_t="+Date.now()); const r = Array.isArray(res) ? res : (res && typeof res.json==="function" && res.ok ? await res.json() : new Array()); if(Array.isArray(r) && r.length){ arr = r.map(x=>({from:x.remitente==="admin"?"admin":"client",txt:x.mensaje,time:x.hora||""})); } } catch(e){} window._chatArr = arr; cMsgs.innerHTML = arr.map(m=>`<div style="align-self:${m.from==="client"?"flex-end":"flex-start"};max-width:80%;background:${m.from==="client"?"#4c1d3d":"#1f1b29"};padding:8px 12px;border-radius:10px;font-size:12.5px"><div>${m.txt}</div><div style="font-size:10px;color:#alaaaa;margin-top:3px;text-align:right">${m.time}</div></div>`).join(""); cMsgs.scrollTop = cMsgs.scrollHeight; } async function mandarMsg(){ if(!cInp.value.trim()) return; const b = (typeof MIS_BOTS!=="undefined" && MIS_BOTS.at(typeof IDX!=="undefined"?IDX:0)) || {usuario:"Zoe305"}; const u = String(b.usuario||"Zoe305").trim(); const txt = cInp.value.trim(); cInp.value = ""; const d=new Date(), p=n=>String(n).padStart(2,"0"), fch=p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear()+", "+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds()); window._chatArr = window._chatArr || new Array({from:"admin",txt:"Hola @"+u+"! En que podemos ayudarte hoy?",time:"Ahora"}); window._chatArr.push({from:"client",txt,time:fch}); cMsgs.innerHTML += `<div style="align-self:flex-end;max-width:80%;background:#4c1d3d;padding:8px 12px;border-radius:10px;font-size:12.5px"><div>${txt}</div><div style="font-size:10px;color:#alaaaa;margin-top:3px;text-align:right">${fch}</div></div>`; cMsgs.scrollTop = cMsgs.scrollHeight; try { const pr = await sb("mensajes_chat",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({usuario:u,remitente:"client",mensaje:txt,hora:fch})}); if(pr && pr.ok===false) alert("Error chat: "+await pr.text()); } catch(e){ alert("Error red: "+e.message); } } setInterval(() => { const vc = document.getElementById("vChat"); if (vc && !vc.classList.contains("hide")) abrirSoporte(); }, 4000);
 initStates(); renderPicsGrid(); setInterval(() => { if (ACT && SEGS > 0) { SEGS--; updReloj(); } }, 1000);
-</script><script src="chat_sync.js"></script></body></html>
+</script></body></html>
