@@ -333,14 +333,61 @@ async function cliToggle(enc) {
 }
 async function abrirSoporte(){ ver("vChat"); const b = (typeof MIS_BOTS!=="undefined" && MIS_BOTS.at(typeof IDX!=="undefined"?IDX:0)) || {usuario:"Zoe305"}; const u = String(b.usuario||"Zoe305").trim(); let arr = window._chatArr || new Array({from:"admin",txt:"Hola @"+u+"! En que podemos ayudarte hoy?",time:"Ahora"}); try { const res = await sb("mensajes_chat?usuario=ilike.*"+encodeURIComponent(u.replace(/^@/,""))+"*&order=id.asc&_t="+Date.now()); const r = Array.isArray(res) ? res : (res && typeof res.json==="function" && res.ok ? await res.json() : new Array()); if(Array.isArray(r) && r.length){ arr = r.map(x=>({from:x.remitente==="admin"?"admin":"client",txt:x.mensaje,time:x.hora||""})); } } catch(e){} window._chatArr = arr; cMsgs.innerHTML = arr.map(m=>`<div style="align-self:${m.from==="client"?"flex-end":"flex-start"};max-width:80%;background:${m.from==="client"?"#4c1d3d":"#1f1b29"};padding:8px 12px;border-radius:10px;font-size:12.5px"><div>${m.txt}</div><div style="font-size:10px;color:#alaaaa;margin-top:3px;text-align:right">${m.time}</div></div>`).join(""); cMsgs.scrollTop = cMsgs.scrollHeight; } async function mandarMsg(){ if(!cInp.value.trim()) return; const b = (typeof MIS_BOTS!=="undefined" && MIS_BOTS.at(typeof IDX!=="undefined"?IDX:0)) || {usuario:"Zoe305"}; const u = String(b.usuario||"Zoe305").trim(); const txt = cInp.value.trim(); cInp.value = ""; const d=new Date(), p=n=>String(n).padStart(2,"0"), fch=p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear()+", "+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds()); window._chatArr = window._chatArr || new Array({from:"admin",txt:"Hola @"+u+"! En que podemos ayudarte hoy?",time:"Ahora"}); window._chatArr.push({from:"client",txt,time:fch}); cMsgs.innerHTML += `<div style="align-self:flex-end;max-width:80%;background:#4c1d3d;padding:8px 12px;border-radius:10px;font-size:12.5px"><div>${txt}</div><div style="font-size:10px;color:#alaaaa;margin-top:3px;text-align:right">${fch}</div></div>`; cMsgs.scrollTop = cMsgs.scrollHeight; try { const pr = await sb("mensajes_chat",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({usuario:u,remitente:"client",mensaje:txt,hora:fch})}); if(pr && pr.ok===false) alert("Error chat: "+await pr.text()); } catch(e){ alert("Error red: "+e.message); } } setInterval(() => { const vc = document.getElementById("vChat"); if (vc && !vc.classList.contains("hide")) abrirSoporte(); }, 4000);
 initStates(); renderPicsGrid(); setInterval(() => { if (ACT && SEGS > 0) { SEGS--; updReloj(); } }, 1000);
-</script><!-- AUTO_CHAT_USER_V1 -->
+</script>
+<!-- AUTO_CHAT_USER_V2 -->
 <script>
-setInterval(function(){
-  const vc = document.getElementById("vChat");
-  if (vc && !vc.classList.contains("hide") && typeof renderChat === "function") {
-    renderChat();
-  }
-}, 3000);
+(function(){
+  window.cargarChatUsuarioReal = async function(){
+    const box = document.getElementById("cMsgs");
+    const vc = document.getElementById("vChat");
+    if (!box || !vc || vc.classList.contains("hide")) return;
+
+    const bot = (typeof MIS_BOTS !== "undefined" && Array.isArray(MIS_BOTS)) ? (MIS_BOTS[typeof IDX !== "undefined" ? IDX : 0] || MIS_BOTS[0]) : null;
+    const rawUser = bot ? (bot.usuario || bot.cuenta || bot.cliente || "Zoe305") : "Zoe305";
+    const cleanUser = String(rawUser).replace(/^@/, "").trim().toLowerCase();
+
+    let rows = [];
+    try {
+      if (typeof sb === "function") {
+        const res = await sb("mensajes_chat?select=*&order=id.asc&_t=" + Date.now());
+        if (Array.isArray(res)) {
+          rows = res;
+        } else if (res && res.ok && typeof res.json === "function") {
+          const d = await res.json();
+          if (Array.isArray(d)) rows = d;
+        }
+      }
+    } catch(e) {}
+
+    const mios = rows.filter(m => {
+      const mu = String(m.usuario || "").replace(/^@/, "").trim().toLowerCase();
+      return mu === cleanUser;
+    });
+
+    const lista = [{ remitente: "admin", mensaje: "Hola @" + rawUser.replace(/^@/, "") + "! En que podemos ayudarte hoy?", hora: "Ahora" }].concat(mios);
+    const sig = JSON.stringify(lista.map(x => [x.id, x.mensaje, x.remitente]));
+    if (window._lastChatSig === sig) return;
+    window._lastChatSig = sig;
+
+    const estabaAbajo = (box.scrollHeight - box.scrollTop - box.clientHeight) < 60;
+    box.innerHTML = lista.map(m => {
+      const esCliente = (m.remitente !== "admin" && m.remitente !== "soporte");
+      return `<div style="align-self:${esCliente ? "flex-end" : "flex-start"};max-width:80%;background:${esCliente ? "#4c1d3d" : "#1f1b29"};color:#fff;padding:8px 12px;border-radius:10px;font-size:12.5px">
+        <div>${m.mensaje || ""}</div>
+        <div style="font-size:10px;opacity:.7;margin-top:3px;text-align:right">${m.hora || ""}</div>
+      </div>`;
+    }).join("");
+
+    if (estabaAbajo || lista.length <= 2) {
+      box.scrollTop = box.scrollHeight;
+    }
+  };
+
+  setInterval(window.cargarChatUsuarioReal, 2500);
+  document.addEventListener("click", function(){
+    setTimeout(window.cargarChatUsuarioReal, 300);
+  });
+})();
 </script>
 </body>
 </html>
