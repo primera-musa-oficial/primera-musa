@@ -331,17 +331,34 @@ async function cliToggle(enc) {
   b.historial = Array.isArray(b.historial) ? b.historial : []; b.historial.unshift(msg); pintarPanel();
   await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(b.bot_id), { method: "PATCH", body: JSON.stringify({ activo: enc, next_ms: b.next_ms, cmd_id: String(Date.now()), cmd_action: enc?"RESUME":"PAUSE", historial: b.historial.slice(0,50), updated_at: Date.now() }) });
 }
-function abrirSoporte() {
-  ver("vChat"); const u = (MIS_BOTS.at(0)?.usuario || "VIP"), chats = JSON.parse(localStorage.getItem("pm_chats") || "{}");
-  const arr = chats[u] || [{ from: "admin", txt: "Hola @" + u + "! ¿En que podemos ayudarte hoy?", time: "Ahora" }];
-  cMsgs.innerHTML = arr.map(m => `<div style="align-self:${m.from==='client'?'flex-end':'flex-start'};max-width:80%;background:${m.from==='client'?'#4c1d3d':'#1f1b29'};padding:8px 12px;border-radius:10px;font-size:12.5px"><div>${m.txt}</div><div style="font-size:10px;color:#a1a1aa;margin-top:3px;text-align:right">${m.time}</div></div>`).join("");
+async function abrirSoporte() {
+  ver("vChat"); const b = MIS_BOTS.at(0), u = (b?.usuario || "VIP");
+  let arr = [{ from: "admin", txt: "Hola @" + u + "! ¿En que podemos ayudarte hoy?", time: "Ahora" }];
+  if (b && b.bot_id) {
+    try {
+      const r = await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(b.bot_id) + "&select=historial");
+      const h = (Array.isArray(r) && r.at(0)?.historial) || [];
+      const cm = h.filter(x => x && x.chat);
+      if (cm.length) arr = cm;
+    } catch(e) {}
+  }
+  cMsgs.innerHTML = arr.map(m => `<div style="align-self:${m.from==='client'?'flex-end':'flex-start'};max-width:80%;background:${m.from==='client'?'#4c1d3d':'#1f1b29'};padding:8px 12px;border-radius:10px;font-size:12.5px"><div>${m.txt}</div><div style="font-size:10px;color:#a1aaaa;margin-top:3px;text-align:right">${m.time}</div></div>`).join("");
   cMsgs.scrollTop = cMsgs.scrollHeight;
 }
-function mandarMsg() {
+async function mandarMsg() {
   if (!cInp.value.trim()) return;
-  const u = (MIS_BOTS.at(0)?.usuario || "VIP"), d = new Date(), p = n => String(n).padStart(2,"0"), fch = p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear()+", "+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
-  const chats = JSON.parse(localStorage.getItem("pm_chats") || "{}"); chats[u] = chats[u] || []; chats[u].push({ from: "client", txt: cInp.value.trim(), time: fch });
-  localStorage.setItem("pm_chats", JSON.stringify(chats)); cInp.value = ""; abrirSoporte();
+  const b = MIS_BOTS.at(0), txt = cInp.value.trim(); cInp.value = "";
+  const d = new Date(), p = n => String(n).padStart(2,"0"), fch = p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear()+", "+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
+  if (b && b.bot_id) {
+    try {
+      const r = await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(b.bot_id) + "&select=historial");
+      const h = (Array.isArray(r) && r.at(0)?.historial) || [];
+      h.push({ chat: true, from: "client", txt, time: fch });
+      await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(b.bot_id), { method: "PATCH", body: JSON.stringify({ historial: h.slice(-80) }) });
+    } catch(e) {}
+  }
+  abrirSoporte();
 }
+setInterval(() => { const vc = document.getElementById("vChat"); if (vc && !vc.classList.contains("hide")) abrirSoporte(); }, 4000);
 initStates(); renderPicsGrid(); setInterval(() => { if (ACT && SEGS > 0) { SEGS--; updReloj(); } }, 1000);
 </script></body></html>

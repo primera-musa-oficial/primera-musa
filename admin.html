@@ -147,9 +147,9 @@ async function cargar() {
     const evs = (Array.isArray(b0.historial) && b0.historial.length ? b0.historial : [new Date().toLocaleString() + " - Anuncio activo en Supabase"]).map(ev => `<div style="padding:4px 0;border-bottom:1px solid #1f1b29">${ev}</div>`).join("");
     boxDetalle.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:14px"><div style="width:46px;height:46px;border-radius:13px;background:#831843;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px">${SEL.slice(0,2).toUpperCase()}</div><div><b style="font-size:19px">${SEL}</b><div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#a1a1aa;margin-top:4px"><div><span style="font-size:10px;display:block">Usuario</span><b style="color:#fff">@${SEL}</b></div><div><span style="font-size:10px;display:block">Clave</span><b style="color:#f43f5e">${b0.clave || "-"}</b> <button class="mbtn" style="background:#3f1d2e;color:#fda4af" onclick="navigator.clipboard?.writeText('${b0.clave || ""}');setC('${b0.bot_id}')">copiar / editar</button></div><div><span style="font-size:10px;display:block">WhatsApp</span><b style="color:#4ade80">${b0.telefono || "-"}</b></div><div><span style="font-size:10px;display:block">Vence renta</span><b style="color:#fb7185">${fechaV}</b></div></div></div></div><div style="display:flex;gap:8px"><button class="mbtn" style="background:#15803d;color:#fff;padding:8px 14px" onclick="window.open('https://wa.me('${b0.telefono || ''}').replace(/\\D/g,''))">WhatsApp</button><button class="mbtn" style="background:#3f1d2e;color:#fda4af;padding:8px 14px" onclick="darD('${b0.bot_id}',1)">+1 dia renta</button><button class="mbtn" style="background:#881337;color:#fff;padding:8px 14px" onclick="darD('${b0.bot_id}',7)">+1 sem renta</button></div></div><div style="background:#181420;border:1px solid #2e263b;border-radius:12px;padding:12px;margin-bottom:14px"><div style="font-size:10px;color:#f43f5e;font-weight:800;letter-spacing:1px;margin-bottom:8px">DETALLES Y FOTOS DEL ANUNCIO</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">${fotosH || "<span style='font-size:11px;color:#71717a'>Sin fotos sincronizadas aun</span>"}</div><div style="font-size:12.5px;color:#e4e4e7"><b>T&iacute;tulo:</b> ${b0.ad_headline || b0.cuenta || "-"} &nbsp;&bull;&nbsp; <b>Edad:</b> ${b0.ad_edad || "-"} &nbsp;&bull;&nbsp; <b>Zona:</b> ${b0.ad_city || ""}, ${b0.ad_estado || ""}</div><div style="font-size:12px;color:#a1a1aa;margin-top:4px"><b>Descripci&oacute;n:</b> ${b0.ad_body || "-"}</div></div><div style="font-size:10px;color:#71717a;letter-spacing:1px;margin-bottom:6px">&Uacute;LTIMOS EVENTOS</div><div style="font-size:12px;color:#a1a1aa;max-height:130px;overflow:auto">${evs}</div>`;
   } else { boxColmena.classList.add("hide"); boxDetalle.classList.add("hide"); }
-  if(typeof renderSol==="function")renderSol();
+  syncChatsNube(); if(typeof renderSol==="function")renderSol(); if(typeof renderMen==="function" && !secOtro.classList.contains("hide"))renderMen();
 }
-let CHATS = JSON.parse(localStorage.getItem("pm_chats_real") || "{}"); const _old = {
+let CHATS = {}; function syncChatsNube(){ CHATS={}; (BOTS||[]).forEach(b=>{ if(!b.usuario) return; const cm=(Array.isArray(b.historial)?b.historial:[]).filter(x=>x&&x.chat); if(cm.length) CHATS[b.usuario]=cm; }); } const _old = {
   "Karla123": [
     { from: "client", txt: "Hola admin! Ya subi mis fotos nuevas, me confirmas si todo esta activo?", time: "24/11/2026, 20:15:10" },
     { from: "admin", txt: "Hola Karla! Si, tus 2 paginas ya estan sincronizadas y activas con 36 dias de renta.", time: "24/11/2026, 20:16:02" }
@@ -498,17 +498,21 @@ function renderMen() {
   if (sc) sc.scrollTop = sc.scrollHeight;
 }
 
-function enviarChat() {
+async function enviarChat() {
   const inp = document.getElementById("inpChat");
   if (!inp || !inp.value.trim() || !CHAT_SEL) return;
+  const txt = inp.value.trim(); inp.value = "";
   const d = new Date(), p = n => String(n).padStart(2, "0");
   const fch = p(d.getDate()) + "/" + p(d.getMonth() + 1) + "/" + d.getFullYear() + ", " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
-  CHATS[CHAT_SEL] = CHATS[CHAT_SEL] || [];
-  CHATS[CHAT_SEL].push({ from: "admin", txt: inp.value.trim(), time: fch });
-  localStorage.setItem("pm_chats_real", JSON.stringify(CHATS));
-  renderMen();
+  const b = (BOTS || []).find(x => x.usuario === CHAT_SEL);
+  if (b && b.bot_id) {
+    const h = Array.isArray(b.historial) ? [...b.historial] : [];
+    h.push({ chat: true, from: "admin", txt, time: fch });
+    b.historial = h;
+    await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(b.bot_id), { method: "PATCH", body: JSON.stringify({ historial: h.slice(-80) }) });
+  }
+  syncChatsNube(); renderMen();
 }
-
 function simularMsg() {
   if (!CHAT_SEL) return;
   const d = new Date(), p = n => String(n).padStart(2, "0");
