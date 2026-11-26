@@ -250,8 +250,8 @@ window._credSol = JSON.parse(localStorage.getItem("pm_cred_sol")||"{}"); window.
 async function activarSolicitud(idx) {
   const s = SOLS[idx];
   if (!s) return;
-  if (!s.avispa_id) {
-    alert("Primero debes seleccionar una Avispa_OLD (pagina enlazada) antes de darle a ACTIVADA.");
+  if (!s.avispa_id) { const selDom = [...document.querySelectorAll("select")].map(e=>e.value).find(Boolean); if (selDom) s.avispa_id = selDom; } if (!s.avispa_id) {
+    alert("Primero debes seleccionar una Avispa (pagina enlazada) antes de darle a ACTIVADA.");
     return;
   }
   const b = BOTS.find(x => x.bot_id === s.avispa_id);
