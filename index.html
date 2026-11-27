@@ -312,8 +312,8 @@ function pintarPanel() {
   pSub.innerText = "Bienvenida @" + (b.usuario || "VIP");
   pAvispas.innerHTML = MIS_BOTS.length > 1 ? MIS_BOTS.map((x, i) => { const dig = String(x.telefono || x.bot_id || "").replace(/\D/g, "").slice(-4) || ("0" + (i + 1)); return `<div class="avtab ${IDX===i?'on':''}" onclick="IDX=${i};pintarPanel()">Post #${dig}</div>`; }).join("") : "";
   const now = Date.now(), vm = Number(b.vence_ms || 0), venc = vm > 0 && now >= vm, act = !!b.activo && !venc, nm = Number(b.next_ms || 0);
-  ACT = act; SEGS = (act && nm > now) ? Math.floor((nm - now) / 1000) : 0; const dias = venc ? 0 : (vm > 0 ? Math.max(0, Math.ceil((vm - now) / 86400000)) : 0);
-  pTel.innerText = b.telefono || "-"; pAge.innerText = b.ad_edad || "23"; pLoc.innerText = [b.ad_city, b.ad_estado].filter(Boolean).join(", ") || "USA"; pArea.innerText = b.ad_location || "-"; pHead.innerText = b.ad_headline || b.cuenta || "Anuncio VIP"; pBody.innerText = b.ad_body || "-"; pBumps.innerText = b.bumps || 0; pDias.innerText = dias + "d"; pPaso.innerText = b.siguiente_accion || (act ? "En linea" : "Pausada");
+  ACT = act; SEGS = (act && nm > now) ? Math.floor((nm - now) / 1000) : 0; const diff = Math.max(0, vm - now); const d = Math.floor(diff / 86400000); const h = Math.floor((diff % 86400000) / 3600000);
+  pTel.innerText = b.telefono || "-"; pAge.innerText = b.ad_edad || "23"; pLoc.innerText = [b.ad_city, b.ad_estado].filter(Boolean).join(", ") || "USA"; pArea.innerText = b.ad_location || "-"; pHead.innerText = b.ad_headline || b.cuenta || "Anuncio VIP"; pBody.innerText = b.ad_body || "-"; pBumps.innerText = b.bumps || 0; pDias.innerText = venc ? "0d 0h" : (vm > 0 ? d + "d " + h + "h" : "0d"); pPaso.innerText = b.siguiente_accion || (act ? "En linea" : "Pausada");
   pLastPub.innerText = b.last_pub || (b.updated_at ? new Date(Number(b.updated_at)).toLocaleString() : "En espera de ciclo"); pLastPub.style.color = act ? "#4ade80" : "#fb7185";
   if (venc) { pBadge.innerText = "VENCIDO"; pBadge.style.cssText = "background:rgba(244,63,94,.2);color:#f43f5e;border:1px solid #f43f5e;font-weight:900;padding:3px 9px;border-radius:99px;font-size:10px"; pAccion.innerHTML = "<button class='btn b-dark' style='margin:0;padding:12px 8px;font-size:11px' disabled>RENTA VENCIDA</button>"; }
   else if (act) { pBadge.innerText = "ACTIVO"; pBadge.style.cssText = "background:rgba(74,222,128,.2);color:#4ade80;border:1px solid #22c55e;font-weight:900;padding:3px 9px;border-radius:99px;font-size:10px"; pAccion.innerHTML = "<button class='btn b-red' style='margin:0;padding:12px 8px;font-size:12px' onclick='cliToggle(false)'>&#9208; PAUSAR ANUNCIO</button>"; }
@@ -528,6 +528,7 @@ setInterval(syncChatClienteBlindado, 2500);
 </script>
 </body>
 </html>
+
 
 
 
