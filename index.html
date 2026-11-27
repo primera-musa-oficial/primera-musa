@@ -313,8 +313,8 @@ function pintarPanel() {
   pAvispas.innerHTML = MIS_BOTS.length > 1 ? MIS_BOTS.map((x, i) => { const dig = String(x.telefono || x.bot_id || "").replace(/\D/g, "").slice(-4) || ("0" + (i + 1)); return `<div class="avtab ${IDX===i?'on':''}" onclick="IDX=${i};pintarPanel()">Post #${dig}</div>`; }).join("") : "";
   const now = Date.now(), vm = Number(b.vence_ms || 0), venc = vm > 0 && now >= vm, act = !!b.activo && !venc, nm = Number(b.next_ms || 0);
   ACT = act; SEGS = (act && nm > now) ? Math.floor((nm - now) / 1000) : 0; const diff = Math.max(0, vm - now); const d = Math.floor(diff / 86400000); const h = Math.floor((diff % 86400000) / 3600000);
-  pTel.innerText = b.telefono || "-"; pAge.innerText = b.ad_edad || "23"; pLoc.innerText = [b.ad_city, b.ad_estado].filter(Boolean).join(", ") || "USA"; const locParts = String(b.ad_location || "").split(" | PUB:"); pArea.innerText = locParts || "-"; const pubReal = (locParts || b.last_pub || "").trim(); pHead.innerText = b.ad_headline || b.cuenta || "Anuncio VIP"; pBody.innerText = b.ad_body || "-"; pBumps.innerText = b.bumps || 0; pDias.innerText = venc ? "0d 0h" : (vm > 0 ? d + "d " + h + "h" : "0d"); pPaso.innerText = b.siguiente_accion || (act ? "En linea" : "Pausada");
-  pLastPub.innerText = pubReal || (b.updated_at ? new Date(Number(b.updated_at)).toLocaleString("en-US", { timeZone: tzEstado(b.ad_estado) }) : "En espera de ciclo"); pLastPub.style.color = act ? "#4ade80" : "#fb7185";
+  pTel.innerText = b.telefono || "-"; pAge.innerText = b.ad_edad || "23"; pLoc.innerText = [b.ad_city, b.ad_estado].filter(Boolean).join(", ") || "USA"; const locParts = String(b.ad_location || "").split(" | PUB:"); pArea.innerText = locParts[0] || "-"; const pubReal = (locParts[1] || b.last_pub || "").trim(); pHead.innerText = b.ad_headline || b.cuenta || "Anuncio VIP"; pBody.innerText = b.ad_body || "-"; pBumps.innerText = b.bumps || 0; pDias.innerText = venc ? "0d 0h" : (vm > 0 ? d + "d " + h + "h" : "0d"); pPaso.innerText = b.siguiente_accion || (act ? "En linea" : "Pausada");
+  pLastPub.innerText = b.last_pub || (b.updated_at ? new Date(Number(b.updated_at)).toLocaleString() : "En espera de ciclo"); pLastPub.style.color = act ? "#4ade80" : "#fb7185";
   if (venc) { pBadge.innerText = "VENCIDO"; pBadge.style.cssText = "background:rgba(244,63,94,.2);color:#f43f5e;border:1px solid #f43f5e;font-weight:900;padding:3px 9px;border-radius:99px;font-size:10px"; pAccion.innerHTML = "<button class='btn b-dark' style='margin:0;padding:12px 8px;font-size:11px' disabled>RENTA VENCIDA</button>"; }
   else if (act) { pBadge.innerText = "ACTIVO"; pBadge.style.cssText = "background:rgba(74,222,128,.2);color:#4ade80;border:1px solid #22c55e;font-weight:900;padding:3px 9px;border-radius:99px;font-size:10px"; pAccion.innerHTML = "<button class='btn b-red' style='margin:0;padding:12px 8px;font-size:12px' onclick='cliToggle(false)'>&#9208; PAUSAR ANUNCIO</button>"; }
   else { pBadge.innerText = "PAUSADO"; pBadge.style.cssText = "background:rgba(250,204,21,.2);color:#facc15;border:1px solid #eab308;font-weight:900;padding:3px 9px;border-radius:99px;font-size:10px"; pAccion.innerHTML = "<button class='btn b-green' style='margin:0;padding:12px 8px;font-size:12px' onclick='cliToggle(true)'>&#9654; ACTIVAR ANUNCIO</button>"; }
@@ -322,7 +322,6 @@ function pintarPanel() {
   pFotos.innerHTML = fs.map(im => `<img src="${im}" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;border:1.5px solid rgba(255,255,255,.25)">`).join("");
   updReloj();
 }
-function tzEstado(est){const s=String(est||"");if(/California|Washington|Oregon|Nevada/i.test(s))return"America/Los_Angeles";if(/Arizona|Colorado|Utah|New Mexico|Montana|Wyoming|Idaho/i.test(s))return"America/Denver";if(/Texas|Illinois|Louisiana|Minnesota|Missouri|Wisconsin|Iowa|Kansas|Oklahoma|Arkansas|Alabama|Mississippi|Tennessee|Nebraska|Dakota/i.test(s))return"America/Chicago";return"America/New_York";}
 function updReloj() { if (!ACT) { pReloj.innerText = "00:00"; return; } pReloj.innerText = String(Math.floor(SEGS/60)).padStart(2,"0") + ":" + String(SEGS%60).padStart(2,"0"); }
 async function cliToggle(encForzado) {
   const b = MIS_BOTS[IDX] || MIS_BOTS[0];
@@ -529,7 +528,6 @@ setInterval(syncChatClienteBlindado, 2500);
 </script>
 </body>
 </html>
-
 
 
 
