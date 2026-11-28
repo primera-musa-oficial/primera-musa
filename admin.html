@@ -95,6 +95,24 @@ async function _abrirActivarCliente(usr){
   if (typeof render === "function") render();
 }
 </script>
+<script>
+window.darD = async function(botId, dias){
+  const lista = (typeof BOTS !== "undefined" && Array.isArray(BOTS)) ? BOTS : [];
+  const b = lista.find(x => String(x.bot_id) === String(botId));
+  if (!b) return;
+  const ahora = Date.now();
+  const baseMs = Math.max(Number(b.vence_ms || 0), ahora);
+  const nuevoVence = baseMs + (Number(dias || 1) * 86400000);
+  b.vence_ms = nuevoVence;
+  if (typeof sb === "function") {
+    await sb("cuentas_bot?bot_id=eq." + encodeURIComponent(b.bot_id), {
+      method: "PATCH",
+      body: JSON.stringify({ vence_ms: nuevoVence })
+    });
+  }
+  if (typeof render === "function") render();
+};
+</script>
 </head><body><div id="vAuth" class="lbox"><div class="logo" style="margin-bottom:6px">Musa</div><div style="font-size:11px;color:#a1a1aa;margin-bottom:16px">ADMIN SUITE &bull; ACCESO PRIVADO</div><input id="au" class="linp" placeholder="Usuario"><input id="ap" type="password" class="linp" placeholder="Contrase&ntilde;a"><button class="lbtn" onclick="if(au.value.trim()==='admin'&&ap.value.trim()==='Musa2026*'){localStorage.setItem('pm_adm_ok','1');vAuth.classList.add('hide');vMain.classList.remove('hide');cargar();}else alert('Credenciales incorrectas')">ENTRAR AL SUITE</button></div><div id="vMain" class="wrap hide">
   <div class="hdr">
     <div class="brand">
