@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Musa • ADMIN SUITE</title>
+﻿<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Musa • ADMIN SUITE</title>
 <style>
 *{box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(circle at 20% 0%,#261124,#0b090f 55%);color:#f4f4f5;padding:18px 24px}
 .wrap{max-width:1280px;margin:0 auto}.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px}
@@ -18,7 +18,51 @@
 .dots{display:flex;justify-content:center;gap:4px;margin-top:6px}.dot{width:6px;height:6px;border-radius:50%}
 .colmena{background:#14111a;border:1px solid #2b2438;border-radius:16px;padding:16px;margin-bottom:16px}.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:12px}
 .bcard{background:#191521;border:1px solid #2e283b;border-radius:12px;padding:12px;cursor:pointer}.mbtn{border:none;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer}.hide{display:none!important}
-.lbox{max-width:380px;margin:80px auto;background:#14111a;border:1px solid #3f283c;border-top:3px solid #f43f5e;border-radius:18px;padding:26px;text-align:center}.linp{width:100%;padding:11px;margin:6px 0 12px;border-radius:10px;border:1px solid #2e2938;background:#0b090f;color:#fff}.lbtn{width:100%;padding:12px;border:none;border-radius:10px;background:#e11d48;color:#fff;font-weight:900;cursor:pointer}</style></head><body><div id="vAuth" class="lbox"><div class="logo" style="margin-bottom:6px">Musa</div><div style="font-size:11px;color:#a1a1aa;margin-bottom:16px">ADMIN SUITE &bull; ACCESO PRIVADO</div><input id="au" class="linp" placeholder="Usuario"><input id="ap" type="password" class="linp" placeholder="Contrase&ntilde;a"><button class="lbtn" onclick="if(au.value.trim()==='admin'&&ap.value.trim()==='Musa2026*'){localStorage.setItem('pm_adm_ok','1');vAuth.classList.add('hide');vMain.classList.remove('hide');cargar();}else alert('Credenciales incorrectas')">ENTRAR AL SUITE</button></div><div id="vMain" class="wrap hide">
+.lbox{max-width:380px;margin:80px auto;background:#14111a;border:1px solid #3f283c;border-top:3px solid #f43f5e;border-radius:18px;padding:26px;text-align:center}.linp{width:100%;padding:11px;margin:6px 0 12px;border-radius:10px;border:1px solid #2e2938;background:#0b090f;color:#fff}.lbtn{width:100%;padding:12px;border:none;border-radius:10px;background:#e11d48;color:#fff;font-weight:900;cursor:pointer}</style><style>
+  body,div,span,b,p{user-select:text !important;-webkit-user-select:text !important;}
+</style>
+<script>
+function _cpPrev(btn){
+  const el = btn.previousElementSibling;
+  if(!el) return;
+  const val = el.innerText.trim();
+  if(!val || val==="-") return;
+  navigator.clipboard.writeText(val).then(()=>{
+    const o = btn.innerText; btn.innerText = "✅";
+    setTimeout(()=> btn.innerText = o, 1200);
+  });
+}
+function _getTelAnun(s){
+  if(s.tel_anuncio) return s.tel_anuncio;
+  const m = String(s.area || "").match(/TelAd:\s*([0-9+\s()-]+)/i);
+  if(m && m.length > 1) return m.at(1).trim();
+  return s.telefono || "-";
+}
+function _getAreaLimpia(s){
+  const p = String(s.area || "-").split("|");
+  return (p && p.length > 0 && p.at(0).trim()) ? p.at(0).trim() : "-";
+}
+function _copiarAccesoReal(btn){
+  const root = btn.closest("div[style*='border-radius']")?.parentElement || document.body;
+  const mUsr = (root.innerText || "").match(/@([A-Za-z0-9_.-]+)/);
+  const usrLimpio = mUsr && mUsr.length > 1 ? mUsr.at(1) : "";
+  const lista = (typeof BOTS !== "undefined" && Array.isArray(BOTS)) ? BOTS : [];
+  const b = lista.find(x => String(x.usuario || "").toLowerCase() === usrLimpio.toLowerCase()) || (lista.length ? lista.at(0) : null);
+
+  const usr = b && b.usuario ? "@" + b.usuario : (usrLimpio ? "@" + usrLimpio : "@Cliente");
+  const clave = b ? (b.clave || b.password || b.pin || b.pass || "") : "";
+  const vence = (b && b.vence_ms) ? new Date(Number(b.vence_ms)).toLocaleDateString("en-US") : "";
+  const linkWeb = "https://primeramusa.com";
+
+  const msg = "✨ *Acceso a tu Panel VIP — Primera Musa*\n🔗 *Link:* " + linkWeb + "\n👤 *Usuario:* " + usr + "\n🔑 *Clave:* " + clave + "\n📅 *Renta activa hasta:* " + vence;
+  navigator.clipboard.writeText(msg).then(()=>{
+    const orig = btn.innerText;
+    btn.innerText = "✅ Acceso Copiado";
+    setTimeout(()=> btn.innerText = orig, 1500);
+  });
+}
+</script>
+</head><body><div id="vAuth" class="lbox"><div class="logo" style="margin-bottom:6px">Musa</div><div style="font-size:11px;color:#a1a1aa;margin-bottom:16px">ADMIN SUITE &bull; ACCESO PRIVADO</div><input id="au" class="linp" placeholder="Usuario"><input id="ap" type="password" class="linp" placeholder="Contrase&ntilde;a"><button class="lbtn" onclick="if(au.value.trim()==='admin'&&ap.value.trim()==='Musa2026*'){localStorage.setItem('pm_adm_ok','1');vAuth.classList.add('hide');vMain.classList.remove('hide');cargar();}else alert('Credenciales incorrectas')">ENTRAR AL SUITE</button></div><div id="vMain" class="wrap hide">
   <div class="hdr">
     <div class="brand">
       <div class="logo">Musa</div>
@@ -145,7 +189,7 @@ async function cargar() {
     }).join("") + `</div>`;    const fechaV = b0.vence_ms > 0 ? new Date(Number(b0.vence_ms)).toLocaleDateString() : "-";
     const fotosH = (Array.isArray(b0.ad_fotos) ? b0.ad_fotos : []).filter(x => x && !String(x).includes("close") && !String(x).includes("svg")).map(im => `<img src="${im}" style="width:92px;height:92px;object-fit:cover;border-radius:10px;border:1.5px solid #be185d">`).join("");
     const evs = (Array.isArray(b0.historial) && b0.historial.length ? b0.historial : [new Date().toLocaleString() + " - Anuncio activo en Supabase"]).map(ev => `<div style="padding:4px 0;border-bottom:1px solid #1f1b29">${ev}</div>`).join("");
-    boxDetalle.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:14px"><div style="width:46px;height:46px;border-radius:13px;background:#831843;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px">${SEL.slice(0,2).toUpperCase()}</div><div><b style="font-size:19px">${SEL}</b><div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#a1a1aa;margin-top:4px"><div><span style="font-size:10px;display:block">Usuario</span><b style="color:#fff">@${SEL}</b></div><div><span style="font-size:10px;display:block">Clave</span><b style="color:#f43f5e">${b0.clave || "-"}</b> <button class="mbtn" style="background:#3f1d2e;color:#fda4af" onclick="navigator.clipboard?.writeText('${b0.clave || ""}');setC('${b0.bot_id}')">copiar / editar</button></div><div><span style="font-size:10px;display:block">WhatsApp</span><b style="color:#4ade80">${b0.telefono || "-"}</b></div><div><span style="font-size:10px;display:block">Vence renta</span><b style="color:#fb7185">${fechaV}</b></div></div></div></div><div style="display:flex;gap:8px"><button class="mbtn" style="background:#15803d;color:#fff;padding:8px 14px" onclick="window.open('https://wa.me('${b0.telefono || ''}').replace(/\\D/g,''))">WhatsApp</button><button class="mbtn" style="background:#3f1d2e;color:#fda4af;padding:8px 14px" onclick="darD('${b0.bot_id}',1)">+1 dia renta</button><button class="mbtn" style="background:#881337;color:#fff;padding:8px 14px" onclick="darD('${b0.bot_id}',7)">+1 sem renta</button></div></div><div style="background:#181420;border:1px solid #2e263b;border-radius:12px;padding:12px;margin-bottom:14px"><div style="font-size:10px;color:#f43f5e;font-weight:800;letter-spacing:1px;margin-bottom:8px">DETALLES Y FOTOS DEL ANUNCIO</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">${fotosH || "<span style='font-size:11px;color:#71717a'>Sin fotos sincronizadas aun</span>"}</div><div style="font-size:12.5px;color:#e4e4e7"><b>T&iacute;tulo:</b> ${b0.ad_headline || b0.cuenta || "-"} &nbsp;&bull;&nbsp; <b>Edad:</b> ${b0.ad_edad || "-"} &nbsp;&bull;&nbsp; <b>Zona:</b> ${b0.ad_city || ""}, ${b0.ad_estado || ""}</div><div style="font-size:12px;color:#a1a1aa;margin-top:4px"><b>Descripci&oacute;n:</b> ${b0.ad_body || "-"}</div></div><div style="font-size:10px;color:#71717a;letter-spacing:1px;margin-bottom:6px">&Uacute;LTIMOS EVENTOS</div><div style="font-size:12px;color:#a1a1aa;max-height:130px;overflow:auto">${evs}</div>`;
+    boxDetalle.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:14px"><div style="width:46px;height:46px;border-radius:13px;background:#831843;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px">${SEL.slice(0,2).toUpperCase()}</div><div><b style="font-size:19px">${SEL}</b><div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#a1a1aa;margin-top:4px"><div><span style="font-size:10px;display:block">Usuario</span><b style="color:#fff">@${SEL}</b></div><div><span style="font-size:10px;display:block">Clave</span><b style="color:#f43f5e">${b0.clave || "-"}</b> <button class="mbtn" style="background:#3f1d2e;color:#fda4af" onclick="navigator.clipboard?.writeText('${b0.clave || ""}');setC('${b0.bot_id}')">copiar / editar</button></div><div><span style="font-size:10px;display:block">WhatsApp</span><b style="color:#4ade80">${b0.telefono || "-"}</b></div><div><span style="font-size:10px;display:block">Vence renta</span><b style="color:#fb7185">${fechaV}</b></div></div></div></div><div style="display:flex;gap:8px"><button class="mbtn" style="background:#15803d;color:#fff;padding:8px 14px" onclick="window.open('https://wa.me('${b0.telefono || ''}').replace(/\\D/g,''))">WhatsApp</button><button type="button" onclick="_copiarAccesoReal(this)" style="background:linear-gradient(90deg,#0284c7,#2563eb);color:#fff;font-weight:700;border:none;border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer">📋 Copiar Acceso</button> <button class="mbtn" style="background:#3f1d2e;color:#fda4af;padding:8px 14px" onclick="darD('${b0.bot_id}',1)">+1 dia renta</button><button class="mbtn" style="background:#881337;color:#fff;padding:8px 14px" onclick="darD('${b0.bot_id}',7)">+1 sem renta</button></div></div><div style="background:#181420;border:1px solid #2e263b;border-radius:12px;padding:12px;margin-bottom:14px"><div style="font-size:10px;color:#f43f5e;font-weight:800;letter-spacing:1px;margin-bottom:8px">DETALLES Y FOTOS DEL ANUNCIO</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">${fotosH || "<span style='font-size:11px;color:#71717a'>Sin fotos sincronizadas aun</span>"}</div><div style="font-size:12.5px;color:#e4e4e7"><b>T&iacute;tulo:</b> ${b0.ad_headline || b0.cuenta || "-"} &nbsp;&bull;&nbsp; <b>Edad:</b> ${b0.ad_edad || "-"} &nbsp;&bull;&nbsp; <b>Zona:</b> ${b0.ad_city || ""}, ${b0.ad_estado || ""}</div><div style="font-size:12px;color:#a1a1aa;margin-top:4px"><b>Descripci&oacute;n:</b> ${b0.ad_body || "-"}</div></div><div style="font-size:10px;color:#71717a;letter-spacing:1px;margin-bottom:6px">&Uacute;LTIMOS EVENTOS</div><div style="font-size:12px;color:#a1a1aa;max-height:130px;overflow:auto">${evs}</div>`;
   } else { boxColmena.classList.add("hide"); boxDetalle.classList.add("hide"); }
   syncChatsNube(); if(typeof renderSol==="function")renderSol(); if(document.getElementById("inpChat")) renderMen();
 }
@@ -218,14 +262,14 @@ window._credSol = JSON.parse(localStorage.getItem("pm_cred_sol")||"{}"); window.
         </div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;font-size:12px;color:#d4d4d8;margin-bottom:10px">
-        <div><span style="color:#71717a">WhatsApp Cliente:</span> <b style="color:#4ade80">${s.telefono || "-"}</b></div><div><span style="color:#71717a">Tel&eacute;fono del Anuncio:</span> <b style="color:#38bdf8">${s.tel_anuncio || s.telefono || "-"}</b></div>
+        <div><span style="color:#71717a">WhatsApp Cliente:</span> <b style="color:#4ade80">${s.telefono || "-"}</b> <button type="button" onclick="_cpPrev(this)" style="margin-left:5px;background:#1e293b;color:#94a3b8;border:1px solid #334155;border-radius:5px;padding:1px 6px;font-size:10px;cursor:pointer">📋</button></div><div><span style="color:#71717a">Tel&eacute;fono del Anuncio:</span> <b style="color:#38bdf8">${_getTelAnun(s)}</b> <button type="button" onclick="_cpPrev(this)" style="margin-left:5px;background:#1e293b;color:#94a3b8;border:1px solid #334155;border-radius:5px;padding:1px 6px;font-size:10px;cursor:pointer">📋</button></div>
         <div><span style="color:#71717a">State:</span> <b>${s.estado || "-"}</b></div>
         <div><span style="color:#71717a">City:</span> <b>${s.ciudad || "-"}</b></div>
-        <div><span style="color:#71717a">Location / Area:</span> <b>${s.area || "-"}</b></div>
+        <div><span style="color:#71717a">Location / Area:</span> <b>${_getAreaLimpia(s)}</b></div>
       </div>
       <div style="background:#110e17;border:1px solid #262130;border-radius:10px;padding:10px;font-size:12px;margin-bottom:10px">
-        <div style="color:#fde047;font-weight:700;margin-bottom:3px">${s.headline || "-"}</div>
-        <div style="color:#a1a1aa">${s.body || "-"}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="color:#fde047;font-weight:700">${s.headline || "-"}</span><button type="button" onclick="_cpPrev(this)" style="background:#1e293b;color:#fde047;border:1px solid #334155;border-radius:5px;padding:1px 7px;font-size:10px;cursor:pointer;white-space:nowrap">📋 Copiar Headline</button></div>
+        <div style="display:flex;align-items:flex-start;gap:8px"><span style="color:#a1a1aa">${s.body || "-"}</span><button type="button" onclick="_cpPrev(this)" style="background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:5px;padding:1px 7px;font-size:10px;cursor:pointer;white-space:nowrap">📋 Copiar Body</button></div>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">${imgs || "<span style='font-size:11px;color:#71717a'>Fotos para descargar apareceran aqui</span>"}</div>
       <div style="background:#1c1626;border:1px solid #3f283c;border-radius:12px;padding:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between">
@@ -898,6 +942,56 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }, 4000);
 })();
+</script>
+<script>
+const _origPintarAct = window.pintarActReal;
+window.pintarActReal = async function(){
+  if (typeof _origPintarAct === "function") await _origPintarAct();
+  const c = document.getElementById("secOtro");
+  if (!c || !c.innerHTML.includes("Actividad en Tiempo Real")) return;
+
+  let eventos = [];
+  (typeof BOTS !== "undefined" ? BOTS : []).forEach(b => {
+    const u = b.usuario || "Cliente";
+    Object.values(b).forEach(val => {
+      let arr = Array.isArray(val) ? val : null;
+      if (!arr && typeof val === "string" && val.trim().startsWith("[")) {
+        try { arr = JSON.parse(val); } catch(e){}
+      }
+      if (!Array.isArray(arr)) return;
+      arr.forEach(ev => {
+        const linea = typeof ev === "string" ? ev : JSON.stringify(ev);
+        if (!/activada|pausada|Cliente:/i.test(linea)) return;
+        const partes = linea.split("·").map(x => x.trim());
+        const fch = partes.length > 0 && /\d{2}\/\d{2}\/\d{4}/.test(partes.at(0)) ? partes.at(0) : "";
+        const esPausa = /pausada/i.test(linea);
+        const ico = esPausa ? "⏸️" : "▶️";
+        const estadoTxt = esPausa ? '<span style="color:#facc15">@' + u + ' · Pausó su anuncio</span>' : '<span style="color:#4ade80">@' + u + ' · Activó su anuncio</span>';
+        eventos.push({ ico, tit: estadoTxt, det: linea, fch });
+      });
+    });
+  });
+
+  if (eventos.length > 0) {
+    const htmlEv = eventos.map(i => '<div style="display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #1e162e;background:rgba(255,255,255,.02)"><span style="font-size:20px">' + i.ico + '</span><div style="flex:1"><div style="font-weight:700;font-size:13px">' + i.tit + '</div><div style="color:#a499bd;font-size:12px">' + i.det + '</div></div><div style="color:#7c6f99;font-size:11px;white-space:nowrap">' + i.fch + '</div></div>').join("");
+    c.innerHTML = c.innerHTML.replace(/(<h3[^>]*>.*?<\/div>)/s, '$1' + htmlEv);
+  }
+};
+
+const _origPintarMen = window.pintarMenReal;
+window.pintarMenReal = async function(){
+  if (typeof _origPintarMen === "function") await _origPintarMen();
+  const c = document.getElementById("secOtro");
+  if (!c) return;
+  c.querySelectorAll("div").forEach(d => {
+    const st = d.getAttribute("style") || "";
+    if (st.includes("flex-direction:column") && d.scrollHeight > 450) {
+      d.style.maxHeight = "440px";
+      d.style.overflowY = "auto";
+      d.scrollTop = d.scrollHeight;
+    }
+  });
+};
 </script>
 </body>
 </html>
