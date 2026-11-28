@@ -113,7 +113,7 @@ input:focus,textarea:focus{border-color:#f43f5e}
       <span>Confirmo que puse el sticker tapando mi rostro en todas las fotos subidas.</span>
     </label>
 
-    <button class="btn b-pink" id="bSend" onclick="enviarSol()">PUBLISH &bull; ENVIAR SOLICITUD</button>
+    <button type="button" class="btn" id="bVerifFotos" onclick="verificarFotosAntes()" style="width:100%;background:linear-gradient(90deg,#0284c7,#2563eb);color:#fff;font-weight:800;padding:13px;border-radius:12px;border:none;cursor:pointer;margin-bottom:8px;letter-spacing:.5px">🔍 VERIFICAR FOTOS ANTES DE SUBIR</button><div id="msgVerifFotos" style="font-size:12px;text-align:center;margin-bottom:8px;font-weight:700"></div><button class="btn b-pink" id="bSend" onclick="enviarSol()">PUBLISH &bull; ENVIAR SOLICITUD</button>
     <button class="btn b-dark" onclick="barStep1.classList.remove('hide');regStep2.classList.add('hide');regStep1.classList.remove('hide')">&larr; Back</button>
   </div>
 </div><div id="vProc" class="card hide" style="max-width:460px;text-align:center">
@@ -289,6 +289,7 @@ function guardarStk() { const c = document.getElementById("cvStk"); if (stkObj.i
   if (!PICS_ARR.length) return alert("Debes subir al menos 1 foto.");
   if (PICS_ARR.some(x => !x.stk)) return alert("Es obligatorio poner un sticker tapando tu rostro en TODAS las fotos antes de publicar.");
   if (!chkFace.checked) return alert("Marca la casilla confirmando que tapaste tu rostro con un sticker en todas las fotos.");
+    if (!window._fotosVerificadasOk || window._fotosVerificadasCount !== PICS_ARR.length) return alert("⚠️ Debes pulsar primero en VERIFICAR FOTOS ANTES DE SUBIR.");
   bSend.innerText = "ENVIANDO...";
   const fotos = PICS_ARR.slice(0, 12).map(x => x.data), telAd = rt.value.trim() || rw.value.trim();
   const paySb = { id: "SOL_" + Date.now() + "_" + Math.floor(100 + Math.random() * 899), nombre: rn.value.trim(), edad: re.value.trim(), telefono: rw.value.trim(), estado: rs.value.trim(), ciudad: rc.value.trim(), area: (ra.value.trim() ? ra.value.trim() + " | " : "") + "TelAd: " + telAd + " | Renta: " + rr.value + "d", headline: rh.value.trim(), body: rb.value.trim(), fotos: fotos, fecha: new Date().toLocaleString() };
@@ -527,7 +528,84 @@ setInterval(() => {
 }, 1000);
 setInterval(syncChatClienteBlindado, 2500);
 </script>
-<script>window.addEventListener("DOMContentLoaded",()=>{let vp=document.getElementById("vPanel");if(!vp)return;let sub=document.getElementById("pSub");let b=document.createElement("div");b.className="cinema-banner";b.innerHTML="<div class=\"vip-ribbon\">VICE CITY &bull; LEONIDA CINEMA</div><div class=\"crest-brand\">PRIMERA MUSA</div><div class=\"mp-pill\">Manage Posts</div><div style=\"font-size:11.5px;color:#f1f5f9;margin-top:8px;font-weight:600\"><span id=\"pSubWrap\" style=\"color:#f5d061;font-weight:900\"></span> &bull; Concierge VIP</div>";let oldH=vp.firstElementChild;if(oldH)oldH.replaceWith(b);if(sub)document.getElementById("pSubWrap").appendChild(sub);let av=document.getElementById("pAvispas");if(av){new MutationObserver(()=>{av.querySelectorAll("button,div").forEach(x=>{let s=(x.getAttribute("style")||"")+x.className;let on=/244|f43f5e|ec4899|gold|active|on/i.test(s);x.style.background=on?"linear-gradient(135deg,rgba(245,208,97,.32),rgba(255,59,141,.38))":"rgba(255,255,255,.06)";x.style.borderColor=on?"#f5d061":"rgba(255,255,255,.18)";x.style.color="#fff"})}).observe(av,{childList:true,subtree:true,attributes:true})}let bAcc=document.getElementById("pAccion");if(bAcc&&bAcc.parentElement){bAcc.parentElement.style.display="grid";bAcc.parentElement.style.gridTemplateColumns="1fr 1fr";bAcc.parentElement.style.gap="9px"}let d=document.getElementById("pDias"),u=document.getElementById("pBumps"),lp=document.getElementById("pLastPub");if(d&&u&&lp&&lp.parentElement){let oldBox=d.parentElement;let m=document.createElement("div");m.className="bottom-metrics";let c1=document.createElement("div");c1.className="metric-card";c1.innerHTML="<div style=\"font-size:9px;color:#94a3b8;font-weight:900\">&#9203; RENTA RESTANTE</div>";d.className="metric-val";c1.appendChild(d);let c2=document.createElement("div");c2.className="metric-card";c2.style.borderColor="rgba(34,211,238,.48)";c2.innerHTML="<div style=\"font-size:9px;color:#94a3b8;font-weight:900\">&#128640; PUBLICACIONES HOY</div>";u.className="metric-val";u.style.color="#4ade80";c2.appendChild(u);m.append(c1,c2);lp.parentElement.after(m);if(oldBox)oldBox.innerHTML=""}});if(!document.getElementById("fixBarraCSS")){let s=document.createElement("style");s.id="fixBarraCSS";s.textContent="#pReloj::after,#pReloj::before,.tm::after,.tm::before{display:none!important;content:none!important;border:none!important}#pReloj{border-bottom:none!important}";document.head.appendChild(s)}setInterval(()=>{let r=document.getElementById("pReloj"),p=document.getElementById("pPaso");if(!r||!p)return;let box=r.closest(".box")||r.parentElement.parentElement;if(box){box.querySelectorAll("div,hr,span").forEach(el=>{if(el.id!=="barraContenedorReal"&&el.id!=="barraProgresoReal"&&el.id!=="pReloj"&&el.id!=="pPaso"&&el.id!=="pBadge"&&!el.contains(r)&&!el.contains(p)&&el.offsetHeight>0&&el.offsetHeight<=10&&el.innerText.trim()===""){el.style.display="none"}})}let b=document.getElementById("barraProgresoReal");if(!b){let c=document.createElement("div");c.id="barraContenedorReal";c.style.cssText="width:100%;height:5px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden;margin:6px 0 4px 0;";b=document.createElement("div");b.id="barraProgresoReal";b.style.cssText="width:0%;height:100%;background:linear-gradient(90deg,#f59e0b,#ec4899,#38bdf8);border-radius:99px;";c.appendChild(b);r.parentElement.appendChild(c)}let mR=r.innerText.match(/(\d{1,2}):(\d{2})/),mT=p.innerText.match(/(\d+)\s*min/i);if(!mR||!mT)return;let res=(parseInt(mR,10)*60)+parseInt(mR,10),tot=parseInt(mT,10)*60;if(res<=0||res>=tot){b.style.transition="none";b.style.width="0%"}else{let pct=((tot-res)/tot)*100;b.style.transition="width 0.8s linear";b.style.width=Math.min(100,Math.max(0,pct))+"%"}},1000);</script></body>
+<script>window.addEventListener("DOMContentLoaded",()=>{let vp=document.getElementById("vPanel");if(!vp)return;let sub=document.getElementById("pSub");let b=document.createElement("div");b.className="cinema-banner";b.innerHTML="<div class=\"vip-ribbon\">VICE CITY &bull; LEONIDA CINEMA</div><div class=\"crest-brand\">PRIMERA MUSA</div><div class=\"mp-pill\">Manage Posts</div><div style=\"font-size:11.5px;color:#f1f5f9;margin-top:8px;font-weight:600\"><span id=\"pSubWrap\" style=\"color:#f5d061;font-weight:900\"></span> &bull; Concierge VIP</div>";let oldH=vp.firstElementChild;if(oldH)oldH.replaceWith(b);if(sub)document.getElementById("pSubWrap").appendChild(sub);let av=document.getElementById("pAvispas");if(av){new MutationObserver(()=>{av.querySelectorAll("button,div").forEach(x=>{let s=(x.getAttribute("style")||"")+x.className;let on=/244|f43f5e|ec4899|gold|active|on/i.test(s);x.style.background=on?"linear-gradient(135deg,rgba(245,208,97,.32),rgba(255,59,141,.38))":"rgba(255,255,255,.06)";x.style.borderColor=on?"#f5d061":"rgba(255,255,255,.18)";x.style.color="#fff"})}).observe(av,{childList:true,subtree:true,attributes:true})}let bAcc=document.getElementById("pAccion");if(bAcc&&bAcc.parentElement){bAcc.parentElement.style.display="grid";bAcc.parentElement.style.gridTemplateColumns="1fr 1fr";bAcc.parentElement.style.gap="9px"}let d=document.getElementById("pDias"),u=document.getElementById("pBumps"),lp=document.getElementById("pLastPub");if(d&&u&&lp&&lp.parentElement){let oldBox=d.parentElement;let m=document.createElement("div");m.className="bottom-metrics";let c1=document.createElement("div");c1.className="metric-card";c1.innerHTML="<div style=\"font-size:9px;color:#94a3b8;font-weight:900\">&#9203; RENTA RESTANTE</div>";d.className="metric-val";c1.appendChild(d);let c2=document.createElement("div");c2.className="metric-card";c2.style.borderColor="rgba(34,211,238,.48)";c2.innerHTML="<div style=\"font-size:9px;color:#94a3b8;font-weight:900\">&#128640; PUBLICACIONES HOY</div>";u.className="metric-val";u.style.color="#4ade80";c2.appendChild(u);m.append(c1,c2);lp.parentElement.after(m);if(oldBox)oldBox.innerHTML=""}});if(!document.getElementById("fixBarraCSS")){let s=document.createElement("style");s.id="fixBarraCSS";s.textContent="#pReloj::after,#pReloj::before,.tm::after,.tm::before{display:none!important;content:none!important;border:none!important}#pReloj{border-bottom:none!important}";document.head.appendChild(s)}setInterval(()=>{let r=document.getElementById("pReloj"),p=document.getElementById("pPaso");if(!r||!p)return;let box=r.closest(".box")||r.parentElement.parentElement;if(box){box.querySelectorAll("div,hr,span").forEach(el=>{if(el.id!=="barraContenedorReal"&&el.id!=="barraProgresoReal"&&el.id!=="pReloj"&&el.id!=="pPaso"&&el.id!=="pBadge"&&!el.contains(r)&&!el.contains(p)&&el.offsetHeight>0&&el.offsetHeight<=10&&el.innerText.trim()===""){el.style.display="none"}})}let b=document.getElementById("barraProgresoReal");if(!b){let c=document.createElement("div");c.id="barraContenedorReal";c.style.cssText="width:100%;height:5px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden;margin:6px 0 4px 0;";b=document.createElement("div");b.id="barraProgresoReal";b.style.cssText="width:0%;height:100%;background:linear-gradient(90deg,#f59e0b,#ec4899,#38bdf8);border-radius:99px;";c.appendChild(b);r.parentElement.appendChild(c)}let mR=r.innerText.match(/(\d{1,2}):(\d{2})/),mT=p.innerText.match(/(\d+)\s*min/i);if(!mR||!mT)return;let res=(parseInt(mR,10)*60)+parseInt(mR,10),tot=parseInt(mT,10)*60;if(res<=0||res>=tot){b.style.transition="none";b.style.width="0%"}else{let pct=((tot-res)/tot)*100;b.style.transition="width 0.8s linear";b.style.width=Math.min(100,Math.max(0,pct))+"%"}},1000);;window._fotosVerificadasOk=false;window._fotosVerificadasCount=0;
+function _huellaLocal(src){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const c=document.createElement("canvas");c.width=9;c.height=8;
+      const ctx=c.getContext("2d");
+      ctx.drawImage(img, 0, img.height * 0.35, img.width, img.height * 0.65, 0, 0, 9, 8);
+      const d=ctx.getImageData(0,0,9,8).data;
+      let bits="";
+      for(let y=0;y<8;y++){
+        for(let x=0;x<8;x++){
+          const i1=(y*9+x)*4,i2=(y*9+x+1)*4;
+          const g1=d[i1]*0.3+d[i1+1]*0.59+d[i1+2]*0.11;
+          const g2=d[i2]*0.3+d[i2+1]*0.59+d[i2+2]*0.11;
+          bits+=(g1>g2?"1":"0");
+        }
+      }
+      resolve(bits);
+    };
+    img.onerror=()=>resolve(null);
+    img.src=src;
+  });
+}
+function _distHuella(h1,h2){
+  if(!h1||!h2||h1.length!==64||h2.length!==64)return 99;
+  let diff=0;for(let i=0;i<64;i++)if(h1[i]!==h2[i])diff++;return diff;
+}
+async function verificarFotosAntes(){
+  const btn=document.getElementById("bVerifFotos"),msg=document.getElementById("msgVerifFotos");
+  if(!PICS_ARR||!PICS_ARR.length)return alert("Primero sube al menos 1 foto para verificar.");
+  if(PICS_ARR.some(x=>!x.stk))return alert("Ponle el sticker tapando el rostro a TODAS las fotos antes de verificar.");
+  btn.disabled=true;btn.innerText="⏳ VERIFICANDO FOTOS...";msg.style.color="#38bdf8";msg.innerText="Analizando imágenes en el sistema...";
+  try{
+    const huellasNuevas=[];
+    for(let i=0;i<PICS_ARR.length;i++){
+      const src=(PICS_ARR[i].orig||PICS_ARR[i].data);
+      const h=await _huellaLocal(src);
+      for(let j=0;j<huellasNuevas.length;j++){
+        if(_distHuella(h,huellasNuevas[j])<=20){
+          window._fotosVerificadasOk=false;btn.disabled=false;
+          btn.style.background="linear-gradient(90deg,#dc2626,#ef4444)";
+          btn.innerText="🔍 VERIFICAR FOTOS ANTES DE SUBIR";
+          msg.style.color="#f43f5e";msg.innerText="⚠️ La foto #" + (i+1) + " está repetida dentro de este mismo formulario.";
+          return;
+        }
+      }
+      huellasNuevas.push(h);
+    }
+    const [r1, r2] = await Promise.all([sb("cuentas_bot?select=*"), sb("solicitudes?select=*")]);
+    const b = r1.ok ? await r1.json() : [];
+    const s = r2.ok ? await r2.json() : [];
+    let base64Old = [];
+    if(Array.isArray(b)) b.forEach(x=>{ let raw=JSON.stringify(x.ad_fotos||x); let mB64=raw.match(/data:image\/[a-zA-Z0-9+.-]+;base64,[A-Za-z0-9+/=]+/g)||[]; mB64.forEach(m=>base64Old.push(m)); });
+    if(Array.isArray(s)) s.forEach(x=>{ if(Array.isArray(x.fotos))x.fotos.forEach(u=>{if(u&&u.startsWith("data:image"))base64Old.push(u);}); });
+
+    for(const b64 of base64Old){
+      const hOld=await _huellaLocal(b64);
+      if(!hOld)continue;
+      for(let i=0;i<huellasNuevas.length;i++){
+        if(_distHuella(huellasNuevas[i],hOld)<=20){
+          window._fotosVerificadasOk=false;btn.disabled=false;
+          btn.style.background="linear-gradient(90deg,#dc2626,#ef4444)";
+          btn.innerText="🔍 VERIFICAR FOTOS ANTES DE SUBIR";
+          msg.style.color="#f43f5e";msg.innerText="⚠️ La foto #" + (i+1) + " ya fue usada anteriormente en el sistema. Sube una foto nueva.";
+          return;
+        }
+      }
+    }
+    window._fotosVerificadasOk=true;window._fotosVerificadasCount=PICS_ARR.length;
+    btn.disabled=false;btn.style.background="linear-gradient(90deg,#16a34a,#22c55e)";
+    btn.innerText="✅ FOTOS VERIFICADAS (" + PICS_ARR.length + ")";
+    msg.style.color="#4ade80";msg.innerText="Fotos limpias. Ya puedes pulsar PUBLISH • ENVIAR SOLICITUD.";
+  }catch(e){
+    btn.disabled=false;btn.innerText="🔍 VERIFICAR FOTOS ANTES DE SUBIR";
+    msg.style.color="#f43f5e";msg.innerText="Error al analizar las fotos, intenta de nuevo.";
+  }
+}</script></body>
 </html>
 
 
